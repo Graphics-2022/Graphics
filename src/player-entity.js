@@ -36,6 +36,23 @@ export const player_entity = (() => {
     }
   };
 
+  class AIInput {
+    constructor() {
+      this._Init();    
+    }
+
+    _Init() {
+      this._keys = {
+        forward: false,
+        backward: false,
+        left: false,
+        right: false,
+        space: false,
+        shift: false,
+      };
+    }
+  };
+
 
   class BasicCharacterController extends entity.Component {
     constructor(params,type, active) {
@@ -77,10 +94,9 @@ export const player_entity = (() => {
 
     _LoadModels() {
       if (this._type == 'mouse'){
-        
 
         const loader = new FBXLoader();
-        loader.setPath('./resources/girl/');
+        loader.setPath('./resources/mouse/');
         loader.load('mouse.fbx', (fbx) => {
           this._target = fbx;
           this._target.position.copy(new THREE.Vector3(3, 0, 0));
@@ -89,7 +105,7 @@ export const player_entity = (() => {
           this._params.scene.add(this._target);
     
           this._bones = {};
-          console.log(this._target)
+          //console.log(this._target)
 
           this._target.traverse(c => {
             c.castShadow = true;
@@ -117,16 +133,17 @@ export const player_entity = (() => {
           };
     
           const loader = new FBXLoader(this._manager);
-          loader.setPath('./resources/girl/');
+          loader.setPath('./resources/mouse/');
           loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
           //loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
           loader.load('Fast Run.fbx', (a) => { _OnLoad('walk', a); });
           //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
           // loader.load('Sword And Shield Death.fbx', (a) => { _OnLoad('death', a); });
         });
+        this._input = new AIInput();
       }else{
         const loader = new FBXLoader();
-        loader.setPath('./resources/guard/');
+        loader.setPath('./resources/girl/');
         loader.load('girl.fbx', (fbx) => {
           this._target = fbx;
           this._target.scale.setScalar(0.035);
@@ -161,7 +178,7 @@ export const player_entity = (() => {
           };
     
           const loader = new FBXLoader(this._manager);
-          loader.setPath('./resources/guard/');
+          loader.setPath('./resources/girl/');
           loader.load('Female Crouch Pose.fbx', (a) => { _OnLoad('idle', a); });
           loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
           loader.load('Crouched Walking.fbx', (a) => { _OnLoad('walk', a); });
@@ -196,6 +213,124 @@ export const player_entity = (() => {
       return collisions;
     }
 
+    _FindPlayer(pos) {
+      // const _IsAlivePlayer = (c) => {
+      //   const h = c.entity.GetComponent('HealthComponent');
+      //   if (!h) {
+      //     return false;
+      //   }
+      //   if (c.entity.Name != 'player') {
+      //     return false;
+      //   }
+      //   return h._health > 0;
+      // };
+
+      const grid = this.GetComponent('SpatialGridController');
+      const nearby = grid.FindNearbyEntities(20).filter(c => c.entity.Name == 'player'); //find player within 20 units
+
+      if (nearby.length == 0) {
+        return new THREE.Vector3(0, 0, 0);
+      }
+
+      const dir = this._parent._position.clone();
+      dir.sub(nearby[0].entity._position);
+      dir.y = 0.0;
+      dir.normalize();
+
+      return dir;
+    }
+
+    _UpdateAI(timeInSeconds) {
+      const currentState = this._stateMachine._currentState;
+      if (currentState.Name != 'walk' &&
+          currentState.Name != 'run' &&
+          currentState.Name != 'idle') {
+        return;
+      }
+
+      if (currentState.Name == 'death') {
+        return;
+      }
+
+      if (currentState.Name == 'idle' ||
+          currentState.Name == 'walk') {
+        this._OnAIWalk(timeInSeconds);
+      }
+    }
+
+    _OnAIWalk(timeInSeconds) {
+      const dirToPlayer = this._FindPlayer();
+
+      const velocity = this._velocity;
+      const frameDecceleration = new THREE.Vector3(
+          velocity.x * this._decceleration.x,
+          velocity.y * this._decceleration.y,
+          velocity.z * this._decceleration.z
+      );
+      frameDecceleration.multiplyScalar(timeInSeconds);
+      frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
+          Math.abs(frameDecceleration.z), Math.abs(velocity.z));
+  
+      velocity.add(frameDecceleration);
+
+      const controlObject = this._target;
+      const _Q = new THREE.Quaternion();
+      const _A = new THREE.Vector3();
+      const _R = controlObject.quaternion.clone();
+
+      
+      this._input._keys.forward = false;
+
+      const acc = this._acceleration;
+      if (dirToPlayer.length() == 0) {
+        return;
+      }
+
+      this._input._keys.forward = true;
+      velocity.z += acc.z * timeInSeconds;
+
+      const m = new THREE.Matrix4();
+      m.lookAt(
+          new THREE.Vector3(0, 0, 0),
+          dirToPlayer,
+          new THREE.Vector3(0, 1, 0));
+      _R.setFromRotationMatrix(m);
+  
+      controlObject.quaternion.copy(_R);
+  
+      const oldPosition = new THREE.Vector3();
+      oldPosition.copy(controlObject.position);
+  
+      const forward = new THREE.Vector3(0, 0, 1);
+      forward.applyQuaternion(controlObject.quaternion);
+      forward.normalize();
+  
+      const sideways = new THREE.Vector3(1, 0, 0);
+      sideways.applyQuaternion(controlObject.quaternion);
+      sideways.normalize();
+  
+      sideways.multiplyScalar(velocity.x * timeInSeconds);
+      forward.multiplyScalar(velocity.z * timeInSeconds);
+  
+      const pos = controlObject.position.clone();
+      pos.add(forward);
+      pos.add(sideways);
+
+      const collisions = this._FindIntersections(pos);
+      if (collisions.length > 0) {
+        //this._input._keys.space = true;
+        this._input._keys.forward = false;
+        return;
+      }
+
+      controlObject.position.copy(pos);
+      this._position.copy(pos);
+  
+      this._parent.SetPosition(this._position);
+      this._parent.SetQuaternion(this._target.quaternion);
+    }
+    
+
     Update(timeInSeconds) {
       if (!this._stateMachine._currentState) {
         return;
@@ -206,7 +341,12 @@ export const player_entity = (() => {
       }
 
       if (!this._active){
-        this._stateMachine.SetState('idle');
+        if(this._type == 'mouse'){
+          this._UpdateAI(timeInSeconds);
+          this._stateMachine.Update(timeInSeconds, this._input);
+        }else{
+          this._stateMachine.SetState('idle');
+        }
         return;
       }
 
@@ -295,10 +435,10 @@ export const player_entity = (() => {
       pos.add(forward);
       pos.add(sideways);
 
-      // const collisions = this._FindIntersections(pos);
-      // if (collisions.length > 0) {
-      //   return;
-      // }
+      const collisions = this._FindIntersections(pos);
+      if (collisions.length > 0) {
+        return;
+      }
 
       controlObject.position.copy(pos);
       this._position.copy(pos);

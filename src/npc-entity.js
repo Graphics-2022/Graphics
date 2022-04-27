@@ -82,52 +82,96 @@ export const npc_entity = (() => {
 
     _LoadModels() {
       const loader = new FBXLoader();
-      loader.setPath('./resources/monsters/FBX/');
-      loader.load(this._params.resourceName, (glb) => {
-        this._target = glb;
-        this._params.scene.add(this._target);
-
-        this._target.scale.setScalar(0.025);
+      loader.setPath('./resources/enemies/');
+      loader.load('Vampire A Lusth.fbx', (fbx) => {
+        this._target = fbx;
+        this._target.scale.setScalar(0.035);
         this._target.position.copy(this._parent._position);
         this._target.position.y += 0.35;
-        const texLoader = new THREE.TextureLoader();
-        const texture = texLoader.load(
-            './resources/monsters/Textures/' + this._params.resourceTexture);
-        texture.encoding = THREE.sRGBEncoding;
-        texture.flipY = true;
+        this._params.scene.add(this._target);
+  
+        this._bones = {};
+        console.log(this._target)
 
         this._target.traverse(c => {
           c.castShadow = true;
           c.receiveShadow = true;
-          if (c.material) {
-            c.material.map = texture;
-            c.material.side = THREE.DoubleSide;
+          if (c.material && c.material.map) {
+            c.material.map.encoding = THREE.sRGBEncoding;
           }
         });
 
         this._mixer = new THREE.AnimationMixer(this._target);
 
-        const fbx = glb;
-        const _FindAnim = (animName) => {
-          for (let i = 0; i < fbx.animations.length; i++) {
-            if (fbx.animations[i].name.includes(animName)) {
-              const clip = fbx.animations[i];
-              const action = this._mixer.clipAction(clip);
-              return {
-                clip: clip,
-                action: action
-              }
-            }
-          }
-          return null;
+        const _OnLoad = (animName, anim) => {
+          const clip = anim.animations[0];
+          const action = this._mixer.clipAction(clip);
+    
+          this._animations[animName] = {
+            clip: clip,
+            action: action,
+          };
         };
 
-        this._animations['idle'] = _FindAnim('Idle');
-        this._animations['walk'] = _FindAnim('Walk');
-        this._animations['death'] = _FindAnim('Death');
-        this._animations['attack'] = _FindAnim('Bite_Front');
-
+        this._manager = new THREE.LoadingManager();
+        this._manager.onLoad = () => {
         this._stateMachine.SetState('idle');
+        };
+  
+        const loader = new FBXLoader(this._manager);
+        loader.setPath('./resources/enemies/');
+        loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
+        //loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
+        loader.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
+        //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
+        
+      // const loader = new FBXLoader();
+      // loader.setPath('./resources/monsters/FBX/');
+      // loader.load(this._params.resourceName, (glb) => {
+      //   this._target = glb;
+      //   this._params.scene.add(this._target);
+
+      //   this._target.scale.setScalar(0.025);
+      //   this._target.position.copy(this._parent._position);
+      //   this._target.position.y += 0.35;
+      //   const texLoader = new THREE.TextureLoader();
+      //   const texture = texLoader.load(
+      //       './resources/monsters/Textures/' + this._params.resourceTexture);
+      //   texture.encoding = THREE.sRGBEncoding;
+      //   texture.flipY = true;
+
+      //   this._target.traverse(c => {
+      //     c.castShadow = true;
+      //     c.receiveShadow = true;
+      //     if (c.material) {
+      //       c.material.map = texture;
+      //       c.material.side = THREE.DoubleSide;
+      //     }
+      //   });
+
+      //   this._mixer = new THREE.AnimationMixer(this._target);
+
+      //   const fbx = glb;
+      //   const _FindAnim = (animName) => {
+      //     for (let i = 0; i < fbx.animations.length; i++) {
+      //       if (fbx.animations[i].name.includes(animName)) {
+      //         const clip = fbx.animations[i];
+      //         const action = this._mixer.clipAction(clip);
+      //         return {
+      //           clip: clip,
+      //           action: action
+      //         }
+      //       }
+      //     }
+      //     return null;
+      //   };
+
+      //   this._animations['idle'] = _FindAnim('Idle');
+      //   this._animations['walk'] = _FindAnim('Walk');
+      //   this._animations['death'] = _FindAnim('Death');
+      //   this._animations['attack'] = _FindAnim('Bite_Front');
+
+      //   this._stateMachine.SetState('idle');
       });
     }
 
@@ -168,19 +212,19 @@ export const npc_entity = (() => {
     }
 
     _FindPlayer(pos) {
-      const _IsAlivePlayer = (c) => {
-        const h = c.entity.GetComponent('HealthComponent');
-        if (!h) {
-          return false;
-        }
-        if (c.entity.Name != 'player') {
-          return false;
-        }
-        return h._health > 0;
-      };
+      // const _IsAlivePlayer = (c) => {
+      //   const h = c.entity.GetComponent('HealthComponent');
+      //   if (!h) {
+      //     return false;
+      //   }
+      //   if (c.entity.Name != 'player') {
+      //     return false;
+      //   }
+      //   return h._health > 0;
+      // };
 
       const grid = this.GetComponent('SpatialGridController');
-      const nearby = grid.FindNearbyEntities(100).filter(c => _IsAlivePlayer(c));
+      const nearby = grid.FindNearbyEntities(20).filter(c => c.entity.Name == 'player');// find player within 20 units
 
       if (nearby.length == 0) {
         return new THREE.Vector3(0, 0, 0);
@@ -271,7 +315,7 @@ export const npc_entity = (() => {
 
       const collisions = this._FindIntersections(pos);
       if (collisions.length > 0) {
-        this._input._keys.space = true;
+        //this._input._keys.space = true;
         this._input._keys.forward = false;
         return;
       }
