@@ -4,7 +4,7 @@ import {third_person_camera} from './third-person-camera.js';
 import {entity_manager} from './entity-manager.js';
 import {player_entity} from './player-entity.js'
 import {entity} from './entity.js';
-//import {gltf_component} from './gltf-component.js';
+import {gltf_component} from './gltf-component.js';
 //import {health_component} from './health-component.js';
 import {player_input} from './player-input.js';
 import {npc_entity} from './npc-entity.js';
@@ -108,7 +108,7 @@ class myDemo {
     this._scene.add(plane);
 
     this._entityManager = new entity_manager.EntityManager();
-    this._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
+    //dthis._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
     this._active = true;
 
     //this._LoadControllers();
@@ -224,39 +224,40 @@ class myDemo {
     //   scene: this._scene,
     // };
 
-    //  const girl = new entity.Entity();
-    // girl.AddComponent(new gltf_component.AnimatedModelComponent({
-    //     scene: this._scene,
-    //     resourcePath: './resources/girl/',
-    //     resourceName: 'mouse.fbx',
-    //     resourceAnimation: 'Idle (1).fbx',
-    //     scale: 0.02,
-    //     receiveShadow: true,
-    //     castShadow: true,
-    // }));
+     const girl = new entity.Entity();
+    girl.AddComponent(new gltf_component.AnimatedModelComponent({
+        scene: this._scene,
+        resourcePath: './resources/girl/',
+        resourceName: 'peasant_girl.fbx',
+        resourceAnimation: 'Standing Idle.fbx',
+        scale: 0.02,
+        receiveShadow: true,
+        castShadow: true,
+    }));
+    girl.AddComponent(new player_input.BasicCharacterControllerInput(params, 'girl'));
     // girl.AddComponent(new spatial_grid_controller.SpatialGridController({
     //     grid: this._grid,
     // }));
-    // girl.AddComponent(new player_input.PickableComponent());
-    // //girl.AddComponent(new quest_component.QuestComponent());
-    // girl.SetPosition(new THREE.Vector3(30, 0, 0));
-    // this._entityManager.Add(girl);
+    girl.AddComponent(new player_input.PickableComponent());
+    //girl.AddComponent(new quest_component.QuestComponent());
+    girl.SetPosition(new THREE.Vector3(30, 0, 0));
+    this._entityManager.Add(girl);
 
     
 
     const player = new entity.Entity();
     player.AddComponent(new player_input.BasicCharacterControllerInput(params, 'girl'));
     player.AddComponent(new player_entity.BasicCharacterController(params, 'girl' , true));
-    player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
+    //player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
     //player.AddComponent(new attack_controller.AttackController({timing: 0.7}));
     this._entityManager.Add(player, 'player');
 
     const player2 = new entity.Entity();
     player2.AddComponent(new player_input.BasicCharacterControllerInput(params, 'mouse'));
     player2.AddComponent(new player_entity.BasicCharacterController(params, 'mouse' , false));
-    player2.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
+    //player2.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
     //player.AddComponent(new attack_controller.AttackController({timing: 0.7}));
-    player2.SetPosition(new THREE.Vector3(5,0,5));
+    player2.SetPosition(new THREE.Vector3(30, 0, 0));
     this._entityManager.Add(player2, 'player2');
     
     

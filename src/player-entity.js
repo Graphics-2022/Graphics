@@ -77,12 +77,15 @@ export const player_entity = (() => {
 
     _LoadModels() {
       if (this._type == 'mouse'){
+        
+
         const loader = new FBXLoader();
         loader.setPath('./resources/girl/');
         loader.load('mouse.fbx', (fbx) => {
           this._target = fbx;
+          this._target.position.copy(new THREE.Vector3(3, 0, 0));
+          this._position.copy(new THREE.Vector3(3, 0, 0));
           this._target.scale.setScalar(0.015);
-          
           this._params.scene.add(this._target);
     
           this._bones = {};
@@ -121,7 +124,6 @@ export const player_entity = (() => {
           //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
           // loader.load('Sword And Shield Death.fbx', (a) => { _OnLoad('death', a); });
         });
-      
       }else{
         const loader = new FBXLoader();
         loader.setPath('./resources/guard/');
@@ -178,7 +180,7 @@ export const player_entity = (() => {
         return h._health > 0;
       };
 
-      const grid = this.GetComponent('SpatialGridController');  // opperates movement for some reason
+      const grid = this.GetComponent('SpatialGridController');  
       //const nearby = grid.FindNearbyEntities(5).filter(e => _IsAlive(e));
       const collisions = [];
 
@@ -203,106 +205,107 @@ export const player_entity = (() => {
         this._mixer.update(timeInSeconds);
       }
 
-
-      if (this._active){
-          const input = this.GetComponent('BasicCharacterControllerInput');
-          this._stateMachine.Update(timeInSeconds, input);
-
-          if (input._keys.switch){
-            this._active = false;
-          }
-
-        // HARDCODED
-        if (this._stateMachine._currentState._action) {
-          this.Broadcast({
-            topic: 'player.action',
-            action: this._stateMachine._currentState.Name,
-            time: this._stateMachine._currentState._action.time,
-          });
-        }
-
-        const currentState = this._stateMachine._currentState;
-        if (currentState.Name != 'walk' &&
-            currentState.Name != 'run' &&
-            currentState.Name != 'idle') {
-          return;
-        }
-        
-      
-        const velocity = this._velocity;
-        const frameDecceleration = new THREE.Vector3(
-            velocity.x * this._decceleration.x,
-            velocity.y * this._decceleration.y,
-            velocity.z * this._decceleration.z
-        );
-        frameDecceleration.multiplyScalar(timeInSeconds);
-        frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
-            Math.abs(frameDecceleration.z), Math.abs(velocity.z));
-    
-        velocity.add(frameDecceleration);
-    
-        const controlObject = this._target;
-        const _Q = new THREE.Quaternion();
-        const _A = new THREE.Vector3();
-        const _R = controlObject.quaternion.clone();
-    
-        const acc = this._acceleration.clone();
-        if (input._keys.shift) {
-          acc.multiplyScalar(2.0);
-        }
-    
-        if (input._keys.forward) {
-          velocity.z += acc.z * timeInSeconds;
-        }
-        if (input._keys.backward) {
-          velocity.z -= acc.z * timeInSeconds;
-        }
-        if (input._keys.left) {
-          _A.set(0, 1, 0);
-          _Q.setFromAxisAngle(_A, 4.0 * Math.PI * timeInSeconds * this._acceleration.y);
-          _R.multiply(_Q);
-        }
-        if (input._keys.right) {
-          _A.set(0, 1, 0);
-          _Q.setFromAxisAngle(_A, 4.0 * -Math.PI * timeInSeconds * this._acceleration.y);
-          _R.multiply(_Q);
-        }
-
-        
-    
-        controlObject.quaternion.copy(_R);
-    
-        const oldPosition = new THREE.Vector3();
-        oldPosition.copy(controlObject.position);
-    
-        const forward = new THREE.Vector3(0, 0, 1);
-        forward.applyQuaternion(controlObject.quaternion);
-        forward.normalize();
-    
-        const sideways = new THREE.Vector3(1, 0, 0);
-        sideways.applyQuaternion(controlObject.quaternion);
-        sideways.normalize();
-    
-        sideways.multiplyScalar(velocity.x * timeInSeconds);
-        forward.multiplyScalar(velocity.z * timeInSeconds);
-    
-        const pos = controlObject.position.clone();
-        pos.add(forward);
-        pos.add(sideways);
-
-        const collisions = this._FindIntersections(pos);
-        if (collisions.length > 0) {
-          return;
-        }
-
-        controlObject.position.copy(pos);
-        this._position.copy(pos);
-    
-        this._parent.SetPosition(this._position);
-        this._parent.SetQuaternion(this._target.quaternion);
-      }else{
+      if (!this._active){
         this._stateMachine.SetState('idle');
+        return;
       }
+
+      const input = this.GetComponent('BasicCharacterControllerInput');
+      this._stateMachine.Update(timeInSeconds, input);
+
+      if (input._keys.switch){
+        this._active = false;
+      }
+
+      // HARDCODED
+      if (this._stateMachine._currentState._action) {
+        this.Broadcast({
+          topic: 'player.action',
+          action: this._stateMachine._currentState.Name,
+          time: this._stateMachine._currentState._action.time,
+        });
+      }
+
+      const currentState = this._stateMachine._currentState;
+      if (currentState.Name != 'walk' &&
+          currentState.Name != 'run' &&
+          currentState.Name != 'idle') {
+        return;
+      }
+      
+    
+      const velocity = this._velocity;
+      const frameDecceleration = new THREE.Vector3(
+          velocity.x * this._decceleration.x,
+          velocity.y * this._decceleration.y,
+          velocity.z * this._decceleration.z
+      );
+      frameDecceleration.multiplyScalar(timeInSeconds);
+      frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
+          Math.abs(frameDecceleration.z), Math.abs(velocity.z));
+  
+      velocity.add(frameDecceleration);
+  
+      const controlObject = this._target;
+      const _Q = new THREE.Quaternion();
+      const _A = new THREE.Vector3();
+      const _R = controlObject.quaternion.clone();
+  
+      const acc = this._acceleration.clone();
+      if (input._keys.shift) {
+        acc.multiplyScalar(2.0);
+      }
+  
+      if (input._keys.forward) {
+        velocity.z += acc.z * timeInSeconds;
+      }
+      if (input._keys.backward) {
+        velocity.z -= acc.z * timeInSeconds;
+      }
+      if (input._keys.left) {
+        _A.set(0, 1, 0);
+        _Q.setFromAxisAngle(_A, 4.0 * Math.PI * timeInSeconds * this._acceleration.y);
+        _R.multiply(_Q);
+      }
+      if (input._keys.right) {
+        _A.set(0, 1, 0);
+        _Q.setFromAxisAngle(_A, 4.0 * -Math.PI * timeInSeconds * this._acceleration.y);
+        _R.multiply(_Q);
+      }
+
+      
+  
+      controlObject.quaternion.copy(_R);
+  
+      const oldPosition = new THREE.Vector3();
+      oldPosition.copy(controlObject.position);
+  
+      const forward = new THREE.Vector3(0, 0, 1);
+      forward.applyQuaternion(controlObject.quaternion);
+      forward.normalize();
+  
+      const sideways = new THREE.Vector3(1, 0, 0);
+      sideways.applyQuaternion(controlObject.quaternion);
+      sideways.normalize();
+  
+      sideways.multiplyScalar(velocity.x * timeInSeconds);
+      forward.multiplyScalar(velocity.z * timeInSeconds);
+  
+      const pos = controlObject.position.clone();
+      pos.add(forward);
+      pos.add(sideways);
+
+      // const collisions = this._FindIntersections(pos);
+      // if (collisions.length > 0) {
+      //   return;
+      // }
+
+      controlObject.position.copy(pos);
+      this._position.copy(pos);
+  
+      this._parent.SetPosition(this._position);
+
+      this._parent.SetQuaternion(this._target.quaternion);
     }
   };
   
