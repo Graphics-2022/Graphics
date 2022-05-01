@@ -10,7 +10,7 @@ import {player_input} from './player-input.js';
 import {npc_entity} from './npc-entity.js';
 import {math} from './math.js';
 import {spatial_hash_grid} from './spatial-hash-grid.js';
-//import {ui_controller} from './ui-controller.js';
+import {ui_controller} from './ui-controller.js';
 // import {health_bar} from './health-bar.js';
 // import {level_up_component} from './level-up-component.js';
 // import {quest_component} from './quest-component.js';
@@ -18,6 +18,7 @@ import {spatial_grid_controller} from './spatial-grid-controller.js';
 // import {inventory_controller} from './inventory-controller.js';
 // import {equip_weapon_component} from './equip-weapon-component.js';
  import {attack_controller} from './attacker-controller.js';
+ import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 
 
 const _VS = `
@@ -97,35 +98,36 @@ class myDemo {
 
     this._sun = light;
 
-    const plane = new THREE.Mesh(
-        new THREE.PlaneGeometry(100, 100, 10, 10),
-        new THREE.MeshStandardMaterial({
-            color: 0x1e601c,
-          }));
-    plane.castShadow = false;
-    plane.receiveShadow = true;
-    plane.rotation.x = -Math.PI / 2;
-    this._scene.add(plane);
+    //const plane = new THREE.Mesh(
+        //new THREE.PlaneGeometry(100, 100, 10, 10),
+        //new THREE.MeshStandardMaterial({
+            //color: 0x1e601c,
+          //}));
+    //plane.castShadow = false;
+    //plane.receiveShadow = true;
+    //plane.rotation.x = -Math.PI / 2;
+    //this._scene.add(plane);
 
     this._entityManager = new entity_manager.EntityManager();
     this._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
     this._active = true;
 
-    //this._LoadControllers();
+    this._LoadControllers();
     this._LoadPlayer();
-    this._LoadFoliage();
+    //this._LoadFoliage();
     //dthis._LoadClouds();
-    this._LoadSky();
+    //this._LoadSky();
+    this._LoadRoom();
     
     this._previousRAF = null;
     this._RAF();
   }
 
-  // _LoadControllers() {
-  //   const ui = new entity.Entity();
-  //   ui.AddComponent(new ui_controller.UIController());
-  //   this._entityManager.Add(ui, 'ui');
-  // }
+   _LoadControllers() {
+     const ui = new entity.Entity();
+     ui.AddComponent(new ui_controller.UIController());
+     this._entityManager.Add(ui, 'ui');
+   }
 
   _LoadSky() {
     const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.6);
@@ -155,62 +157,20 @@ class myDemo {
     this._scene.add(sky);
   }
 
-  // _LoadClouds() {
-  //   for (let i = 0; i < 20; ++i) {
-  //     const index = math.rand_int(1, 3);
-  //   const pos = new THREE.Vector3(
-  //       (Math.random() * 2.0 - 1.0) * 500,
-  //       100,
-  //       (Math.random() * 2.0 - 1.0) * 500);
-
-  //     const e = new entity.Entity();
-  //     e.AddComponent(new gltf_component.StaticModelComponent({
-  //       scene: this._scene,
-  //       resourcePath: './resources/nature2/GLTF/',
-  //       resourceName: 'Cloud' + index + '.glb',
-  //       position: pos,
-  //       scale: Math.random() * 5 + 10,
-  //       emissive: new THREE.Color(0x808080),
-  //     }));
-  //     e.SetPosition(pos);
-  //     this._entityManager.Add(e);
-  //     e.SetActive(false);
-  //   }
-  // }
-
-  _LoadFoliage() {
-    for (let i = 0; i < 100; ++i) {
-      const names = [
-          'CommonTree_Dead', 'CommonTree',
-          'BirchTree', 'BirchTree_Dead',
-          'Willow', 'Willow_Dead',
-          'PineTree',
-      ];
-      const name = names[math.rand_int(0, names.length - 1)];
-      const index = math.rand_int(1, 5);
-
-      const pos = new THREE.Vector3(
-          (Math.random() * 2.0 - 1.0) * 500,
-          0,
-          (Math.random() * 2.0 - 1.0) * 500);
-
-      const e = new entity.Entity();
-      e.AddComponent(new gltf_component.StaticModelComponent({
-        scene: this._scene,
-        resourcePath: './resources/nature/FBX/',
-        resourceName: name + '_' + index + '.fbx',
-        scale: 0.25,
-        emissive: new THREE.Color(0x000000),
-        specular: new THREE.Color(0x000000),
-        receiveShadow: true,
-        castShadow: true,
-      }));
-      e.AddComponent(
-          new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-      e.SetPosition(pos);
-      this._entityManager.Add(e);
-      e.SetActive(false);
-    }
+  _LoadRoom(){
+    const e=new entity.Entity();
+    const pos= new THREE.Vector3(0,0,0);
+    e.AddComponent(new gltf_component.StaticModelComponent({
+      scene: this._scene,
+      resourcePath: './resources/Level1Rooms/',
+      resourceName: 'dungeon_001.glb',
+      position: pos,
+      scale: 4.5,
+      //emissive: new THREE.Color(0x808080),
+    }));
+    e.SetPosition(pos);
+    this._entityManager.Add(e);
+    e.SetActive(false);
   }
 
   _LoadPlayer() {
@@ -218,33 +178,7 @@ class myDemo {
       camera: this._camera,
       scene: this._scene,
     };
-
-    // const params2 = {
-    //   camera: this._camera,
-    //   scene: this._scene,
-    // };
-
-    // const girl = new entity.Entity();
-    // girl.AddComponent(new gltf_component.AnimatedModelComponent({
-    //     scene: this._scene,
-    //     resourcePath: './resources/mouse/',
-    //     resourceName: 'peasant_girl.fbx',
-    //     resourceAnimation: 'Standing Idle.fbx',
-    //     scale: 0.02,
-    //     receiveShadow: true,
-    //     castShadow: true,
-    // }));
-    // girl.AddComponent(new player_input.BasicCharacterControllerInput(params, 'girl'));
-    // girl.AddComponent(new spatial_grid_controller.SpatialGridController({
-    //     grid: this._grid,
-    // }));
-    // girl.AddComponent(new player_input.PickableComponent());
-    // //girl.AddComponent(new quest_component.QuestComponent());
-    // girl.SetPosition(new THREE.Vector3(30, 0, 0));
-    // this._entityManager.Add(girl);
-
-    
-
+   
     const player = new entity.Entity();
     player.AddComponent(new player_input.BasicCharacterControllerInput(params, 'girl'));
     player.AddComponent(new player_entity.BasicCharacterController(params, 'girl' , true));
@@ -261,129 +195,27 @@ class myDemo {
     
     this._entityManager.Add(player2, 'player2');
 
-  
-    // player.Broadcast({
-    //     topic: 'inventory.add',
-    //     value: axe.Name,
-    //     added: false,
-    // });
-
-    // player.Broadcast({
-    //     topic: 'inventory.add',
-    //     value: sword.Name,
-    //     added: false,
-    // });
-
-    // player.Broadcast({
-    //     topic: 'inventory.equip',
-    //     value: sword.Name,
-    //     added: false,
-    // });
-
     const camera = new entity.Entity();
     camera.AddComponent(
         new third_person_camera.ThirdPersonCamera({
             camera: this._camera,
             target: this._entityManager.Get('player')}));
     this._entityManager.Add(camera, 'player-camera');
-
-    // // for (let i = 0; i < 2; ++i) {
-    // //   const monsters = [
-    // //     {
-    // //       resourceName: 'Ghost.fbx',
-    // //       resourceTexture: 'Ghost_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'Alien.fbx',
-    // //       resourceTexture: 'Alien_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'Skull.fbx',
-    // //       resourceTexture: 'Skull_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'GreenDemon.fbx',
-    // //       resourceTexture: 'GreenDemon_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'Cyclops.fbx',
-    // //       resourceTexture: 'Cyclops_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'Cactus.fbx',
-    // //       resourceTexture: 'Cactus_Texture.png',
-    // //     },
-    // //   ];
-    // //   const m = monsters[math.rand_int(0, monsters.length - 1)];
-
-    //   const npc = new entity.Entity();
-    //   npc.AddComponent(new npc_entity.NPCController({
-    //       camera: this._camera,
-    //       scene: this._scene,
-    //       resourceName: m.resourceName,
-    //       resourceTexture: m.resourceTexture,
-    //   }));
-    //   // npc.AddComponent(
-    //   //     new health_component.HealthComponent({
-    //   //         health: 50,
-    //   //         maxHealth: 50,
-    //   //         strength: 2,
-    //   //         wisdomness: 2,
-    //   //         benchpress: 3,
-    //   //         curl: 1,
-    //   //         experience: 0,
-    //   //         level: 1,
-    //   //         camera: this._camera,
-    //   //         scene: this._scene,
-    //   //     }));
-    //   npc.AddComponent(
-    //       new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-    //   // npc.AddComponent(new health_bar.HealthBar({
-    //   //     parent: this._scene,
-    //   //     camera: this._camera,
-    //   // }));
-    //   npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
-    //   npc.SetPosition(new THREE.Vector3(
-    //       (Math.random() * 2 - 1) * 10,
-    //       0,
-    //       (Math.random() * 2 - 1) * 10));
-    //   this._entityManager.Add(npc);
-    // //} 
-
-
     
-    const npc = new entity.Entity();
-      npc.AddComponent(new npc_entity.NPCController({
-          camera: this._camera,
-          scene: this._scene,
-          //resourceName: m.resourceName,
-          //resourceTexture: m.resourceTexture,
-      }));
-      // npc.AddComponent(
-      //     new health_component.HealthComponent({
-      //         health: 50,
-      //         maxHealth: 50,
-      //         strength: 2,
-      //         wisdomness: 2,
-      //         benchpress: 3,
-      //         curl: 1,
-      //         experience: 0,
-      //         level: 1,
-      //         camera: this._camera,
-      //         scene: this._scene,
-      //     }));
-      npc.AddComponent(
-          new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-      // npc.AddComponent(new health_bar.HealthBar({
-      //     parent: this._scene,
-      //     camera: this._camera,
-      // }));
-      npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
-      npc.SetPosition(new THREE.Vector3(
-          (Math.random() * 2 - 1) * 10,
-          0,
-          (Math.random() * 2 - 1) * 10));
-      this._entityManager.Add(npc, 'npc1');
+    //const npc = new entity.Entity();
+      //npc.AddComponent(new npc_entity.NPCController({
+          //camera: this._camera,
+          //scene: this._scene,
+      //}));
+      
+      //npc.AddComponent(
+          //new spatial_grid_controller.SpatialGridController({grid: this._grid}));
+      //npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
+      //npc.SetPosition(new THREE.Vector3(
+          //(Math.random() * 2 - 1) * 10,
+          //0,
+          //(Math.random() * 2 - 1) * 10));
+      //this._entityManager.Add(npc, 'npc1');
     
   }
 

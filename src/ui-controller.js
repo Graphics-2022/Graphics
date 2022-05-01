@@ -23,10 +23,10 @@ export const ui_controller = (() => {
         quests: document.getElementById('quest-journal'),
       };
 
-      this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
-      this._iconBar.stats.onclick = (m) => { this._OnStatsClicked(m); };
-      this._iconBar.quests.onclick = (m) => { this._OnQuestsClicked(m); };
-      this._HideUI();
+      //this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
+      //this._iconBar.stats.onclick = (m) => { this._OnStatsClicked(m); };
+      //this._iconBar.quests.onclick = (m) => { this._OnQuestsClicked(m); };
+      //this._HideUI();
     }
 
     AddQuest(quest) {
