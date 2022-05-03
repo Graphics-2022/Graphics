@@ -198,18 +198,18 @@ export const player_entity = (() => {
       };
 
       const grid = this.GetComponent('SpatialGridController');  
-      //const nearby = grid.FindNearbyEntities(5).filter(e => _IsAlive(e));
+      const nearby = grid.FindNearbyEntities(2).filter(e => _IsAlive(e));
       const collisions = [];
 
-      // for (let i = 0; i < nearby.length; ++i) {
-      //   const e = nearby[i].entity;
-      //   const d = ((pos.x - e._position.x) ** 2 + (pos.z - e._position.z) ** 2) ** 0.5;
+      for (let i = 0; i < nearby.length; ++i) {
+         const e = nearby[i].entity;
+         const d = ((pos.x - e._position.x) ** 2 + (pos.z - e._position.z) ** 2) ** 0.5;
 
-      //   // HARDCODED
-      //   if (d <= 4) {
-      //     collisions.push(nearby[i].entity);
-      //   }
-      // }
+         // HARDCODED
+         if (d <= 4) {
+           collisions.push(nearby[i].entity);
+         }
+       }
       return collisions;
     }
 

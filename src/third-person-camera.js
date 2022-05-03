@@ -21,7 +21,8 @@ export const third_person_camera = (() => {
     }
 
     _CalculateIdealOffset() {
-      const idealOffset = new THREE.Vector3(-0, 10, -15);
+      //I changed offset a bit, else the camera crashes into the thresholds
+      const idealOffset = new THREE.Vector3(-0, 5, -10); //(-0, 10, -15)
       idealOffset.applyQuaternion(this._params.target._rotation);
       idealOffset.add(this._params.target._position);
       return idealOffset;

@@ -103,6 +103,8 @@ body {
   width: 75px;
   height: 75px;
   margin: 2px;
+  border-style: double;
+  border-color: gold;
 }
 
 .health-ui {

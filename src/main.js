@@ -76,6 +76,32 @@ class myDemo {
     const far = 10000.0;
     this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     this._camera.position.set(25, 10, 25);
+    var listener = new THREE.AudioListener();
+  this._camera.add( listener );
+
+  // create a global audio source
+  var sound = new THREE.Audio( listener );
+
+  var audioLoader = new THREE.AudioLoader();
+
+  //Load a sound and set it as the Audio object's buffer
+  audioLoader.load( 'resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function( buffer ) {
+    sound.setBuffer( buffer );
+    sound.setLoop(true);
+    sound.setVolume(0.5);
+    sound.play();
+  },
+  // onProgress callback
+  function ( xhr ) {
+    console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+  },
+
+  // onError callback
+    function ( err ) {
+      console.log( 'An error occured' );
+    }
+
+);
 
     this._scene = new THREE.Scene();
     this._scene.background = new THREE.Color(0xFFFFFF);
@@ -117,7 +143,7 @@ class myDemo {
     //this._LoadFoliage();
     //dthis._LoadClouds();
     //this._LoadSky();
-    this._LoadRoom();
+    //this._LoadRoom();
     
     this._previousRAF = null;
     this._RAF();
@@ -171,6 +197,7 @@ class myDemo {
     e.SetPosition(pos);
     this._entityManager.Add(e);
     e.SetActive(false);
+    e.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
   }
 
   _LoadPlayer() {
@@ -184,14 +211,17 @@ class myDemo {
     player.AddComponent(new player_entity.BasicCharacterController(params, 'girl' , true));
     player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
     //player.AddComponent(new attack_controller.AttackController({timing: 0.7}));
+    //trying to place girl in space
+    player.SetPosition(new THREE.Vector3(-400,700,0))
     this._entityManager.Add(player, 'player');
+    
 
     const player2 = new entity.Entity();
     player2.AddComponent(new player_input.BasicCharacterControllerInput(params, 'mouse'));
     player2.AddComponent(new player_entity.BasicCharacterController(params, 'mouse' , false));
     player2.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
     //player.AddComponent(new attack_controller.AttackController({timing: 0.7}));
-    player2.SetPosition(new THREE.Vector3(30, 0, 0));
+    player2.SetPosition(new THREE.Vector3(30, 30, 0)); //(30, 0, 0)
     
     this._entityManager.Add(player2, 'player2');
 
@@ -202,20 +232,20 @@ class myDemo {
             target: this._entityManager.Get('player')}));
     this._entityManager.Add(camera, 'player-camera');
     
-    //const npc = new entity.Entity();
-      //npc.AddComponent(new npc_entity.NPCController({
-          //camera: this._camera,
-          //scene: this._scene,
-      //}));
+    const npc = new entity.Entity();
+      npc.AddComponent(new npc_entity.NPCController({
+          camera: this._camera,
+          scene: this._scene,
+      }));
       
-      //npc.AddComponent(
-          //new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-      //npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
-      //npc.SetPosition(new THREE.Vector3(
-          //(Math.random() * 2 - 1) * 10,
-          //0,
-          //(Math.random() * 2 - 1) * 10));
-      //this._entityManager.Add(npc, 'npc1');
+      npc.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
+      npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
+      // npc.SetPosition(new THREE.Vector3(
+      //     (Math.random() * 2 - 1) * 10,
+      //     0,
+      //     (Math.random() * 2 - 1) * 10));
+      npc.SetPosition(new THREE.Vector3(70,0,10))
+      this._entityManager.Add(npc, 'npc1');
     
   }
 
@@ -230,7 +260,7 @@ class myDemo {
     const pos = player._position;
 
     this._sun.position.copy(pos);
-    this._sun.position.add(new THREE.Vector3(-10, 500, -10));
+    this._sun.position.add(new THREE.Vector3(0, 500, 0)); //(-10, 500, -10)
     this._sun.target.position.copy(pos);
     this._sun.updateMatrixWorld();
     this._sun.target.updateMatrixWorld();
