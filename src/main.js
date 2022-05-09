@@ -113,7 +113,7 @@ class myDemo {
 
     //this._LoadControllers();
     this._LoadPlayer();
-    this._LoadFoliage();
+    //this._LoadFoliage();
     //dthis._LoadClouds();
     this._LoadSky();
     
@@ -380,9 +380,9 @@ class myDemo {
       // }));
       npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
       npc.SetPosition(new THREE.Vector3(
-          (Math.random() * 2 - 1) * 10,
+          30,
           0,
-          (Math.random() * 2 - 1) * 10));
+          ));
       this._entityManager.Add(npc, 'npc1');
     
   }

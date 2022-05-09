@@ -226,16 +226,18 @@ export const npc_entity = (() => {
       const grid = this.GetComponent('SpatialGridController');
       const nearby = grid.FindNearbyEntities(20).filter(c => c.entity.Name == 'player');// find player within 20 units
 
-      if (nearby.length == 0) {
-        return new THREE.Vector3(0, 0, 0);
-      }
+      // if (nearby.length == 0) {
+      //   return new THREE.Vector3(0, 0, 0);
+      // }
+      
 
-      const dir = this._parent._position.clone();
-      dir.sub(nearby[0].entity._position);
-      dir.y = 0.0;
-      dir.normalize();
+      // const dir = this._parent._position.clone();
+      // dir.sub(nearby[0].entity._position);
+      // dir.y = 0.0;
+      // dir.normalize();
 
-      return dir;
+      //return dir;
+      return nearby;
     }
 
     _UpdateAI(timeInSeconds) {
@@ -257,7 +259,10 @@ export const npc_entity = (() => {
     }
 
     _OnAIWalk(timeInSeconds) {
-      const dirToPlayer = this._FindPlayer();
+      const nearby = this._FindPlayer();
+      var dirToPlayer =  new THREE.Vector3(0, 0, 0);
+
+      
 
       const velocity = this._velocity;
       const frameDecceleration = new THREE.Vector3(
@@ -275,6 +280,25 @@ export const npc_entity = (() => {
       const _Q = new THREE.Quaternion();
       const _A = new THREE.Vector3();
       const _R = controlObject.quaternion.clone();
+
+      if (nearby.length != 0) {
+        const dir = this._parent._position.clone();
+        dir.sub(nearby[0].entity._position);
+        dir.y = 0.0;
+        dir.normalize();
+
+        dirToPlayer = dir;
+
+        let v = new THREE.Vector3();
+        controlObject.getWorldDirection(v)
+        let angle = Math.PI - v.angleTo( dirToPlayer)
+
+        if (angle > Math.PI/3){
+          dirToPlayer =  new THREE.Vector3(0, 0, 0);
+        }
+        console.log(angle) // carry on here
+      }
+      
   
       this._input._keys.forward = false;
 
