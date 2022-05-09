@@ -296,7 +296,7 @@ export const npc_entity = (() => {
         if (angle > Math.PI/3){
           dirToPlayer =  new THREE.Vector3(0, 0, 0);
         }
-        console.log(angle) // carry on here
+        //console.log(angle) // carry on here
       }
       
   
