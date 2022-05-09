@@ -198,7 +198,7 @@ export const player_entity = (() => {
       };
 
       const grid = this.GetComponent('SpatialGridController');
-      const nearby = grid.FindNearbyEntities(2).filter(e => _IsAlive(e));
+      const nearby = grid.FindNearbyEntities(1).filter(e => _IsAlive(e));
       const collisions = [];
 
       for (let i = 0; i < nearby.length; ++i) {
@@ -318,7 +318,6 @@ export const player_entity = (() => {
 
       const collisions = this._FindIntersections(pos);
       if (collisions.length > 0) {
-        //this._input._keys.space = true;
         this._input._keys.forward = false;
         return;
       }
@@ -355,6 +354,7 @@ export const player_entity = (() => {
 
       if (input._keys.switch){
         this._active = false;
+        return;
       }
 
       // HARDCODED
@@ -437,7 +437,30 @@ export const player_entity = (() => {
 
       const collisions = this._FindIntersections(pos);
       if (collisions.length > 0) {
-        return;
+        let forw = true;
+        for (let eachEntity of collisions){
+          //console.log(eachEntity)
+
+          const dir = this._position.clone();
+          dir.sub(eachEntity._position);
+          dir.y = 0.0;
+          dir.normalize();
+          //console.log(dir)
+          let dirToPlayer = dir;
+
+          let v = new THREE.Vector3();
+          controlObject.getWorldDirection(v)
+          let angle = Math.PI - v.angleTo( dirToPlayer)
+          console.log(angle)
+          if ((input._keys.forward && angle < Math.PI/8) || (input._keys.backward && angle > Math.PI -Math.PI/8) ){
+            forw = false;
+          }
+        }
+      
+        if(!forw){
+          return;
+        }
+        
       }
 
       controlObject.position.copy(pos);
