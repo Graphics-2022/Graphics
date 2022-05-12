@@ -356,6 +356,7 @@ export const npc_entity = (() => {
         return;
       }
 
+      //console.log(this.object);
       this._input._keys.space = false;
       this._input._keys.forward = false;
 

@@ -45,35 +45,41 @@ export const player_input = (() => {
         y: ((event.clientY - rect.top ) / rect.height) * -2 + 1,
       };
 
-      this._raycaster.setFromCamera(pos, this._params.camera);
+      let rey = new THREE.Raycaster();
+      rey.far = 50;
+      rey.setFromCamera(pos, this._params.camera);
+      var int = rey.intersectObjects( this._params.scene.children, true);
+      console.log(int)
+      // this._raycaster.setFromCamera(pos, this._params.camera);
 
-      const pickables = this._parent._parent.Filter((e) => {
-        const p = e.GetComponent('PickableComponent');
-        if (!p) {
-          return false;
-        }
-        return e._mesh;
-      });
+      // const pickables = this._parent._parent.Filter((e) => {
+      //   const p = e.GetComponent('PickableComponent');
+      //   if (!p) {
+      //     return false;
+      //   }
+      //   return e._mesh;
+      // });
 
-      const ray = new THREE.Ray();
-      ray.origin.setFromMatrixPosition(this._params.camera.matrixWorld);
-      ray.direction.set(pos.x, pos.y, 0.5).unproject(
-          this._params.camera).sub(ray.origin).normalize();
+      // const ray = new THREE.Ray();
+      // ray.origin.setFromMatrixPosition(this._params.camera.matrixWorld);
+      // ray.direction.set(pos.x, pos.y, 0.5).unproject(
+      //     this._params.camera).sub(ray.origin).normalize();
 
-      // hack
-      //document.getElementById('quest-ui').style.visibility = 'hidden';
+      // // hack
+      // //document.getElementById('quest-ui').style.visibility = 'hidden';
+      // const intersects = this._raycaster.intersectObjects(this._params.scene.children);
+      // console.log(intersects)
+      // for (let p of pickables) {
+      //   // GOOD ENOUGH
+      //   const box = new THREE.Box3().setFromObject(p._mesh);
 
-      for (let p of pickables) {
-        // GOOD ENOUGH
-        const box = new THREE.Box3().setFromObject(p._mesh);
-
-        if (ray.intersectsBox(box)) {
-          p.Broadcast({
-              topic: 'input.picked'
-          });
-          break;
-        }
-      }
+      //   if (ray.intersectsBox(box)) {
+      //     p.Broadcast({
+      //         topic: 'input.picked'
+      //     });
+      //     break;
+      //   }
+      // }
     }
 
     _onKeyDown(event) {

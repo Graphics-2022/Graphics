@@ -10,7 +10,7 @@ import {player_input} from './player-input.js';
 import {npc_entity} from './npc-entity.js';
 import {math} from './math.js';
 import {spatial_hash_grid} from './spatial-hash-grid.js';
-//import {ui_controller} from './ui-controller.js';
+import {ui_controller} from './ui-controller.js';
 // import {health_bar} from './health-bar.js';
 // import {level_up_component} from './level-up-component.js';
 // import {quest_component} from './quest-component.js';
@@ -18,7 +18,7 @@ import {spatial_grid_controller} from './spatial-grid-controller.js';
 // import {inventory_controller} from './inventory-controller.js';
 // import {equip_weapon_component} from './equip-weapon-component.js';
  import {attack_controller} from './attacker-controller.js';
-
+ import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 
 const _VS = `
 varying vec3 vWorldPosition;
@@ -97,35 +97,36 @@ class myDemo {
 
     this._sun = light;
 
-    const plane = new THREE.Mesh(
-        new THREE.PlaneGeometry(100, 100, 10, 10),
-        new THREE.MeshStandardMaterial({
-            color: 0x1e601c,
-          }));
-    plane.castShadow = false;
-    plane.receiveShadow = true;
-    plane.rotation.x = -Math.PI / 2;
-    this._scene.add(plane);
+    // const plane = new THREE.Mesh(
+    //     new THREE.PlaneGeometry(100, 100, 10, 10),
+    //     new THREE.MeshStandardMaterial({
+    //         color: 0x1e601c,
+    //       }));
+    // plane.castShadow = false;
+    // plane.receiveShadow = true;
+    // plane.rotation.x = -Math.PI / 2;
+    // this._scene.add(plane);
 
     this._entityManager = new entity_manager.EntityManager();
     this._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
     this._active = true;
 
-    //this._LoadControllers();
+    this._LoadControllers();
     this._LoadPlayer();
     //this._LoadFoliage();
     //dthis._LoadClouds();
     this._LoadSky();
+    this._LoadRoom();
     
     this._previousRAF = null;
     this._RAF();
   }
 
-  // _LoadControllers() {
-  //   const ui = new entity.Entity();
-  //   ui.AddComponent(new ui_controller.UIController());
-  //   this._entityManager.Add(ui, 'ui');
-  // }
+  _LoadControllers() {
+    const ui = new entity.Entity();
+    ui.AddComponent(new ui_controller.UIController());
+    this._entityManager.Add(ui, 'ui');
+  }
 
   _LoadSky() {
     const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.6);
@@ -211,6 +212,22 @@ class myDemo {
       this._entityManager.Add(e);
       e.SetActive(false);
     }
+  }
+
+  _LoadRoom(){
+    const e=new entity.Entity();
+    const pos= new THREE.Vector3(0,0,-30);
+    e.AddComponent(new gltf_component.StaticModelComponent({
+      scene: this._scene,
+      resourcePath: './resources/Level1Rooms/',
+      resourceName: 'dungeon_001.glb',
+      position: pos,
+      scale: 4.5,
+      //emissive: new THREE.Color(0x808080),
+    }));
+    e.SetPosition(pos);
+    this._entityManager.Add(e);
+    e.SetActive(false);
   }
 
   _LoadPlayer() {
@@ -409,6 +426,22 @@ class myDemo {
       if (this._previousRAF === null) {
         this._previousRAF = t;
       }
+
+      // const raycaster = new THREE.Raycaster();
+      // const search = [];
+
+      // for (let i = -60; i < 60; i+=3){
+      //   search.push(new THREE.Vector3(Math.cos(i), 0, Math.sin(i)));
+      // }
+
+      // search.forEach((direction) => {
+      //   raycaster.set(new THREE.Vector3(0,0,10) , direction, 0,20);
+      //   const intersect = raycaster.intersectObjects(this._scene.children, true);
+      //   console.log(intersect)
+      //   if (intersect.length>0){
+      //     return;
+      //   }
+      // })
 
       if(!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()){
         if(this._active ){

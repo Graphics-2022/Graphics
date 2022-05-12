@@ -348,8 +348,102 @@ export const player_entity = (() => {
         }
         return;
       }
+      const controlObject = this._target;
 
       const input = this.GetComponent('BasicCharacterControllerInput');
+
+      if (input._keys.forward){
+        const start = new THREE.Vector3();
+        start.copy(controlObject.position);
+        start.y +=0.7;
+        let v = new THREE.Vector3();
+        controlObject.getWorldDirection(v)
+        console.log("dir", v);
+        let ray = new THREE.Raycaster();
+        ray.far = 5;
+        ray.near = 1;
+        ray.set(start, v );
+        var int = ray.intersectObjects( this._params.scene.children, true);
+        if(int.length > 0){
+          if(int[0].distance < 3 && int[0].distance > 1){
+            input._keys.forward = false;
+          }
+        }   
+
+        const collisions = this._FindIntersections(this._position);
+        if (collisions.length > 0) {
+          for (let eachEntity of collisions){
+            //console.log(eachEntity)
+
+            const dir = this._position.clone();
+            dir.sub(eachEntity._position);
+            dir.y = 0.0;
+            dir.normalize();
+            //console.log(dir)
+            let dirToPlayer = dir;
+
+            let v = new THREE.Vector3();
+            controlObject.getWorldDirection(v)
+            let angle = Math.PI - v.angleTo( dirToPlayer)
+            //console.log(angle)
+            if ((input._keys.forward && angle < Math.PI/8) || (input._keys.backward && angle > Math.PI -Math.PI/8) ){
+              input._keys.forward = false;
+            }
+          }
+        
+        }
+      }else if (input._keys.backward){
+        let forw = true;
+        const start = new THREE.Vector3();
+        start.copy(controlObject.position);
+        start.y +=0.5;
+        let v = new THREE.Vector3();
+        controlObject.getWorldDirection(v)
+        v.z *= -1;
+        console.log("dir", v);
+        let ray = new THREE.Raycaster();
+        ray.far = 5;
+        ray.near = 1;
+        ray.set(start, v );
+        var int = ray.intersectObjects( this._params.scene.children, true);
+        if(int.length > 0){
+          if(int[0].distance < 2){
+            forw = false;
+            console.log(int[0].distance)
+            this._stateMachine.SetState('idle');w
+            return;
+          }
+        } 
+      }
+
+      // const raycaster = new THREE.Raycaster();
+      // raycaster.far = 5;
+      // raycaster.near = 0;
+      // const search = [];
+
+      // for (let i = -60; i < 60; i+=5){
+      //   search.push(new THREE.Vector3(Math.cos(i), 0, Math.sin(i)));
+      // }
+
+      // let p = new THREE.Vector3();
+      // p.copy(this._position);
+      // p.y+=2;
+      // search.forEach((direction) => {
+      //   raycaster.set(p, direction);
+      //   const intersect = raycaster.intersectObjects(this._params.scene.children, false);
+      //   //console.log(raycaster)
+      //   if (intersect.length > 0){
+      //     forw = false;
+      //   }
+      // })
+      // if(!forw){
+      //   return;
+      // }
+
+
+
+      
+
       this._stateMachine.Update(timeInSeconds, input);
 
       if (input._keys.switch){
@@ -386,7 +480,6 @@ export const player_entity = (() => {
   
       velocity.add(frameDecceleration);
   
-      const controlObject = this._target;
       const _Q = new THREE.Quaternion();
       const _A = new THREE.Vector3();
       const _R = controlObject.quaternion.clone();
@@ -435,33 +528,11 @@ export const player_entity = (() => {
       pos.add(forward);
       pos.add(sideways);
 
-      const collisions = this._FindIntersections(pos);
-      if (collisions.length > 0) {
-        let forw = true;
-        for (let eachEntity of collisions){
-          //console.log(eachEntity)
-
-          const dir = this._position.clone();
-          dir.sub(eachEntity._position);
-          dir.y = 0.0;
-          dir.normalize();
-          //console.log(dir)
-          let dirToPlayer = dir;
-
-          let v = new THREE.Vector3();
-          controlObject.getWorldDirection(v)
-          let angle = Math.PI - v.angleTo( dirToPlayer)
-          console.log(angle)
-          if ((input._keys.forward && angle < Math.PI/8) || (input._keys.backward && angle > Math.PI -Math.PI/8) ){
-            forw = false;
-          }
-        }
       
-        if(!forw){
-          return;
-        }
-        
-      }
+
+      
+
+      
 
       controlObject.position.copy(pos);
       this._position.copy(pos);
