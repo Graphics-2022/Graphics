@@ -47,7 +47,7 @@ void main() {
   gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 }`;
 
-
+var level=1;
 
 class myDemo {
   constructor() {
@@ -132,15 +132,52 @@ class myDemo {
     // this.controls.enableDamping = true;
     // this.controls.dampingFactor = 0.05;
     // this.controls.maxDistance = 1000;
-
     this._LoadControllers();
     this._LoadPlayer();
     this._LoadSky();
     this._LoadRoom();
+
+  //   //}
+  
+  //   // if (level==2){
+  //   //   while(this._scene.children.length > 0){ 
+  //   //     this._scene.remove(this._scene.children[0]); 
+  //   // }
+  //   this._clearThree(this._scene);
+  // const geometry = new THREE.BoxGeometry();
+  // const material = new THREE.MeshNormalMaterial();
+  // let mesh = new THREE.Mesh( geometry, material );
+  // this._scene.add( mesh );
+  // console.log('level 2')
+  // console.log(this._scene.children)
+
+  //   //}
     
     this._previousRAF = null;
     this._RAF();
   }
+
+  _clearThree(obj){
+    while(obj.children.length > 0){ 
+      this._clearThree(obj.children[0]);
+      obj.remove(obj.children[0]);
+      //this._threejs.deallocateObject(obj)
+      obj.deallocate()
+    }
+    if(obj.geometry) obj.geometry.dispose();
+  
+    if(obj.material){ 
+      //in case of map, bumpMap, normalMap, envMap ...
+      Object.keys(obj.material).forEach(prop => {
+        if(!obj.material[prop])
+          return;
+        if(obj.material[prop] !== null && typeof obj.material[prop].dispose === 'function')                                  
+          obj.material[prop].dispose();                                                      
+      })
+      obj.material.dispose();
+    }
+  }   
+  
 
   _LoadControllers() {
     const ui = new entity.Entity();
