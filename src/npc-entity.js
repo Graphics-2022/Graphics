@@ -54,6 +54,7 @@ export const npc_entity = (() => {
       this._acceleration = new THREE.Vector3(1, 0.25, 40.0);
       this._velocity = new THREE.Vector3(0, 0, 0);
       this._position = new THREE.Vector3();
+      this._time = 0.1;
 
       this._animations = {};
       this._input = new AIInput();
@@ -86,8 +87,9 @@ export const npc_entity = (() => {
       loader.load('Vampire A Lusth.fbx', (fbx) => {
         this._target = fbx;
         this._target.scale.setScalar(0.035);
-        this._target.position.copy(this._parent._position);
-        this._target.position.y += 0.35;
+        //this._target.position.copy(this._parent._position);
+        this._target.position.copy(new THREE.Vector3(30, 0, 0));
+        //this._target.position.y += 0.35;
         this._params.scene.add(this._target);
   
         this._bones = {};
@@ -259,10 +261,33 @@ export const npc_entity = (() => {
     }
 
     _OnAIWalk(timeInSeconds) {
-      const nearby = this._FindPlayer();
+      // const nearby = this._FindPlayer();
       var dirToPlayer =  new THREE.Vector3(0, 0, 0);
 
-      
+      const points = [ 
+        new THREE.Vector3( 0, 0, 0 ), 
+        new THREE.Vector3( 10, 0, 0 ),
+        new THREE.Vector3( 10, 0, -20 ),
+        new THREE.Vector3( 0, 0, -20 ),
+        ];
+    
+      let path = new THREE.CatmullRomCurve3( points, true );
+      this._time += timeInSeconds;
+      // visualize the path
+      // const lineGeometry = new THREE.BufferGeometry().setFromPoints( path.getPoints( 32 ) );
+      // const lineMaterial = new THREE.LineBasicMaterial();
+      // const line = new THREE.Line( lineGeometry, lineMaterial );
+      // this._params.scene.add(line)
+      const pos1=path.getPointAt( (this._time/7)%1);
+      console.log("time",(this._time/1)%1)
+      // const pos=new THREE.Vector3(0,0,0);
+      console.log("pos",pos1)
+      const dir = this._parent._position.clone();
+      dir.sub(pos1);
+      dir.y = 0.0;
+      dir.normalize();
+
+      dirToPlayer = dir;
 
       const velocity = this._velocity;
       const frameDecceleration = new THREE.Vector3(
@@ -281,31 +306,39 @@ export const npc_entity = (() => {
       const _A = new THREE.Vector3();
       const _R = controlObject.quaternion.clone();
 
-      if (nearby.length != 0) {
-        const dir = this._parent._position.clone();
-        dir.sub(nearby[0].entity._position);
-        dir.y = 0.0;
-        dir.normalize();
+      // if (nearby.length != 0) {
+      //   // const dir = this._parent._position.clone();
+      //   // dir.sub(nearby[0].entity._position);
+      //   // dir.y = 0.0;
+      //   // dir.normalize();
 
-        dirToPlayer = dir;
+      //   // dirToPlayer = dir;
 
-        let v = new THREE.Vector3();
-        controlObject.getWorldDirection(v)
-        let angle = Math.PI - v.angleTo( dirToPlayer)
+      //   // let v = new THREE.Vector3();
+      //   // controlObject.getWorldDirection(v)
+      //   // let angle = Math.PI - v.angleTo( dirToPlayer)
 
-        if (angle > Math.PI/3){
-          dirToPlayer =  new THREE.Vector3(0, 0, 0);
-        }
-        //console.log(angle) // carry on here
-      }
+      //   // if (angle > Math.PI/3){
+      //   //   dirToPlayer =  new THREE.Vector3(0, 0, 0);
+      //   // }
+      //   // //console.log(angle) // carry on here
+      //   console.log('end game')
+      // }
       
   
       this._input._keys.forward = false;
 
       const acc = this._acceleration;
-      if (dirToPlayer.length() == 0) {
-        return;
-      }
+      // if (dirToPlayer.length() == 0) {
+        //return;
+        //try putting AI walk here
+      //     //trying the path thing
+      
+      console.log("dir",dir)
+
+      let v = new THREE.Vector3();
+      controlObject.getWorldDirection(v)
+      let angle = Math.PI - v.angleTo( dirToPlayer)
 
       this._input._keys.forward = true;
       velocity.z += acc.z * timeInSeconds;
@@ -316,68 +349,68 @@ export const npc_entity = (() => {
           dirToPlayer,
           new THREE.Vector3(0, 1, 0));
       _R.setFromRotationMatrix(m);
-  
+
       controlObject.quaternion.copy(_R);
-  
+
       const oldPosition = new THREE.Vector3();
       oldPosition.copy(controlObject.position);
-  
+
       const forward = new THREE.Vector3(0, 0, 1);
       forward.applyQuaternion(controlObject.quaternion);
       forward.normalize();
-  
+
       const sideways = new THREE.Vector3(1, 0, 0);
       sideways.applyQuaternion(controlObject.quaternion);
       sideways.normalize();
-  
+
       sideways.multiplyScalar(velocity.x * timeInSeconds);
       forward.multiplyScalar(velocity.z * timeInSeconds);
-  
+
       const pos = controlObject.position.clone();
       pos.add(forward);
       pos.add(sideways);
 
-      const collisions = this._FindIntersections(pos);
-      if (collisions.length > 0) {
-        //this._input._keys.space = true;
-        this._input._keys.forward = false;
-        return;
-      }
+      // const collisions = this._FindIntersections(pos);
+      // if (collisions.length > 0) {
+      //   //this._input._keys.space = true;
+      //   this._input._keys.forward = false; 
+      //   return;
+      // }
 
       controlObject.position.copy(pos);
       this._position.copy(pos);
-  
+
       this._parent.SetPosition(this._position);
       this._parent.SetQuaternion(this._target.quaternion);
+      //console.log(this._target)
     }
 
-    Update(timeInSeconds) {
-      if (!this._stateMachine._currentState) {
-        return;
-      }
-
-      //console.log(this.object);
-      this._input._keys.space = false;
-      this._input._keys.forward = false;
-
-      this._UpdateAI(timeInSeconds);
-
-      this._stateMachine.Update(timeInSeconds, this._input);
-
-      // HARDCODED
-      if (this._stateMachine._currentState._action) {
-        this.Broadcast({
-          topic: 'player.action',
-          action: this._stateMachine._currentState.Name,
-          time: this._stateMachine._currentState._action.time,
-        });
-      }
-      
-      if (this._mixer) {
-        this._mixer.update(timeInSeconds);
-      }
+  Update(timeInSeconds) {
+    if (!this._stateMachine._currentState) {
+      return;
     }
-  };
+
+    this._input._keys.space = false;
+    this._input._keys.forward = false;
+
+    this._UpdateAI(timeInSeconds);
+
+    this._stateMachine.Update(timeInSeconds, this._input);
+
+    // HARDCODED
+    if (this._stateMachine._currentState._action) {
+      this.Broadcast({
+        topic: 'player.action',
+        action: this._stateMachine._currentState.Name,
+        time: this._stateMachine._currentState._action.time,
+      });
+    }
+    
+    if (this._mixer) {
+      this._mixer.update(timeInSeconds);
+    }
+  }
+};
 
   return {
     NPCController: NPCController,

@@ -44,7 +44,7 @@ void main() {
   gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 }`;
 
-
+var level=1;
 
 class myDemo {
   constructor() {
@@ -111,16 +111,75 @@ class myDemo {
     this._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
     this._active = true;
 
+    if (level==1){
     this._LoadControllers();
     this._LoadPlayer();
     //this._LoadFoliage();
     //dthis._LoadClouds();
     this._LoadSky();
     this._LoadRoom();
+
+
+    // //trying the path thing
+    // const points = [ 
+    //   new THREE.Vector3( 30, 0, 0 ), 
+    //   new THREE.Vector3( -30, 0, 0 ),
+    //   new THREE.Vector3( -30, 0, -5 ),
+    //   new THREE.Vector3( 30, 0, -5) 
+    //   ];
+  
+    // let path = new THREE.CatmullRomCurve3( points, true );
+      
+    // // visualize the path
+  
+    // const lineGeometry = new THREE.BufferGeometry().setFromPoints( path.getPoints( 32 ) );
+    // const lineMaterial = new THREE.LineBasicMaterial();
+    // const line = new THREE.Line( lineGeometry, lineMaterial );
+    // this._scene.add( line );
+    console.log('level 1')
+    console.log(this._scene.children);
+    //level=2;
+    }
+  
+    if (level==2){
+    //   while(this._scene.children.length > 0){ 
+    //     this._scene.remove(this._scene.children[0]); 
+    // }
+    this._clearThree(this._scene);
+  const geometry = new THREE.BoxGeometry();
+  const material = new THREE.MeshNormalMaterial();
+  let mesh = new THREE.Mesh( geometry, material );
+  this._scene.add( mesh );
+  console.log('level 2')
+  console.log(this._scene.children)
+
+    }
     
     this._previousRAF = null;
     this._RAF();
   }
+
+  _clearThree(obj){
+    while(obj.children.length > 0){ 
+      this._clearThree(obj.children[0]);
+      obj.remove(obj.children[0]);
+      //this._threejs.deallocateObject(obj)
+      obj.deallocate()
+    }
+    if(obj.geometry) obj.geometry.dispose();
+  
+    if(obj.material){ 
+      //in case of map, bumpMap, normalMap, envMap ...
+      Object.keys(obj.material).forEach(prop => {
+        if(!obj.material[prop])
+          return;
+        if(obj.material[prop] !== null && typeof obj.material[prop].dispose === 'function')                                  
+          obj.material[prop].dispose();                                                      
+      })
+      obj.material.dispose();
+    }
+  }   
+  
 
   _LoadControllers() {
     const ui = new entity.Entity();
@@ -274,7 +333,7 @@ class myDemo {
     player2.AddComponent(new player_entity.BasicCharacterController(params, 'mouse' , false));
     player2.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
     //player.AddComponent(new attack_controller.AttackController({timing: 0.7}));
-    player2.SetPosition(new THREE.Vector3(30, 0, 0));
+    //player2.SetPosition(new THREE.Vector3(30, 0, 0));
     
     this._entityManager.Add(player2, 'player2');
 

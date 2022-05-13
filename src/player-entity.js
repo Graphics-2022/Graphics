@@ -358,7 +358,7 @@ export const player_entity = (() => {
         start.y +=0.7;
         let v = new THREE.Vector3();
         controlObject.getWorldDirection(v)
-        console.log("dir", v);
+        //console.log("dir", v);
         let ray = new THREE.Raycaster();
         ray.far = 5;
         ray.near = 1;
@@ -400,7 +400,7 @@ export const player_entity = (() => {
         let v = new THREE.Vector3();
         controlObject.getWorldDirection(v)
         v.z *= -1;
-        console.log("dir", v);
+        //console.log("dir", v);
         let ray = new THREE.Raycaster();
         ray.far = 5;
         ray.near = 1;
@@ -410,7 +410,7 @@ export const player_entity = (() => {
           if(int[0].distance < 2){
             forw = false;
             console.log(int[0].distance)
-            this._stateMachine.SetState('idle');w
+            this._stateMachine.SetState('idle');
             return;
           }
         } 
