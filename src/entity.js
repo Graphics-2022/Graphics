@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+import * as THREE from '../modules/three.module.js';
 
 
 export const entity = (() => {
@@ -34,9 +34,9 @@ export const entity = (() => {
       return this._name;
     }
 
-    // SetActive(b) {
-    //   this._parent.SetActive(this, b);
-    // }
+    SetActive(b) {
+      this._parent.SetActive(this, b);
+    }
 
     
 

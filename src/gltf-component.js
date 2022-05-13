@@ -1,7 +1,7 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+import * as THREE from '../modules/three.module.js';
 
-import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
-import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
+import {GLTFLoader} from '../modules/GLTFLoader.js';
+import {FBXLoader} from '../modules/FBXLoader.js';
 
 import {entity} from './entity.js';
 
@@ -40,10 +40,13 @@ export const gltf_component = (() => {
 
     _OnLoaded(obj) {
       this._target = obj;
+      obj.name = this._params.name;
       this._params.scene.add(this._target);
-
       this._target.scale.setScalar(this._params.scale);
       this._target.position.copy(this._parent._position);
+      this._params.playerVision.push(this._target);
+      this._target.receiveShadow = true;
+      console.log("p",this._target)
 
       let texture = null;
       if (this._params.resourceTexture) {
@@ -53,6 +56,8 @@ export const gltf_component = (() => {
       }
 
       this._target.traverse(c => {
+        this._params.playerVision.push(c)
+
         let materials = c.material;
         if (!(c.material instanceof Array)) {
           materials = [c.material];
@@ -208,7 +213,10 @@ export const gltf_component = (() => {
       const loader = new GLTFLoader();
       loader.setPath(this._params.resourcePath);
       loader.load(this._params.resourceName, (glb) => {
+        this._params.objects.push(glb);
+        console.log("g", this._params.objects)
         this._OnLoaded(glb.scene, glb.animations);
+        
       });
     }
 

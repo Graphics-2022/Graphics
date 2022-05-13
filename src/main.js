@@ -1,5 +1,5 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118.1/build/three.module.js';
-
+import * as THREE from '../modules/three.module.js';
+import {OrbitControls} from '../modules/OrbitControls.js';
 import {third_person_camera} from './third-person-camera.js';
 import {entity_manager} from './entity-manager.js';
 import {player_entity} from './player-entity.js'
@@ -18,7 +18,10 @@ import {spatial_grid_controller} from './spatial-grid-controller.js';
 // import {inventory_controller} from './inventory-controller.js';
 // import {equip_weapon_component} from './equip-weapon-component.js';
  import {attack_controller} from './attacker-controller.js';
- import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
+ import {GLTFLoader} from '../modules/GLTFLoader.js';
+ import { Reflector } from '../modules/Reflector.js';
+import {inventory_controller} from './inventory-controller.js';
+
 
 const _VS = `
 varying vec3 vWorldPosition;
@@ -97,24 +100,41 @@ class myDemo {
 
     this._sun = light;
 
-    // const plane = new THREE.Mesh(
-    //     new THREE.PlaneGeometry(100, 100, 10, 10),
-    //     new THREE.MeshStandardMaterial({
-    //         color: 0x1e601c,
-    //       }));
-    // plane.castShadow = false;
-    // plane.receiveShadow = true;
-    // plane.rotation.x = -Math.PI / 2;
-    // this._scene.add(plane);
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(1000, 1000, 10, 10),
+      new THREE.MeshStandardMaterial({
+          color: 0x1e601c,
+        }));
+      plane.name = "plane"
+      plane.receiveShadow = true;
+      plane.rotation.x = -Math.PI / 2;
+      plane.position.y = 0.01;
+      this._scene.add(plane);
 
     this._entityManager = new entity_manager.EntityManager();
     this._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
     this._active = true;
 
+    this._monsterVision = [];
+    this._playerVision = [];
+    //this._objects.push(plane)
+    this._playerVision.push(plane);
+
+    //console.log(this._objects)
+    this._params = {
+      camera: this._camera,
+      scene: this._scene,
+      monsterVision: this._monsterVision,
+      playerVision: this._playerVision
+    };
+
+    // this.controls = new OrbitControls(this._camera, this._threejs.domElement);
+    // this.controls.enableDamping = true;
+    // this.controls.dampingFactor = 0.05;
+    // this.controls.maxDistance = 1000;
+
     this._LoadControllers();
     this._LoadPlayer();
-    //this._LoadFoliage();
-    //dthis._LoadClouds();
     this._LoadSky();
     this._LoadRoom();
     
@@ -156,85 +176,39 @@ class myDemo {
     this._scene.add(sky);
   }
 
-  // _LoadClouds() {
-  //   for (let i = 0; i < 20; ++i) {
-  //     const index = math.rand_int(1, 3);
-  //   const pos = new THREE.Vector3(
-  //       (Math.random() * 2.0 - 1.0) * 500,
-  //       100,
-  //       (Math.random() * 2.0 - 1.0) * 500);
-
-  //     const e = new entity.Entity();
-  //     e.AddComponent(new gltf_component.StaticModelComponent({
-  //       scene: this._scene,
-  //       resourcePath: './resources/nature2/GLTF/',
-  //       resourceName: 'Cloud' + index + '.glb',
-  //       position: pos,
-  //       scale: Math.random() * 5 + 10,
-  //       emissive: new THREE.Color(0x808080),
-  //     }));
-  //     e.SetPosition(pos);
-  //     this._entityManager.Add(e);
-  //     e.SetActive(false);
-  //   }
-  // }
-
-  _LoadFoliage() {
-    for (let i = 0; i < 100; ++i) {
-      const names = [
-          'CommonTree_Dead', 'CommonTree',
-          'BirchTree', 'BirchTree_Dead',
-          'Willow', 'Willow_Dead',
-          'PineTree',
-      ];
-      const name = names[math.rand_int(0, names.length - 1)];
-      const index = math.rand_int(1, 5);
-
-      const pos = new THREE.Vector3(
-          (Math.random() * 2.0 - 1.0) * 500,
-          0,
-          (Math.random() * 2.0 - 1.0) * 500);
-
-      const e = new entity.Entity();
-      e.AddComponent(new gltf_component.StaticModelComponent({
-        scene: this._scene,
-        resourcePath: './resources/nature/FBX/',
-        resourceName: name + '_' + index + '.fbx',
-        scale: 0.25,
-        emissive: new THREE.Color(0x000000),
-        specular: new THREE.Color(0x000000),
-        receiveShadow: true,
-        castShadow: true,
-      }));
-      e.AddComponent(
-          new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-      e.SetPosition(pos);
-      this._entityManager.Add(e);
-      e.SetActive(false);
-    }
-  }
-
   _LoadRoom(){
     const e=new entity.Entity();
-    const pos= new THREE.Vector3(0,0,-30);
+    const pos= new THREE.Vector3(0,0,0);
     e.AddComponent(new gltf_component.StaticModelComponent({
       scene: this._scene,
-      resourcePath: './resources/Level1Rooms/',
-      resourceName: 'dungeon_001.glb',
+      resourcePath: './resources/haunted_house/',
+      resourceName: 'scene.gltf',
       position: pos,
-      scale: 4.5,
+      scale: 1,
+      playerVision: this._playerVision,
+      name: 'map',
+      
       //emissive: new THREE.Color(0x808080),
     }));
     e.SetPosition(pos);
     this._entityManager.Add(e);
     e.SetActive(false);
+
+    const mirrorBack1 = new Reflector(
+      new THREE.PlaneBufferGeometry(20, 20),
+      {
+          color: new THREE.Color(0x7f7f7f),
+          textureWidth: window.innerWidth * window.devicePixelRatio,
+          textureHeight: window.innerHeight * window.devicePixelRatio
+      }
+    )
+    mirrorBack1.position.copy(new THREE.Vector3(3, 10, -30));
+    this._scene.add(mirrorBack1);
+    this._playerVision.push(mirrorBack1)
   }
 
   _LoadPlayer() {
-    const params = {
-      camera: this._camera,
-      scene: this._scene,
-    };
+    
 
     // const params2 = {
     //   camera: this._camera,
@@ -263,39 +237,16 @@ class myDemo {
     
 
     const player = new entity.Entity();
-    player.AddComponent(new player_input.BasicCharacterControllerInput(params, 'girl'));
-    player.AddComponent(new player_entity.BasicCharacterController(params, 'girl' , true));
+    player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
+    player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl' , true));
     player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
-    //player.AddComponent(new attack_controller.AttackController({timing: 0.7}));
     this._entityManager.Add(player, 'player');
 
     const player2 = new entity.Entity();
-    player2.AddComponent(new player_input.BasicCharacterControllerInput(params, 'mouse'));
-    player2.AddComponent(new player_entity.BasicCharacterController(params, 'mouse' , false));
+    player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
+    player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse' , false));
     player2.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
-    //player.AddComponent(new attack_controller.AttackController({timing: 0.7}));
-    player2.SetPosition(new THREE.Vector3(30, 0, 0));
-    
     this._entityManager.Add(player2, 'player2');
-
-  
-    // player.Broadcast({
-    //     topic: 'inventory.add',
-    //     value: axe.Name,
-    //     added: false,
-    // });
-
-    // player.Broadcast({
-    //     topic: 'inventory.add',
-    //     value: sword.Name,
-    //     added: false,
-    // });
-
-    // player.Broadcast({
-    //     topic: 'inventory.equip',
-    //     value: sword.Name,
-    //     added: false,
-    // });
 
     const camera = new entity.Entity();
     camera.AddComponent(
@@ -304,104 +255,11 @@ class myDemo {
             target: this._entityManager.Get('player')}));
     this._entityManager.Add(camera, 'player-camera');
 
-    // // for (let i = 0; i < 2; ++i) {
-    // //   const monsters = [
-    // //     {
-    // //       resourceName: 'Ghost.fbx',
-    // //       resourceTexture: 'Ghost_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'Alien.fbx',
-    // //       resourceTexture: 'Alien_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'Skull.fbx',
-    // //       resourceTexture: 'Skull_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'GreenDemon.fbx',
-    // //       resourceTexture: 'GreenDemon_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'Cyclops.fbx',
-    // //       resourceTexture: 'Cyclops_Texture.png',
-    // //     },
-    // //     {
-    // //       resourceName: 'Cactus.fbx',
-    // //       resourceTexture: 'Cactus_Texture.png',
-    // //     },
-    // //   ];
-    // //   const m = monsters[math.rand_int(0, monsters.length - 1)];
-
-    //   const npc = new entity.Entity();
-    //   npc.AddComponent(new npc_entity.NPCController({
-    //       camera: this._camera,
-    //       scene: this._scene,
-    //       resourceName: m.resourceName,
-    //       resourceTexture: m.resourceTexture,
-    //   }));
-    //   // npc.AddComponent(
-    //   //     new health_component.HealthComponent({
-    //   //         health: 50,
-    //   //         maxHealth: 50,
-    //   //         strength: 2,
-    //   //         wisdomness: 2,
-    //   //         benchpress: 3,
-    //   //         curl: 1,
-    //   //         experience: 0,
-    //   //         level: 1,
-    //   //         camera: this._camera,
-    //   //         scene: this._scene,
-    //   //     }));
-    //   npc.AddComponent(
-    //       new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-    //   // npc.AddComponent(new health_bar.HealthBar({
-    //   //     parent: this._scene,
-    //   //     camera: this._camera,
-    //   // }));
-    //   npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
-    //   npc.SetPosition(new THREE.Vector3(
-    //       (Math.random() * 2 - 1) * 10,
-    //       0,
-    //       (Math.random() * 2 - 1) * 10));
-    //   this._entityManager.Add(npc);
-    // //} 
-
-
-    
     const npc = new entity.Entity();
-      npc.AddComponent(new npc_entity.NPCController({
-          camera: this._camera,
-          scene: this._scene,
-          //resourceName: m.resourceName,
-          //resourceTexture: m.resourceTexture,
-      }));
-      // npc.AddComponent(
-      //     new health_component.HealthComponent({
-      //         health: 50,
-      //         maxHealth: 50,
-      //         strength: 2,
-      //         wisdomness: 2,
-      //         benchpress: 3,
-      //         curl: 1,
-      //         experience: 0,
-      //         level: 1,
-      //         camera: this._camera,
-      //         scene: this._scene,
-      //     }));
-      npc.AddComponent(
-          new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-      // npc.AddComponent(new health_bar.HealthBar({
-      //     parent: this._scene,
-      //     camera: this._camera,
-      // }));
+      npc.AddComponent(new npc_entity.NPCController(this._params));
+      npc.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
       npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
-      npc.SetPosition(new THREE.Vector3(
-          30,
-          0,
-          ));
       this._entityManager.Add(npc, 'npc1');
-    
   }
 
   _OnWindowResize() {
@@ -426,22 +284,7 @@ class myDemo {
       if (this._previousRAF === null) {
         this._previousRAF = t;
       }
-
-      // const raycaster = new THREE.Raycaster();
-      // const search = [];
-
-      // for (let i = -60; i < 60; i+=3){
-      //   search.push(new THREE.Vector3(Math.cos(i), 0, Math.sin(i)));
-      // }
-
-      // search.forEach((direction) => {
-      //   raycaster.set(new THREE.Vector3(0,0,10) , direction, 0,20);
-      //   const intersect = raycaster.intersectObjects(this._scene.children, true);
-      //   console.log(intersect)
-      //   if (intersect.length>0){
-      //     return;
-      //   }
-      // })
+      //this.controls.update();
 
       if(!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()){
         if(this._active ){
@@ -478,7 +321,6 @@ class myDemo {
     this._entityManager.Update(timeElapsedS);
   }
 }
-
 
 let _APP = null;
 

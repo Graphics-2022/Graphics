@@ -1,6 +1,6 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+import * as THREE from '../modules/three.module.js';
 
-import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
+import {FBXLoader} from '../modules/FBXLoader.js';
 
 import {finite_state_machine} from './finite-state-machine.js';
 import {entity} from './entity.js';
@@ -37,8 +37,6 @@ export const npc_entity = (() => {
     _Init() {
       this._AddState('idle', player_state.IdleState);
       this._AddState('walk', player_state.WalkState);
-      this._AddState('death', player_state.DeathState);
-      this._AddState('attack', player_state.AttackState);
     }
   };
 
@@ -54,12 +52,9 @@ export const npc_entity = (() => {
       this._acceleration = new THREE.Vector3(1, 0.25, 40.0);
       this._velocity = new THREE.Vector3(0, 0, 0);
       this._position = new THREE.Vector3();
-
       this._animations = {};
       this._input = new AIInput();
-      // FIXME
-      this._stateMachine = new NPCFSM(
-          new player_entity.BasicCharacterControllerProxy(this._animations));
+      this._stateMachine = new NPCFSM(new player_entity.BasicCharacterControllerProxy(this._animations));
 
       this._LoadModels();
     }
@@ -67,10 +62,6 @@ export const npc_entity = (() => {
     InitComponent() {
       this._RegisterHandler('health.death', (m) => { this._OnDeath(m); });
       this._RegisterHandler('update.position', (m) => { this._OnPosition(m); });
-    }
-
-    _OnDeath(msg) {
-      this._stateMachine.SetState('death');
     }
 
     _OnPosition(m) {
@@ -84,14 +75,13 @@ export const npc_entity = (() => {
       const loader = new FBXLoader();
       loader.setPath('./resources/enemies/');
       loader.load('Vampire A Lusth.fbx', (fbx) => {
+        fbx.name = 'enemy'
         this._target = fbx;
+        //console.log(this._params.objects)
         this._target.scale.setScalar(0.035);
-        this._target.position.copy(this._parent._position);
-        this._target.position.y += 0.35;
+        this._target.position.copy(new THREE.Vector3(3, 3, -20));
         this._params.scene.add(this._target);
-  
         this._bones = {};
-        console.log(this._target)
 
         this._target.traverse(c => {
           c.castShadow = true;
@@ -124,54 +114,6 @@ export const npc_entity = (() => {
         //loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
         loader.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
         //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
-        
-      // const loader = new FBXLoader();
-      // loader.setPath('./resources/monsters/FBX/');
-      // loader.load(this._params.resourceName, (glb) => {
-      //   this._target = glb;
-      //   this._params.scene.add(this._target);
-
-      //   this._target.scale.setScalar(0.025);
-      //   this._target.position.copy(this._parent._position);
-      //   this._target.position.y += 0.35;
-      //   const texLoader = new THREE.TextureLoader();
-      //   const texture = texLoader.load(
-      //       './resources/monsters/Textures/' + this._params.resourceTexture);
-      //   texture.encoding = THREE.sRGBEncoding;
-      //   texture.flipY = true;
-
-      //   this._target.traverse(c => {
-      //     c.castShadow = true;
-      //     c.receiveShadow = true;
-      //     if (c.material) {
-      //       c.material.map = texture;
-      //       c.material.side = THREE.DoubleSide;
-      //     }
-      //   });
-
-      //   this._mixer = new THREE.AnimationMixer(this._target);
-
-      //   const fbx = glb;
-      //   const _FindAnim = (animName) => {
-      //     for (let i = 0; i < fbx.animations.length; i++) {
-      //       if (fbx.animations[i].name.includes(animName)) {
-      //         const clip = fbx.animations[i];
-      //         const action = this._mixer.clipAction(clip);
-      //         return {
-      //           clip: clip,
-      //           action: action
-      //         }
-      //       }
-      //     }
-      //     return null;
-      //   };
-
-      //   this._animations['idle'] = _FindAnim('Idle');
-      //   this._animations['walk'] = _FindAnim('Walk');
-      //   this._animations['death'] = _FindAnim('Death');
-      //   this._animations['attack'] = _FindAnim('Bite_Front');
-
-      //   this._stateMachine.SetState('idle');
       });
     }
 
@@ -212,32 +154,40 @@ export const npc_entity = (() => {
     }
 
     _FindPlayer(pos) {
-      // const _IsAlivePlayer = (c) => {
-      //   const h = c.entity.GetComponent('HealthComponent');
-      //   if (!h) {
-      //     return false;
-      //   }
-      //   if (c.entity.Name != 'player') {
-      //     return false;
-      //   }
-      //   return h._health > 0;
-      // };
-
-      const grid = this.GetComponent('SpatialGridController');
-      const nearby = grid.FindNearbyEntities(20).filter(c => c.entity.Name == 'player');// find player within 20 units
-
-      // if (nearby.length == 0) {
-      //   return new THREE.Vector3(0, 0, 0);
-      // }
+      const controlObject = this._target;
+      let search = [];
+      for (let i = -Math.PI/3; i <= Math.PI/3; i+=Math.PI/10){
+        search.push(i);
+      }
+      const start = new THREE.Vector3();
+      start.copy(controlObject.position);
+      start.y +=2.5;
+      let d = new THREE.Vector3();
+      controlObject.getWorldDirection(d)
+      let ray = new THREE.Raycaster();
+      ray.far = 200;
+      ray.near = 0;
+      var int;
       
+      let newDir =new THREE.Vector3(0,0,0)
 
-      // const dir = this._parent._position.clone();
-      // dir.sub(nearby[0].entity._position);
-      // dir.y = 0.0;
-      // dir.normalize();
+      search.forEach((direction) => {
+        newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
+        newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
+        ray.set(start, newDir);
+        int = ray.intersectObjects(this._params.monsterVision )
+        // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
+        // this._params.scene.add(arrow)
 
-      //return dir;
-      return nearby;
+        if(int.length > 0){
+          if(int[0].object.parent.name == "girl"){
+            console.log("player found")
+            return true;
+          }
+        }  
+      })
+
+      return false;
     }
 
     _UpdateAI(timeInSeconds) {
@@ -259,96 +209,10 @@ export const npc_entity = (() => {
     }
 
     _OnAIWalk(timeInSeconds) {
-      const nearby = this._FindPlayer();
-      var dirToPlayer =  new THREE.Vector3(0, 0, 0);
-
-      
-
-      const velocity = this._velocity;
-      const frameDecceleration = new THREE.Vector3(
-          velocity.x * this._decceleration.x,
-          velocity.y * this._decceleration.y,
-          velocity.z * this._decceleration.z
-      );
-      frameDecceleration.multiplyScalar(timeInSeconds);
-      frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
-          Math.abs(frameDecceleration.z), Math.abs(velocity.z));
-  
-      velocity.add(frameDecceleration);
-
-      const controlObject = this._target;
-      const _Q = new THREE.Quaternion();
-      const _A = new THREE.Vector3();
-      const _R = controlObject.quaternion.clone();
-
-      if (nearby.length != 0) {
-        const dir = this._parent._position.clone();
-        dir.sub(nearby[0].entity._position);
-        dir.y = 0.0;
-        dir.normalize();
-
-        dirToPlayer = dir;
-
-        let v = new THREE.Vector3();
-        controlObject.getWorldDirection(v)
-        let angle = Math.PI - v.angleTo( dirToPlayer)
-
-        if (angle > Math.PI/3){
-          dirToPlayer =  new THREE.Vector3(0, 0, 0);
-        }
-        //console.log(angle) // carry on here
-      }
-      
-  
-      this._input._keys.forward = false;
-
-      const acc = this._acceleration;
-      if (dirToPlayer.length() == 0) {
-        return;
+      if( this._FindPlayer()){
+        return; // end game
       }
 
-      this._input._keys.forward = true;
-      velocity.z += acc.z * timeInSeconds;
-
-      const m = new THREE.Matrix4();
-      m.lookAt(
-          new THREE.Vector3(0, 0, 0),
-          dirToPlayer,
-          new THREE.Vector3(0, 1, 0));
-      _R.setFromRotationMatrix(m);
-  
-      controlObject.quaternion.copy(_R);
-  
-      const oldPosition = new THREE.Vector3();
-      oldPosition.copy(controlObject.position);
-  
-      const forward = new THREE.Vector3(0, 0, 1);
-      forward.applyQuaternion(controlObject.quaternion);
-      forward.normalize();
-  
-      const sideways = new THREE.Vector3(1, 0, 0);
-      sideways.applyQuaternion(controlObject.quaternion);
-      sideways.normalize();
-  
-      sideways.multiplyScalar(velocity.x * timeInSeconds);
-      forward.multiplyScalar(velocity.z * timeInSeconds);
-  
-      const pos = controlObject.position.clone();
-      pos.add(forward);
-      pos.add(sideways);
-
-      const collisions = this._FindIntersections(pos);
-      if (collisions.length > 0) {
-        //this._input._keys.space = true;
-        this._input._keys.forward = false;
-        return;
-      }
-
-      controlObject.position.copy(pos);
-      this._position.copy(pos);
-  
-      this._parent.SetPosition(this._position);
-      this._parent.SetQuaternion(this._target.quaternion);
     }
 
     Update(timeInSeconds) {
@@ -356,7 +220,27 @@ export const npc_entity = (() => {
         return;
       }
 
-      //console.log(this.object);
+      // const controlObject = this._target;
+      // const start = new THREE.Vector3();
+      // start.copy(controlObject.position);
+      // start.y +=1 ;
+      // let ray = new THREE.Raycaster();
+      // ray.far = 20;
+      // ray.near = 0;
+      // ray.set(start, new THREE.Vector3(0,-1,0));
+      // var int = ray.intersectObjects(this._params.objects, true )
+      // if(int.length > 0 ){
+      //   if(int[0].distance < 3 && int[0].distance > 0.2){
+      //     const p = new THREE.Vector3();
+      //     p.copy(int[0].point);
+      //     p.y +=0.1;
+      //     controlObject.position.copy(p);
+      //   }else{
+      //     controlObject.position.y -=0.3;
+      //   }
+      // }
+
+      //aconsole.log(this._target.position);
       this._input._keys.space = false;
       this._input._keys.forward = false;
 
