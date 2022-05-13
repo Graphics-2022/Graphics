@@ -1,26 +1,30 @@
 import * as THREE from '../modules/three.module.js';
-import {OrbitControls} from '../modules/OrbitControls.js';
+// import {OrbitControls} from '../modules/OrbitControls.js';
 import {third_person_camera} from './third-person-camera.js';
 import {entity_manager} from './entity-manager.js';
 import {player_entity} from './player-entity.js'
 import {entity} from './entity.js';
-import {gltf_component} from './gltf-component.js';
+// import {gltf_component} from './gltf-component.js';
 //import {health_component} from './health-component.js';
 import {player_input} from './player-input.js';
 import {npc_entity} from './npc-entity.js';
-import {math} from './math.js';
+// import {math} from './math.js';
 import {spatial_hash_grid} from './spatial-hash-grid.js';
-import {ui_controller} from './ui-controller.js';
+// import {ui_controller} from './ui-controller.js';
 // import {health_bar} from './health-bar.js';
 // import {level_up_component} from './level-up-component.js';
 // import {quest_component} from './quest-component.js';
 import {spatial_grid_controller} from './spatial-grid-controller.js';
 // import {inventory_controller} from './inventory-controller.js';
 // import {equip_weapon_component} from './equip-weapon-component.js';
- import {attack_controller} from './attacker-controller.js';
+//  import {attack_controller} from './attacker-controller.js';
  import {GLTFLoader} from '../modules/GLTFLoader.js';
  import { Reflector } from '../modules/Reflector.js';
-import {inventory_controller} from './inventory-controller.js';
+// import {inventory_controller} from './inventory-controller.js';
+// import {OBJLoader} from '../modules/OBJLoader.js';
+// import {MTLLoader} from '../modules/MTLLoader.js';
+import {FBXLoader} from '../modules/FBXLoader.js';
+
 
 
 const _VS = `
@@ -117,26 +121,33 @@ class myDemo {
 
     this._monsterVision = [];
     this._playerVision = [];
+    this._player2Vision = [];
+
     //this._objects.push(plane)
     this._playerVision.push(plane);
-
+    //this._keyFound = false;
+    this._keyObject;
     //console.log(this._objects)
     this._params = {
       camera: this._camera,
       scene: this._scene,
       monsterVision: this._monsterVision,
-      playerVision: this._playerVision
+      playerVision: this._playerVision,
+      player2Vision: this._player2Vision,
+
+      keyObject: this._keyObject,
+      entityManager: this._entityManager,
     };
 
     // this.controls = new OrbitControls(this._camera, this._threejs.domElement);
     // this.controls.enableDamping = true;
     // this.controls.dampingFactor = 0.05;
     // this.controls.maxDistance = 1000;
-    this._LoadControllers();
+    //this._LoadControllers();
     this._LoadPlayer();
     this._LoadSky();
     this._LoadRoom();
-
+    this._UIInit();
   //   //}
   
   //   // if (level==2){
@@ -179,11 +190,11 @@ class myDemo {
   }   
   
 
-  _LoadControllers() {
-    const ui = new entity.Entity();
-    ui.AddComponent(new ui_controller.UIController());
-    this._entityManager.Add(ui, 'ui');
-  }
+  // _LoadControllers() {
+  //   const ui = new entity.Entity();
+  //   ui.AddComponent(new ui_controller.UIController());
+  //   this._entityManager.Add(ui, 'ui');
+  // }
 
   _LoadSky() {
     const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.6);
@@ -214,22 +225,19 @@ class myDemo {
   }
 
   _LoadRoom(){
-    const e=new entity.Entity();
-    const pos= new THREE.Vector3(0,0,0);
-    e.AddComponent(new gltf_component.StaticModelComponent({
-      scene: this._scene,
-      resourcePath: './resources/haunted_house/',
-      resourceName: 'scene.gltf',
-      position: pos,
-      scale: 1,
-      playerVision: this._playerVision,
-      name: 'map',
-      
-      //emissive: new THREE.Color(0x808080),
-    }));
-    e.SetPosition(pos);
-    this._entityManager.Add(e);
-    e.SetActive(false);
+    const mapLoader = new GLTFLoader();
+    mapLoader.setPath('./resources/haunted_house/');
+    mapLoader.load('scene.gltf', (glb) => {
+        this._params.playerVision.push(glb.scene);
+        this._params.player2Vision.push(glb.scene);
+
+        this._params.scene.add(glb.scene);
+        glb.scene.scale.setScalar(1);
+        glb.scene.traverse(c => {
+          c.receiveShadow = true;
+          c.castShadow = true;
+        });
+      });
 
     const mirrorBack1 = new Reflector(
       new THREE.PlaneBufferGeometry(20, 20),
@@ -242,7 +250,27 @@ class myDemo {
     mirrorBack1.position.copy(new THREE.Vector3(3, 10, -30));
     this._scene.add(mirrorBack1);
     this._playerVision.push(mirrorBack1)
+
+    //Load Key
+    const loader = new FBXLoader();
+    loader.setPath('./resources/key/');
+    loader.load('key.fbx', (fbx) => {
+      fbx.name = 'key'
+      fbx.position.copy(new THREE.Vector3(3, 5, -9));
+      fbx.scale.setScalar(2);
+      this._scene.add(fbx);
+      this._params.keyObject = fbx;
+      fbx.traverse(c => {
+        c.castShadow = true;
+        c.receiveShadow = true;
+        if (c.material && c.material.map) {
+          c.material.map.encoding = THREE.sRGBEncoding;
+        }
+      });
+    });
   }
+
+
 
   _LoadPlayer() {
     
@@ -295,8 +323,44 @@ class myDemo {
     const npc = new entity.Entity();
       npc.AddComponent(new npc_entity.NPCController(this._params));
       npc.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-      npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
+      //npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
       this._entityManager.Add(npc, 'npc1');
+  }
+
+  _UIInit(){
+      this._iconBar = {
+        stats: document.getElementById('icon-bar-stats'),
+        inventory: document.getElementById('icon-bar-inventory'),
+        quests: document.getElementById('icon-bar-quests'),
+      };
+
+      this._ui = {
+        inventory: document.getElementById('inventory'),
+        quests: document.getElementById('quest-journal'),
+      };
+
+      this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
+      this._iconBar.quests.onclick = (m) => { this._OnSwitchClicked(m); };
+      this._ui.inventory.style.visibility = 'hidden';
+
+  }
+
+  _OnSwitchClicked() {
+    if(this._active){
+      // this._active = false;
+      this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(false);
+      // this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(true);
+    }else{
+      // this._active = true;
+      this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(false);
+      // this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(false);
+    }
+  }
+
+  _OnInventoryClicked() {
+    const visibility = this._ui.inventory.style.visibility;
+    // this._ui.inventory.style.visibility = 'hidden';
+    this._ui.inventory.style.visibility = (visibility ? '' : 'hidden');
   }
 
   _OnWindowResize() {
@@ -321,8 +385,7 @@ class myDemo {
       if (this._previousRAF === null) {
         this._previousRAF = t;
       }
-      //this.controls.update();
-
+      
       if(!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()){
         if(this._active ){
           this._active = false;

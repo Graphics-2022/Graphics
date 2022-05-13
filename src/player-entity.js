@@ -68,7 +68,8 @@ export const player_entity = (() => {
       this._acceleration = new THREE.Vector3(1, 0.125, 50.0);
       this._velocity = new THREE.Vector3(0, 0, 0);
       this._position = new THREE.Vector3();
-      this._height 
+      this._dist; 
+      this._vision;
   
       this._animations = {};
       this._stateMachine = new CharacterFSM(
@@ -103,7 +104,6 @@ export const player_entity = (() => {
           this._target = fbx;
           this._height = 0.2;
 
-          //this._params.objects.push(fbx);
           this._target.position.copy(new THREE.Vector3(3, 3, -15));
           this._target.scale.setScalar(0.015);
           this._params.scene.add(this._target);
@@ -111,13 +111,16 @@ export const player_entity = (() => {
           this._parent.SetQuaternion(this._target.quaternion);    
           this._bones = {};
           //console.log(this._target)
-
+          this._dist = 1;
+          this._vision = this._params.player2Vision;
           this._target.traverse(c => {
             c.castShadow = true;
             c.receiveShadow = true;
             if (c.material && c.material.map) {
               c.material.map.encoding = THREE.sRGBEncoding;
             }
+            this._params.playerVision.push(c)
+
           });
 
           this._mixer = new THREE.AnimationMixer(this._target);
@@ -154,13 +157,14 @@ export const player_entity = (() => {
           this._target.scale.setScalar(0.035);
           this._target.name = "girl"
           this._params.scene.add(this._target);
-
+          this._dist = 2;
           //this._params.objects.push(fbx);
 
           this._target.position.y = 3;
           this._target.position.z = -15;
           this._parent.SetPosition(this._position);
           this._parent.SetQuaternion(this._target.quaternion);
+          this._vision = this._params.playerVision;
 
           this._bones = {};
           console.log(this._target)
@@ -172,6 +176,8 @@ export const player_entity = (() => {
               c.material.map.encoding = THREE.sRGBEncoding;
             }
             this._params.monsterVision.push(c)
+            this._params.player2Vision.push(c)
+
           });
 
           this._mixer = new THREE.AnimationMixer(this._target);
@@ -240,15 +246,15 @@ export const player_entity = (() => {
       //   return h._health > 0;
       // };
 
-      const grid = this.GetComponent('SpatialGridController');
-      const nearby = grid.FindNearbyEntities(20).filter(c => c.entity.Name == 'player'); //find player within 20 units
+      // const grid = this.GetComponent('SpatialGridController');
+      // const nearby = grid.FindNearbyEntities(20).filter(c => c.entity.Name == 'player'); //find player within 20 units
 
-      if (nearby.length == 0) {
-        return new THREE.Vector3(0, 0, 0);
-      }
+      // if (nearby.length == 0) {
+      //   return new THREE.Vector3(0, 0, 0);
+      // }
 
       const dir = this._parent._position.clone();
-      dir.sub(nearby[0].entity._position);
+      dir.sub(this._params.entityManager.Get('player')._position)//(nearby[0].entity._position);
       dir.y = 0.0;
       dir.normalize();
 
@@ -354,6 +360,39 @@ export const player_entity = (() => {
         this._mixer.update(timeInSeconds);
       }
 
+      const input = this.GetComponent('BasicCharacterControllerInput');
+
+      if (input._keys.switch){
+        this._active = false;
+      }
+
+      const controlObject = this._target;
+      const start = new THREE.Vector3();
+      start.copy(controlObject.position);
+      // Up and Down // hide girl mesh
+      start.y +=3 ;
+      let ray = new THREE.Raycaster();
+
+      ray.far = 20;
+      ray.near = 0;
+      ray.set(start, new THREE.Vector3(0,-1,0));
+      var int = ray.intersectObjects(this._vision)
+      // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
+      //   this._params.scene.add(arrow)
+      //console.log(int[0])
+
+      if(int.length > 0 ){
+        if( int[0].distance > 0.2){
+          const p = new THREE.Vector3();
+          p.copy(int[0].point);
+          p.y +=0.1;
+          controlObject.position.copy(p);
+        }else{
+          controlObject.position.y -=0.3;
+        }
+      }
+      start.y -=3;
+
       if (!this._active){
         if(this._type == 'mouse'){      // must incorperate hight
           this._UpdateAI(timeInSeconds);
@@ -365,17 +404,10 @@ export const player_entity = (() => {
       }
       
 
-      const controlObject = this._target;
-      const input = this.GetComponent('BasicCharacterControllerInput');
-
-      if (input._keys.switch){
-        this._active = false;
-        return;
-      }
+      
       let blocked = false;
       let search = [];
-      const start = new THREE.Vector3();
-      start.copy(controlObject.position);
+      
       start.y +=0.1 ;
       for (let i = -Math.PI/6; i <= Math.PI/6; i+=Math.PI/6){
         search.push(i);
@@ -383,9 +415,8 @@ export const player_entity = (() => {
 
       let d = new THREE.Vector3();
       controlObject.getWorldDirection(d)
-      let ray = new THREE.Raycaster();
-      ray.far = 2.5;
-      ray.near = 1;
+      ray.far = this._dist;
+      ray.near = 0;
 
       if (input._keys.backward){
         d.z *= -1;
@@ -399,29 +430,24 @@ export const player_entity = (() => {
         newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
         newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
         ray.set(start, newDir);
-        var int = ray.intersectObjects(this._params.playerVision )
+        var int = ray.intersectObjects(this._vision )
         // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
         // this._params.scene.add(arrow)
         if(int.length > 0){
-          if(int[0].distance < 2.5 ){
-            //console.log(int[0])
             blocked = true;
-          }
         }  
       })
 
-
       if(blocked){
         start.y +=1.5;
-
-        ray.far = 2.5;
+        ray.far = this._dist;
         ray.near = 0;
         ray.set(start,d);
-        var int = ray.intersectObjects(this._params.playerVision);
+        var int = ray.intersectObjects(this._vision);
+        //         var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
+        // this._params.scene.add(arrow)
 
-        if(int.length == 0 ){
-          controlObject.position.y += 0.5;
-        }else{
+        if(int.length != 0 ){
           input._keys.forward = false;
           input._keys.backward = false;
           this._velocity.x = 0;
@@ -430,42 +456,23 @@ export const player_entity = (() => {
         }
       }
 
-      // Up and Down // hide girl mesh
-      start.y +=1 ;
-      ray.far = 20;
-      ray.near = 0;
-      ray.set(start, new THREE.Vector3(0,-1,0));
-      var int = ray.intersectObjects(this._params.playerVision)
-      //console.log(int[0])
-      if(int.length > 0 ){
-        if(int[0].distance < 3 && int[0].distance > 0.2){
-          const p = new THREE.Vector3();
-          p.copy(int[0].point);
-          p.y +=0.1;
-          controlObject.position.copy(p);
-        }else{
-          controlObject.position.y -=0.3;
-        }
-      }
-      
+      // const collisions = this._FindIntersections(this._position);
+      // if (collisions.length > 0) {
+      //   for (let eachEntity of collisions){
+      //     const dir = this._position.clone();
+      //     dir.sub(eachEntity._position);
+      //     dir.y = 0.0;
+      //     dir.normalize();
+      //     let dirToPlayer = dir;
 
-      const collisions = this._FindIntersections(this._position);
-      if (collisions.length > 0) {
-        for (let eachEntity of collisions){
-          const dir = this._position.clone();
-          dir.sub(eachEntity._position);
-          dir.y = 0.0;
-          dir.normalize();
-          let dirToPlayer = dir;
-
-          let v = new THREE.Vector3();
-          controlObject.getWorldDirection(v)
-          let angle = Math.PI - v.angleTo( dirToPlayer)
-          if ((input._keys.forward && angle < Math.PI/8) || (input._keys.backward && angle > Math.PI -Math.PI/8) ){
-            input._keys.forward = false;
-          }
-        }
-      }
+      //     let v = new THREE.Vector3();
+      //     controlObject.getWorldDirection(v)
+      //     let angle = Math.PI - v.angleTo( dirToPlayer)
+      //     if ((input._keys.forward && angle < Math.PI/8) || (input._keys.backward && angle > Math.PI -Math.PI/8) ){
+      //       input._keys.forward = false;
+      //     }
+      //   }
+      // }
 
       this._stateMachine.Update(timeInSeconds, input);
 

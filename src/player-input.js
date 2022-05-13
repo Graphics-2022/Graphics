@@ -50,36 +50,17 @@ export const player_input = (() => {
       rey.setFromCamera(pos, this._params.camera);
       var int = rey.intersectObjects( this._params.scene.children, true);
       console.log(int)
-      // this._raycaster.setFromCamera(pos, this._params.camera);
 
-      // const pickables = this._parent._parent.Filter((e) => {
-      //   const p = e.GetComponent('PickableComponent');
-      //   if (!p) {
-      //     return false;
-      //   }
-      //   return e._mesh;
-      // });
-
-      // const ray = new THREE.Ray();
-      // ray.origin.setFromMatrixPosition(this._params.camera.matrixWorld);
-      // ray.direction.set(pos.x, pos.y, 0.5).unproject(
-      //     this._params.camera).sub(ray.origin).normalize();
-
-      // // hack
-      // //document.getElementById('quest-ui').style.visibility = 'hidden';
-      // const intersects = this._raycaster.intersectObjects(this._params.scene.children);
-      // console.log(intersects)
-      // for (let p of pickables) {
-      //   // GOOD ENOUGH
-      //   const box = new THREE.Box3().setFromObject(p._mesh);
-
-      //   if (ray.intersectsBox(box)) {
-      //     p.Broadcast({
-      //         topic: 'input.picked'
-      //     });
-      //     break;
-      //   }
-      // }
+      if ( int.length > 0){
+        console.log(int[0].object.name)
+        if(int[0].object.name == "Key"){
+          console.log("key found");
+          const div = document.getElementById("inventory-1");
+          console.log(div);
+          div.style.backgroundImage = "url('./resources/icons/key.png')";
+          this._params.scene.remove(this._params.keyObject);
+        }
+      }
     }
 
     _onKeyDown(event) {

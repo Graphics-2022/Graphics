@@ -69,7 +69,6 @@ export const npc_entity = (() => {
     _OnPosition(m) {
       if (this._target) {
         this._target.position.copy(m.value);
-        this._target.position.y = 0.35;
       }
     }
 
@@ -81,7 +80,7 @@ export const npc_entity = (() => {
         this._target = fbx;
         //console.log(this._params.objects)
         this._target.scale.setScalar(0.035);
-        this._target.position.copy(new THREE.Vector3(3, 3, -20));
+        this._target.position.copy(new THREE.Vector3(3, 2.5, -20));
 
         this._params.scene.add(this._target);
         this._bones = {};
@@ -131,30 +130,30 @@ export const npc_entity = (() => {
       return this._target.quaternion;
     }
 
-    _FindIntersections(pos) {
-      const _IsAlive = (c) => {
-        const h = c.entity.GetComponent('HealthComponent');
-        if (!h) {
-          return true;
-        }
-        return h._health > 0;
-      };
+    // _FindIntersections(pos) {
+    //   const _IsAlive = (c) => {
+    //     const h = c.entity.GetComponent('HealthComponent');
+    //     if (!h) {
+    //       return true;
+    //     }
+    //     return h._health > 0;
+    //   };
 
-      const grid = this.GetComponent('SpatialGridController');
-      const nearby = grid.FindNearbyEntities(2).filter(e => _IsAlive(e));
-      const collisions = [];
+    //   const grid = this.GetComponent('SpatialGridController');
+    //   const nearby = grid.FindNearbyEntities(2).filter(e => _IsAlive(e));
+    //   const collisions = [];
 
-      for (let i = 0; i < nearby.length; ++i) {
-        const e = nearby[i].entity;
-        const d = ((pos.x - e._position.x) ** 2 + (pos.z - e._position.z) ** 2) ** 0.5;
+    //   for (let i = 0; i < nearby.length; ++i) {
+    //     const e = nearby[i].entity;
+    //     const d = ((pos.x - e._position.x) ** 2 + (pos.z - e._position.z) ** 2) ** 0.5;
 
-        // HARDCODED
-        if (d <= 4) {
-          collisions.push(nearby[i].entity);
-        }
-      }
-      return collisions;
-    }
+    //     // HARDCODED
+    //     if (d <= 4) {
+    //       collisions.push(nearby[i].entity);
+    //     }
+    //   }
+    //   return collisions;
+    // }
 
     _FindPlayer(pos) {
       const controlObject = this._target;
@@ -234,9 +233,9 @@ export const npc_entity = (() => {
       // const line = new THREE.Line( lineGeometry, lineMaterial );
       // this._params.scene.add(line)
       const pos1=path.getPointAt( (this._time/7)%1);
-      console.log("time",(this._time/1)%1)
+      //console.log("time",(this._time/1)%1)
       // const pos=new THREE.Vector3(0,0,0);
-      console.log("pos",pos1)
+      //console.log("pos",pos1)
       const dir = this._parent._position.clone();
       dir.sub(pos1);
       dir.y = 0.0;
@@ -289,7 +288,7 @@ export const npc_entity = (() => {
         //try putting AI walk here
       //     //trying the path thing
       
-      console.log("dir",dir)
+      //console.log("dir",dir)
 
       let v = new THREE.Vector3();
       controlObject.getWorldDirection(v)
@@ -352,14 +351,14 @@ export const npc_entity = (() => {
 
     this._stateMachine.Update(timeInSeconds, this._input);
 
-    // HARDCODED
-    if (this._stateMachine._currentState._action) {
-      this.Broadcast({
-        topic: 'player.action',
-        action: this._stateMachine._currentState.Name,
-        time: this._stateMachine._currentState._action.time,
-      });
-    }
+    // // HARDCODED
+    // if (this._stateMachine._currentState._action) {
+    //   this.Broadcast({
+    //     topic: 'player.action',
+    //     action: this._stateMachine._currentState.Name,
+    //     time: this._stateMachine._currentState._action.time,
+    //   });
+    // }
     
     if (this._mixer) {
       this._mixer.update(timeInSeconds);
