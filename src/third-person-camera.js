@@ -21,13 +21,16 @@ export const third_person_camera = (() => {
     }
 
     _CalculateIdealOffset() {
-      let idealOffset = this._CheckSuroundings();
-      if ( idealOffset == undefined){
-        idealOffset = new THREE.Vector3(-0, 5, -12); !! // minus distance to this 
+      // // let idealOffset = this._CheckSuroundings();
+      // if ( idealOffset == undefined){
+      //   idealOffset = new THREE.Vector3(-0, 5, -12); //!! // minus distance to this 
+      //   idealOffset.applyQuaternion(this._params.target._rotation);
+      //   idealOffset.add(this._params.target._position);
+      // }
+
+     let idealOffset = new THREE.Vector3(-0, 5, -12); //!! // minus distance to this 
         idealOffset.applyQuaternion(this._params.target._rotation);
         idealOffset.add(this._params.target._position);
-      }
-      
       return idealOffset;
     }
 

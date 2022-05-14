@@ -228,15 +228,20 @@ class myDemo {
     const mapLoader = new GLTFLoader();
     mapLoader.setPath('./resources/haunted_house/');
     mapLoader.load('scene.gltf', (glb) => {
-        this._params.playerVision.push(glb.scene);
-        this._params.player2Vision.push(glb.scene);
+        // this._params.playerVision.push(glb.scene);
+        // this._params.player2Vision.push(glb.scene);
 
         this._params.scene.add(glb.scene);
         glb.scene.scale.setScalar(1);
         glb.scene.traverse(c => {
           c.receiveShadow = true;
           c.castShadow = true;
+          this._params.playerVision.push(c);
+          this._params.player2Vision.push(c);
+
         });
+        
+
       });
 
     // const mirrorBack1 = new Reflector(

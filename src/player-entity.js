@@ -105,9 +105,11 @@ export const player_entity = (() => {
           this._height = 0.2;
 
           this._target.position.copy(new THREE.Vector3(3, 3, -15));
+          this._parent.SetPosition(this._position);
+
           this._target.scale.setScalar(0.015);
           this._params.scene.add(this._target);
-          this._parent.SetPosition(this._position);
+          this._parent.SetPosition(this._target.position);
           this._parent.SetQuaternion(this._target.quaternion);    
           this._bones = {};
           //console.log(this._target)
@@ -162,7 +164,7 @@ export const player_entity = (() => {
 
           this._target.position.y = 3;
           this._target.position.z = -15;
-          this._parent.SetPosition(this._position);
+          this._parent.SetPosition(this._target.position);
           this._parent.SetQuaternion(this._target.quaternion);
           this._vision = this._params.playerVision;
 
@@ -205,60 +207,42 @@ export const player_entity = (() => {
           loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
           // loader.load('Sword And Shield Death.fbx', (a) => { _OnLoad('death', a); });
         });
-    }
-    
-    }
-
-    // _FindIntersections(pos) {
-    //   const _IsAlive = (c) => {
-    //     const h = c.entity.GetComponent('HealthComponent');
-    //     if (!h) {
-    //       return true;
-    //     }
-    //     return h._health > 0;
-    //   };
-
-    //   const grid = this.GetComponent('SpatialGridController');
-    //   const nearby = grid.FindNearbyEntities(1).filter(e => _IsAlive(e));
-    //   const collisions = [];
-
-    //   for (let i = 0; i < nearby.length; ++i) {
-    //     const e = nearby[i].entity;
-    //     const d = ((pos.x - e._position.x) ** 2 + (pos.z - e._position.z) ** 2) ** 0.5;
-
-    //     // HARDCODED
-    //     if (d <= 4) {
-    //       collisions.push(nearby[i].entity);
-    //     }
-    //   }
-    //   return collisions;
-    // }
-
-
-    _UpdateAI(timeInSeconds) {
-      const currentState = this._stateMachine._currentState;
-      if (currentState.Name != 'walk' &&
-          currentState.Name != 'run' &&
-          currentState.Name != 'idle') {
-        return;
-      }
-
-      if (currentState.Name == 'death') {
-        return;
-      }
-
-      if (currentState.Name == 'idle' ||
-          currentState.Name == 'walk') {
-        this._OnAIWalk(timeInSeconds);
       }
     }
 
     _OnAIWalk(timeInSeconds) {
-      const dir = this._parent._position.clone();
+      const currentState = this._stateMachine._currentState;
+
+      if ( !(currentState.Name == 'idle' || currentState.Name == 'walk')) {
+          return;
+      }
+
+      const controlObject = this._target;
+      const _R = controlObject.quaternion.clone();
+      const dir = controlObject.position.clone();
+
       dir.sub(this._params.entityManager.Get('player')._position)
       dir.y = 0.0;
       dir.normalize();
       const dirToPlayer = dir;
+
+      const m = new THREE.Matrix4();
+      m.lookAt(
+          new THREE.Vector3(0, 0, 0),
+          dirToPlayer,
+          new THREE.Vector3(0, 1, 0));
+      _R.setFromRotationMatrix(m);
+      controlObject.quaternion.copy(_R);
+
+      if (controlObject.position.distanceTo(this._params.entityManager.Get('player')._position) < 5){
+          this._input._keys.forward = false;
+          this._input._keys.backward = false;
+          this._velocity.x = 0;
+          this._velocity.y = 0;
+          this._velocity.z = 0;
+        return;
+      }
+
       const velocity = this._velocity;
       const frameDecceleration = new THREE.Vector3(
           velocity.x * this._decceleration.x,
@@ -271,13 +255,8 @@ export const player_entity = (() => {
   
       velocity.add(frameDecceleration);
 
-      const controlObject = this._target;
-      const _Q = new THREE.Quaternion();
-      const _A = new THREE.Vector3();
-      const _R = controlObject.quaternion.clone();
-
-      
-      //this._input._keys.forward = false;
+      // const _Q = new THREE.Quaternion();
+      // const _A = new THREE.Vector3();
 
       const acc = this._acceleration;
       if (dirToPlayer.length() == 0) {
@@ -286,15 +265,6 @@ export const player_entity = (() => {
 
       this._input._keys.forward = true;
       velocity.z += acc.z * timeInSeconds;
-
-      const m = new THREE.Matrix4();
-      m.lookAt(
-          new THREE.Vector3(0, 0, 0),
-          dirToPlayer,
-          new THREE.Vector3(0, 1, 0));
-      _R.setFromRotationMatrix(m);
-  
-      controlObject.quaternion.copy(_R);
   
       const oldPosition = new THREE.Vector3();
       oldPosition.copy(controlObject.position);
@@ -313,47 +283,6 @@ export const player_entity = (() => {
       const pos = controlObject.position.clone();
       pos.add(forward);
       pos.add(sideways);
-
-
-      let blocked = false;
-      let ray = new THREE.Raycaster();
-      let d = new THREE.Vector3();
-
-      controlObject.getWorldDirection(d)
-      let newDir =new THREE.Vector3(0,0,0)
-
-      const start = new THREE.Vector3();
-      start.copy(controlObject.position);
-
-      start.y +=1.5;
-      ray.far = this._dist+1;
-      ray.near = 0;
-      let search = [];
-      start.y +=0.1 ;
-      for (let i = -Math.PI/6; i <= Math.PI/6; i+=Math.PI/6){
-        search.push(i);
-      }
-      search.forEach((direction) => {
-        newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
-        newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
-        ray.set(start, newDir);
-
-        var int = ray.intersectObjects(this._vision )
-        // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
-        // this._params.scene.add(arrow)
-
-        if(int.length > 0){
-            this._input._keys.forward = false;
-            this._input._keys.backward = false;
-            this._velocity.x = 0;
-            this._velocity.y = 0;
-            this._velocity.z = 0;
-            blocked = true
-        }  
-      })
-      if(blocked){
-        return;
-      }
 
       controlObject.position.copy(pos);
       this._position.copy(pos);
@@ -381,14 +310,15 @@ export const player_entity = (() => {
       const controlObject = this._target;
       const start = new THREE.Vector3();
       start.copy(controlObject.position);
-      // Up and Down // hide girl mesh
+
+      // Up and Down 
       start.y +=3 ;
       let ray = new THREE.Raycaster();
 
       ray.far = 20;
       ray.near = 0;
       ray.set(start, new THREE.Vector3(0,-1,0));
-      var int = ray.intersectObjects(this._vision)
+      var int = ray.intersectObjects(this._vision, false )
       // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
       //   this._params.scene.add(arrow)
       if(int.length > 0 ){
@@ -404,8 +334,8 @@ export const player_entity = (() => {
       start.y -=3;
 
       if (!this._active){
-        if(this._type == 'mouse'){      // must incorperate hight
-          //this._UpdateAI(timeInSeconds);
+        if(this._type == 'mouse'){    
+          this._OnAIWalk(timeInSeconds);
           this._stateMachine.Update(timeInSeconds, this._input);
         }else{
           this._stateMachine.SetState('idle');
@@ -438,7 +368,7 @@ export const player_entity = (() => {
         newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
         newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
         ray.set(start, newDir);
-        var int = ray.intersectObjects(this._vision )
+        var int = ray.intersectObjects(this._vision, false )
         // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
         // this._params.scene.add(arrow)
         if(int.length > 0){
@@ -454,21 +384,21 @@ export const player_entity = (() => {
 
       this._stateMachine.Update(timeInSeconds, input);
 
-      // HARDCODED
-      if (this._stateMachine._currentState._action) {
-        this.Broadcast({
-          topic: 'player.action',
-          action: this._stateMachine._currentState.Name,
-          time: this._stateMachine._currentState._action.time,
-        });
-      }
+      // // HARDCODED
+      // if (this._stateMachine._currentState._action) {
+      //   this.Broadcast({
+      //     topic: 'player.action',
+      //     action: this._stateMachine._currentState.Name,
+      //     time: this._stateMachine._currentState._action.time,
+      //   });
+      // }
 
-      const currentState = this._stateMachine._currentState;
-      if (currentState.Name != 'walk' &&
-          currentState.Name != 'run' &&
-          currentState.Name != 'idle') {
-        return;
-      }
+      // const currentState = this._stateMachine._currentState;
+      // if (currentState.Name != 'walk' &&
+      //     currentState.Name != 'run' &&
+      //     currentState.Name != 'idle') {
+      //   return;
+      // }
     
       const velocity = this._velocity;
       const frameDecceleration = new THREE.Vector3(

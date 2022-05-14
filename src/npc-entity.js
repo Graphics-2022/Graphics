@@ -6,7 +6,7 @@ import {finite_state_machine} from './finite-state-machine.js';
 import {entity} from './entity.js';
 import {player_entity} from './player-entity.js'
 import {player_state} from './player-state.js';
-import * as THREEx from '../modules/threex.volumetricspotlightmaterial.js'
+import {spotlight_material} from '../modules/spotlightmaterial.js'
 
 
 export const npc_entity = (() => {
@@ -119,54 +119,51 @@ export const npc_entity = (() => {
         loader.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
         //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
 
-        var geometry	= new THREE.CylinderGeometry( 0.1, 1.5, 5, 32*2, 20, true);
-	// var geometry	= new THREE.CylinderGeometry( 0.1, 5*Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
-        geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
-        geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
-        // geometry.computeVertexNormals()
-        // var geometry	= new THREE.BoxGeometry( 3, 1, 3 );
-        // var material	= new THREE.MeshNormalMaterial({
-        // 	side	: THREE.DoubleSide
-        // });
-        // var material	= new THREE.MeshPhongMaterial({
-        // 	color		: 0x000000,
-        // 	wireframe	: true,
-        // })
-        var material	= new THREEx.volumeMesh.volume;
-        console.log(",ey",material)
-        var mesh	= new THREE.Mesh( geometry, material );
-        mesh.position.set(1.5,2,0)
-        mesh.lookAt(new THREE.Vector3(0,0, 0))
-        material.uniforms.lightColor.value.set('white')
-        material.uniforms.spotPosition.value	= mesh.position
-        scene.add( mesh );
-
-        this._spotLight = new THREE.SpotLight( 0xff0909 , 10 , 200 , Math.PI/6 );
-        this._spotLight.position.copy(this._target.position);
-        this._spotLight.position.y += 6;
-        this._spotLight.castShadow = true;
-
-        this._spotLight.shadow.mapSize.width = 1024/4;
-        this._spotLight.shadow.mapSize.height = 1024/4;
-
-        this._spotLight.shadow.camera.near = 4;
-        this._spotLight.shadow.camera.far = 200;
-        this._spotLight.shadow.camera.fov = 30;
-        
-        // // var geometry	= new THREE.CylinderGeometry( 0.1, 1.5, 5, 32*2, 20, true);
-        // var geometry	= new THREE.CylinderGeometry( 0.1, 5*Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
-        // geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, 0, 0 ) );
-        // geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
-        // var material	= new THREEx.VolumetricSpotLightMaterial()
-        // var mesh	= new THREE.Mesh( geometry, material );
         this._targetObject = new THREE.Object3D();
         this._targetObject.position.copy(this._target.position);
         this._targetObject.position.y += 5.9
-        this._targetObject.position.z += 0.5
+        this._targetObject.position.z += 2.2
 
-        this._spotLight.target = this._targetObject
+        // this._spotLight.target = this._targetObject
        
-        this._params.scene.add( this._spotLight);
+        // this._params.scene.add( this._spotLight);
+        // this._params.scene.add( this._spotLight.target);
+
+        // add spot light
+        var geometry    = new THREE.CylinderGeometry( 0.1, 10, 30, 322, 20, true);
+        // var geometry    = new THREE.CylinderGeometry( 0.1, 5Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
+        geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
+        geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
+        // geometry.computeVertexNormals()
+        // var geometry    = new THREE.BoxGeometry( 3, 1, 3 );
+        // var material    = new THREE.MeshNormalMaterial({
+        //     side    : THREE.DoubleSide
+        // });
+        // var material    = new THREE.MeshPhongMaterial({
+        //     color        : 0x000000,
+        //     wireframe    : true,
+        // })
+        var material    = new spotlight_material.SpotlightMaterial().GetMaterial();
+        this._mesh    = new THREE.Mesh( geometry, material );
+        this._mesh.position.copy(this._target.position);
+        this._mesh.position.y+= 6;
+        this._mesh.position.z+= 1.8;
+
+        this._mesh.lookAt(this._targetObject.position)
+        material.uniforms.lightColor.value.set('red')
+        material.uniforms.spotPosition.value    = this._mesh.position
+        material.uniforms.attenuation.value    = 100
+        material.uniforms.anglePower.value    = 2
+        this._params.scene.add( this._mesh );
+
+        this._spotLight    = new THREE.SpotLight( 0xff0909 , 8 , 200 , Math.PI/10 )
+        this._spotLight.position.copy(this._mesh.position)
+        //spotLight.color.copy(mesh.color)
+        this._spotLight.exponent    = 30
+        this._spotLight.intensity    = 5
+        this._spotLight.target = this._targetObject;
+
+        this._params.scene.add( this._spotLight  )
         this._params.scene.add( this._spotLight.target);
 
       });
@@ -186,10 +183,10 @@ export const npc_entity = (() => {
     }
 
 
-    _FindPlayer(pos) {
+    _FindPlayer() {
       const controlObject = this._target;
       let search = [];
-      for (let i = -Math.PI/6; i <= Math.PI/6; i+=Math.PI/12){
+      for (let i = -Math.PI/10; i <= Math.PI/10; i+=Math.PI/12){
         search.push(i);
       }
       const start = new THREE.Vector3();
@@ -208,7 +205,7 @@ export const npc_entity = (() => {
         newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
         newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
         ray.set(start, newDir);
-        int = ray.intersectObjects(this._params.monsterVision )
+        int = ray.intersectObjects(this._params.monsterVision, false )
         // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
         // this._params.scene.add(arrow)
 
@@ -269,7 +266,6 @@ export const npc_entity = (() => {
       dir.sub(pos1);
       dir.y = 0.0;
       dir.normalize();
-
       dirToPlayer = dir;
 
       const velocity = this._velocity;
@@ -324,10 +320,16 @@ export const npc_entity = (() => {
       forward.multiplyScalar(velocity.z * timeInSeconds);
 
       const pos = controlObject.position.clone();
-      this._spotLight.position.copy(pos);
-      this._spotLight.position.y += 6;
 
+      let d = new THREE.Vector3();
+      controlObject.getWorldDirection(d);
 
+      
+      this._mesh.position.copy(pos);
+      this._mesh.position.addScaledVector(d, 1.5);
+      this._mesh.position.y+= 5.5;
+      this._spotLight.position.copy(this._mesh.position);
+      
       pos.add(forward);
       pos.add(sideways);
 
@@ -336,7 +338,9 @@ export const npc_entity = (() => {
       controlObject.position.copy(pos);
       this._position.copy(pos);
       this._targetObject.position.copy(pos);
-      this._targetObject.position.y += 5.9;
+      this._targetObject.position.addScaledVector(d, 20);
+      this._mesh.lookAt(this._targetObject.position);
+
       this._parent.SetPosition(this._position);
       this._parent.SetQuaternion(this._target.quaternion);
 
@@ -350,15 +354,15 @@ export const npc_entity = (() => {
     if (!this._stateMachine._currentState) {
       return;
     }
-
-    if( this._FindPlayer()){
-      return; // end game
-    }
+     var b = this._FindPlayer();
+    // if( this._FindPlayer()){
+    //   //return; // end game
+    // }
 
     this._input._keys.space = false;
     this._input._keys.forward = false;
 
-    //this._UpdateAI(timeInSeconds);
+    this._UpdateAI(timeInSeconds);
 
     this._stateMachine.Update(timeInSeconds, this._input);
 
