@@ -9,12 +9,12 @@ import {entity} from './entity.js';
 import {player_input} from './player-input.js';
 import {npc_entity} from './npc-entity.js';
 // import {math} from './math.js';
-import {spatial_hash_grid} from './spatial-hash-grid.js';
+// import {spatial_hash_grid} from './spatial-hash-grid.js';
 // import {ui_controller} from './ui-controller.js';
 // import {health_bar} from './health-bar.js';
 // import {level_up_component} from './level-up-component.js';
 // import {quest_component} from './quest-component.js';
-import {spatial_grid_controller} from './spatial-grid-controller.js';
+// import {spatial_grid_controller} from './spatial-grid-controller.js';
 // import {inventory_controller} from './inventory-controller.js';
 // import {equip_weapon_component} from './equip-weapon-component.js';
 //  import {attack_controller} from './attacker-controller.js';
@@ -63,7 +63,7 @@ class myDemo {
       antialias: true,
     });
     this._threejs.outputEncoding = THREE.sRGBEncoding;
-    this._threejs.gammaFactor = 2.2;
+    //this._threejs.gammaFactor = 2.2;
     this._threejs.shadowMap.enabled = true;
     this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
     this._threejs.setPixelRatio(window.devicePixelRatio);
@@ -87,22 +87,22 @@ class myDemo {
     this._scene.background = new THREE.Color(0xFFFFFF);
     this._scene.fog = new THREE.FogExp2(0x89b2eb, 0.002);
 
-    let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
-    light.position.set(-10, 500, 10);
-    light.target.position.set(0, 0, 0);
-    light.castShadow = true;
-    light.shadow.bias = -0.001;
-    light.shadow.mapSize.width = 4096;
-    light.shadow.mapSize.height = 4096;
-    light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 1000.0;
-    light.shadow.camera.left = 100;
-    light.shadow.camera.right = -100;
-    light.shadow.camera.top = 100;
-    light.shadow.camera.bottom = -100;
-    this._scene.add(light);
+    // let light = new THREE.DirectionalLight(0xFFFFFF, 0.01);
+    // light.position.set(-10, 500, 10);
+    // light.target.position.set(0, 0, 0);
+    // light.castShadow = true;
+    // light.shadow.bias = -0.001;
+    // light.shadow.mapSize.width = 4096;
+    // light.shadow.mapSize.height = 4096;
+    // light.shadow.camera.near = 0.1;
+    // light.shadow.camera.far = 1000.0;
+    // light.shadow.camera.left = 100;
+    // light.shadow.camera.right = -100;
+    // light.shadow.camera.top = 100;
+    // light.shadow.camera.bottom = -100;
+    // this._scene.add(light);
 
-    this._sun = light;
+    // this._sun = light;
 
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(1000, 1000, 10, 10),
@@ -116,7 +116,7 @@ class myDemo {
       this._scene.add(plane);
 
     this._entityManager = new entity_manager.EntityManager();
-    this._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
+    // this._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
     this._active = true;
 
     this._monsterVision = [];
@@ -197,7 +197,7 @@ class myDemo {
   // }
 
   _LoadSky() {
-    const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.6);
+    const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.2);
     hemiLight.color.setHSL(0.6, 1, 0.6);
     hemiLight.groundColor.setHSL(0.095, 1, 0.75);
     this._scene.add(hemiLight);
@@ -239,17 +239,17 @@ class myDemo {
         });
       });
 
-    const mirrorBack1 = new Reflector(
-      new THREE.PlaneBufferGeometry(20, 20),
-      {
-          color: new THREE.Color(0x7f7f7f),
-          textureWidth: window.innerWidth * window.devicePixelRatio,
-          textureHeight: window.innerHeight * window.devicePixelRatio
-      }
-    )
-    mirrorBack1.position.copy(new THREE.Vector3(3, 10, -30));
-    this._scene.add(mirrorBack1);
-    this._playerVision.push(mirrorBack1)
+    // const mirrorBack1 = new Reflector(
+    //   new THREE.PlaneBufferGeometry(20, 20),
+    //   {
+    //       color: new THREE.Color(0x7f7f7f),
+    //       textureWidth: window.innerWidth * window.devicePixelRatio,
+    //       textureHeight: window.innerHeight * window.devicePixelRatio
+    //   }
+    // )
+    // mirrorBack1.position.copy(new THREE.Vector3(3, 10, -30));
+    // this._scene.add(mirrorBack1);
+    // this._playerVision.push(mirrorBack1)
 
     //Load Key
     const loader = new FBXLoader();
@@ -273,56 +273,27 @@ class myDemo {
 
 
   _LoadPlayer() {
-    
-
-    // const params2 = {
-    //   camera: this._camera,
-    //   scene: this._scene,
-    // };
-
-    // const girl = new entity.Entity();
-    // girl.AddComponent(new gltf_component.AnimatedModelComponent({
-    //     scene: this._scene,
-    //     resourcePath: './resources/mouse/',
-    //     resourceName: 'peasant_girl.fbx',
-    //     resourceAnimation: 'Standing Idle.fbx',
-    //     scale: 0.02,
-    //     receiveShadow: true,
-    //     castShadow: true,
-    // }));
-    // girl.AddComponent(new player_input.BasicCharacterControllerInput(params, 'girl'));
-    // girl.AddComponent(new spatial_grid_controller.SpatialGridController({
-    //     grid: this._grid,
-    // }));
-    // girl.AddComponent(new player_input.PickableComponent());
-    // //girl.AddComponent(new quest_component.QuestComponent());
-    // girl.SetPosition(new THREE.Vector3(30, 0, 0));
-    // this._entityManager.Add(girl);
-
-    
 
     const player = new entity.Entity();
     player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
     player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl' , true));
-    player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
     this._entityManager.Add(player, 'player');
 
     const player2 = new entity.Entity();
     player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
     player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse' , false));
-    player2.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid})); // keep track of anything nearby
     this._entityManager.Add(player2, 'player2');
 
     const camera = new entity.Entity();
     camera.AddComponent(
         new third_person_camera.ThirdPersonCamera({
             camera: this._camera,
-            target: this._entityManager.Get('player')}));
+            target: this._entityManager.Get('player'), 
+            cameraVision : this._player2Vision}));
     this._entityManager.Add(camera, 'player-camera');
 
     const npc = new entity.Entity();
       npc.AddComponent(new npc_entity.NPCController(this._params));
-      npc.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
       //npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
       this._entityManager.Add(npc, 'npc1');
   }
@@ -416,7 +387,7 @@ class myDemo {
   _Step(timeElapsed) {
     const timeElapsedS = Math.min(1.0 / 30.0, timeElapsed * 0.001);
 
-    this._UpdateSun();
+    //this._UpdateSun();
 
     this._entityManager.Update(timeElapsedS);
   }
