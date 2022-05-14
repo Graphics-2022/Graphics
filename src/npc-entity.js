@@ -6,6 +6,7 @@ import {finite_state_machine} from './finite-state-machine.js';
 import {entity} from './entity.js';
 import {player_entity} from './player-entity.js'
 import {player_state} from './player-state.js';
+import * as THREEx from '../modules/threex.volumetricspotlightmaterial.js'
 
 
 export const npc_entity = (() => {
@@ -53,6 +54,7 @@ export const npc_entity = (() => {
       this._velocity = new THREE.Vector3(0, 0, 0);
       this._position = new THREE.Vector3();
       this._time = 0.1;
+      this._spotLight;
 
       this._animations = {};
       this._input = new AIInput();
@@ -116,7 +118,60 @@ export const npc_entity = (() => {
         //loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
         loader.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
         //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
+
+        var geometry	= new THREE.CylinderGeometry( 0.1, 1.5, 5, 32*2, 20, true);
+	// var geometry	= new THREE.CylinderGeometry( 0.1, 5*Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
+        geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
+        geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
+        // geometry.computeVertexNormals()
+        // var geometry	= new THREE.BoxGeometry( 3, 1, 3 );
+        // var material	= new THREE.MeshNormalMaterial({
+        // 	side	: THREE.DoubleSide
+        // });
+        // var material	= new THREE.MeshPhongMaterial({
+        // 	color		: 0x000000,
+        // 	wireframe	: true,
+        // })
+        var material	= new THREEx.volumeMesh.volume;
+        console.log(",ey",material)
+        var mesh	= new THREE.Mesh( geometry, material );
+        mesh.position.set(1.5,2,0)
+        mesh.lookAt(new THREE.Vector3(0,0, 0))
+        material.uniforms.lightColor.value.set('white')
+        material.uniforms.spotPosition.value	= mesh.position
+        scene.add( mesh );
+
+        this._spotLight = new THREE.SpotLight( 0xff0909 , 10 , 200 , Math.PI/6 );
+        this._spotLight.position.copy(this._target.position);
+        this._spotLight.position.y += 6;
+        this._spotLight.castShadow = true;
+
+        this._spotLight.shadow.mapSize.width = 1024/4;
+        this._spotLight.shadow.mapSize.height = 1024/4;
+
+        this._spotLight.shadow.camera.near = 4;
+        this._spotLight.shadow.camera.far = 200;
+        this._spotLight.shadow.camera.fov = 30;
+        
+        // // var geometry	= new THREE.CylinderGeometry( 0.1, 1.5, 5, 32*2, 20, true);
+        // var geometry	= new THREE.CylinderGeometry( 0.1, 5*Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
+        // geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, 0, 0 ) );
+        // geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
+        // var material	= new THREEx.VolumetricSpotLightMaterial()
+        // var mesh	= new THREE.Mesh( geometry, material );
+        this._targetObject = new THREE.Object3D();
+        this._targetObject.position.copy(this._target.position);
+        this._targetObject.position.y += 5.9
+        this._targetObject.position.z += 0.5
+
+        this._spotLight.target = this._targetObject
+       
+        this._params.scene.add( this._spotLight);
+        this._params.scene.add( this._spotLight.target);
+
       });
+
+      
     }
 
     get Position() {
@@ -130,35 +185,11 @@ export const npc_entity = (() => {
       return this._target.quaternion;
     }
 
-    // _FindIntersections(pos) {
-    //   const _IsAlive = (c) => {
-    //     const h = c.entity.GetComponent('HealthComponent');
-    //     if (!h) {
-    //       return true;
-    //     }
-    //     return h._health > 0;
-    //   };
-
-    //   const grid = this.GetComponent('SpatialGridController');
-    //   const nearby = grid.FindNearbyEntities(2).filter(e => _IsAlive(e));
-    //   const collisions = [];
-
-    //   for (let i = 0; i < nearby.length; ++i) {
-    //     const e = nearby[i].entity;
-    //     const d = ((pos.x - e._position.x) ** 2 + (pos.z - e._position.z) ** 2) ** 0.5;
-
-    //     // HARDCODED
-    //     if (d <= 4) {
-    //       collisions.push(nearby[i].entity);
-    //     }
-    //   }
-    //   return collisions;
-    // }
 
     _FindPlayer(pos) {
       const controlObject = this._target;
       let search = [];
-      for (let i = -Math.PI/3; i <= Math.PI/3; i+=Math.PI/10){
+      for (let i = -Math.PI/6; i <= Math.PI/6; i+=Math.PI/12){
         search.push(i);
       }
       const start = new THREE.Vector3();
@@ -211,9 +242,7 @@ export const npc_entity = (() => {
     }
 
     _OnAIWalk(timeInSeconds) {
-      if( this._FindPlayer()){
-        return; // end game
-      }
+      
 
       // const nearby = this._FindPlayer();
       var dirToPlayer =  new THREE.Vector3(0, 0, 0);
@@ -256,43 +285,17 @@ export const npc_entity = (() => {
       velocity.add(frameDecceleration);
 
       const controlObject = this._target;
-      const _Q = new THREE.Quaternion();
-      const _A = new THREE.Vector3();
+      // const _Q = new THREE.Quaternion();
+      // const _A = new THREE.Vector3();
       const _R = controlObject.quaternion.clone();
 
-      // if (nearby.length != 0) {
-      //   // const dir = this._parent._position.clone();
-      //   // dir.sub(nearby[0].entity._position);
-      //   // dir.y = 0.0;
-      //   // dir.normalize();
-
-      //   // dirToPlayer = dir;
-
-      //   // let v = new THREE.Vector3();
-      //   // controlObject.getWorldDirection(v)
-      //   // let angle = Math.PI - v.angleTo( dirToPlayer)
-
-      //   // if (angle > Math.PI/3){
-      //   //   dirToPlayer =  new THREE.Vector3(0, 0, 0);
-      //   // }
-      //   // //console.log(angle) // carry on here
-      //   console.log('end game')
-      // }
-      
-  
       this._input._keys.forward = false;
 
       const acc = this._acceleration;
-      // if (dirToPlayer.length() == 0) {
-        //return;
-        //try putting AI walk here
-      //     //trying the path thing
-      
-      //console.log("dir",dir)
 
       let v = new THREE.Vector3();
       controlObject.getWorldDirection(v)
-      let angle = Math.PI - v.angleTo( dirToPlayer)
+      // let angle = Math.PI - v.angleTo( dirToPlayer)
 
       this._input._keys.forward = true;
       velocity.z += acc.z * timeInSeconds;
@@ -321,45 +324,45 @@ export const npc_entity = (() => {
       forward.multiplyScalar(velocity.z * timeInSeconds);
 
       const pos = controlObject.position.clone();
+      this._spotLight.position.copy(pos);
+      this._spotLight.position.y += 6;
+
+
       pos.add(forward);
       pos.add(sideways);
 
-      // const collisions = this._FindIntersections(pos);
-      // if (collisions.length > 0) {
-      //   //this._input._keys.space = true;
-      //   this._input._keys.forward = false; 
-      //   return;
-      // }
+      
 
       controlObject.position.copy(pos);
       this._position.copy(pos);
-
+      this._targetObject.position.copy(pos);
+      this._targetObject.position.y += 5.9;
       this._parent.SetPosition(this._position);
       this._parent.SetQuaternion(this._target.quaternion);
-      //console.log(this._target)
+
+
+      
     }
 
   Update(timeInSeconds) {
+    
+    //this._spotLight.target = // carry on here
     if (!this._stateMachine._currentState) {
       return;
+    }
+
+    if( this._FindPlayer()){
+      return; // end game
     }
 
     this._input._keys.space = false;
     this._input._keys.forward = false;
 
-    this._UpdateAI(timeInSeconds);
+    //this._UpdateAI(timeInSeconds);
 
     this._stateMachine.Update(timeInSeconds, this._input);
 
-    // // HARDCODED
-    // if (this._stateMachine._currentState._action) {
-    //   this.Broadcast({
-    //     topic: 'player.action',
-    //     action: this._stateMachine._currentState.Name,
-    //     time: this._stateMachine._currentState._action.time,
-    //   });
-    // }
-    
+
     if (this._mixer) {
       this._mixer.update(timeInSeconds);
     }

@@ -52,11 +52,11 @@ export const player_input = (() => {
       console.log(int)
 
       if ( int.length > 0){
-        console.log(int[0].object.name)
+        //console.log(int[0].object.name)
         if(int[0].object.name == "Key"){
           console.log("key found");
           const div = document.getElementById("inventory-1");
-          console.log(div);
+          //console.log(div);
           div.style.backgroundImage = "url('./resources/icons/key.png')";
           this._params.scene.remove(this._params.keyObject);
         }

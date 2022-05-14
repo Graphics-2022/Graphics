@@ -21,9 +21,13 @@ export const third_person_camera = (() => {
     }
 
     _CalculateIdealOffset() {
-      const idealOffset = new THREE.Vector3(-0, 5, -12); // use direction of idea look at to move position forward
-      idealOffset.applyQuaternion(this._params.target._rotation);
-      idealOffset.add(this._params.target._position);
+      let idealOffset = this._CheckSuroundings();
+      if ( idealOffset == undefined){
+        idealOffset = new THREE.Vector3(-0, 5, -12); !! // minus distance to this 
+        idealOffset.applyQuaternion(this._params.target._rotation);
+        idealOffset.add(this._params.target._position);
+      }
+      
       return idealOffset;
     }
 
@@ -32,6 +36,37 @@ export const third_person_camera = (() => {
       idealLookat.applyQuaternion(this._params.target._rotation);
       idealLookat.add(this._params.target._position);
       return idealLookat;
+    }
+
+    _CheckSuroundings(){
+      let ray = new THREE.Raycaster();
+      ray.far = 2;
+      ray.near = 0;
+      let d = new THREE.Vector3();
+      let newDir =new THREE.Vector3(0,0,0);
+      let newPos ;
+
+      this._camera.getWorldDirection(d);
+      let search = [0 , Math.PI/2 , Math.PI , -Math.PI/2];
+      search.forEach((direction) => {
+        newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
+        newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
+        ray.set(this._currentPosition , newDir);
+
+        var int = ray.intersectObjects(this._params.cameraVision )
+        // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
+        // this._params.scene.add(arrow)
+        //console.log(int)
+        //console.log(this._currentPosition)
+
+        if(int.length > 0){
+          newPos =new THREE.Vector3()
+          newPos.copy(this._currentPosition);
+          //newPos.addScaledVector(d , 10);
+          console.log(newPos)
+        }  
+      })
+      return newPos;
     }
 
     Update(timeElapsed) {

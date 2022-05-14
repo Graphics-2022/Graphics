@@ -209,57 +209,31 @@ export const player_entity = (() => {
     
     }
 
-    _FindIntersections(pos) {
-      const _IsAlive = (c) => {
-        const h = c.entity.GetComponent('HealthComponent');
-        if (!h) {
-          return true;
-        }
-        return h._health > 0;
-      };
+    // _FindIntersections(pos) {
+    //   const _IsAlive = (c) => {
+    //     const h = c.entity.GetComponent('HealthComponent');
+    //     if (!h) {
+    //       return true;
+    //     }
+    //     return h._health > 0;
+    //   };
 
-      const grid = this.GetComponent('SpatialGridController');
-      const nearby = grid.FindNearbyEntities(1).filter(e => _IsAlive(e));
-      const collisions = [];
+    //   const grid = this.GetComponent('SpatialGridController');
+    //   const nearby = grid.FindNearbyEntities(1).filter(e => _IsAlive(e));
+    //   const collisions = [];
 
-      for (let i = 0; i < nearby.length; ++i) {
-        const e = nearby[i].entity;
-        const d = ((pos.x - e._position.x) ** 2 + (pos.z - e._position.z) ** 2) ** 0.5;
+    //   for (let i = 0; i < nearby.length; ++i) {
+    //     const e = nearby[i].entity;
+    //     const d = ((pos.x - e._position.x) ** 2 + (pos.z - e._position.z) ** 2) ** 0.5;
 
-        // HARDCODED
-        if (d <= 4) {
-          collisions.push(nearby[i].entity);
-        }
-      }
-      return collisions;
-    }
+    //     // HARDCODED
+    //     if (d <= 4) {
+    //       collisions.push(nearby[i].entity);
+    //     }
+    //   }
+    //   return collisions;
+    // }
 
-    _FindPlayer(pos) {
-      // const _IsAlivePlayer = (c) => {
-      //   const h = c.entity.GetComponent('HealthComponent');
-      //   if (!h) {
-      //     return false;
-      //   }
-      //   if (c.entity.Name != 'player') {
-      //     return false;
-      //   }
-      //   return h._health > 0;
-      // };
-
-      // const grid = this.GetComponent('SpatialGridController');
-      // const nearby = grid.FindNearbyEntities(20).filter(c => c.entity.Name == 'player'); //find player within 20 units
-
-      // if (nearby.length == 0) {
-      //   return new THREE.Vector3(0, 0, 0);
-      // }
-
-      const dir = this._parent._position.clone();
-      dir.sub(this._params.entityManager.Get('player')._position)//(nearby[0].entity._position);
-      dir.y = 0.0;
-      dir.normalize();
-
-      return dir;
-    }
 
     _UpdateAI(timeInSeconds) {
       const currentState = this._stateMachine._currentState;
@@ -280,8 +254,11 @@ export const player_entity = (() => {
     }
 
     _OnAIWalk(timeInSeconds) {
-      const dirToPlayer = this._FindPlayer();
-
+      const dir = this._parent._position.clone();
+      dir.sub(this._params.entityManager.Get('player')._position)
+      dir.y = 0.0;
+      dir.normalize();
+      const dirToPlayer = dir;
       const velocity = this._velocity;
       const frameDecceleration = new THREE.Vector3(
           velocity.x * this._decceleration.x,
@@ -337,9 +314,44 @@ export const player_entity = (() => {
       pos.add(forward);
       pos.add(sideways);
 
-      const collisions = this._FindIntersections(pos);
-      if (collisions.length > 0) {
-        this._input._keys.forward = false;
+
+      let blocked = false;
+      let ray = new THREE.Raycaster();
+      let d = new THREE.Vector3();
+
+      controlObject.getWorldDirection(d)
+      let newDir =new THREE.Vector3(0,0,0)
+
+      const start = new THREE.Vector3();
+      start.copy(controlObject.position);
+
+      start.y +=1.5;
+      ray.far = this._dist+1;
+      ray.near = 0;
+      let search = [];
+      start.y +=0.1 ;
+      for (let i = -Math.PI/6; i <= Math.PI/6; i+=Math.PI/6){
+        search.push(i);
+      }
+      search.forEach((direction) => {
+        newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
+        newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
+        ray.set(start, newDir);
+
+        var int = ray.intersectObjects(this._vision )
+        // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
+        // this._params.scene.add(arrow)
+
+        if(int.length > 0){
+            this._input._keys.forward = false;
+            this._input._keys.backward = false;
+            this._velocity.x = 0;
+            this._velocity.y = 0;
+            this._velocity.z = 0;
+            blocked = true
+        }  
+      })
+      if(blocked){
         return;
       }
 
@@ -379,8 +391,6 @@ export const player_entity = (() => {
       var int = ray.intersectObjects(this._vision)
       // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
       //   this._params.scene.add(arrow)
-      //console.log(int[0])
-
       if(int.length > 0 ){
         if( int[0].distance > 0.2){
           const p = new THREE.Vector3();
@@ -395,7 +405,7 @@ export const player_entity = (() => {
 
       if (!this._active){
         if(this._type == 'mouse'){      // must incorperate hight
-          this._UpdateAI(timeInSeconds);
+          //this._UpdateAI(timeInSeconds);
           this._stateMachine.Update(timeInSeconds, this._input);
         }else{
           this._stateMachine.SetState('idle');
@@ -403,9 +413,6 @@ export const player_entity = (() => {
         return;
       }
       
-
-      
-      let blocked = false;
       let search = [];
       
       start.y +=0.1 ;
@@ -424,8 +431,9 @@ export const player_entity = (() => {
       }
       let newDir =new THREE.Vector3(0,0,0)
 
-      //console.log(d)
-      // Forward and Backwards
+      start.y +=1.5;
+      ray.far = this._dist;
+      ray.near = 0;
       search.forEach((direction) => {
         newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
         newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
@@ -434,45 +442,15 @@ export const player_entity = (() => {
         // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
         // this._params.scene.add(arrow)
         if(int.length > 0){
-            blocked = true;
+          if(int.length != 0 ){
+            input._keys.forward = false;
+            input._keys.backward = false;
+            this._velocity.x = 0;
+            this._velocity.y = 0;
+            this._velocity.z = 0;
+          }
         }  
       })
-
-      if(blocked){
-        start.y +=1.5;
-        ray.far = this._dist;
-        ray.near = 0;
-        ray.set(start,d);
-        var int = ray.intersectObjects(this._vision);
-        //         var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
-        // this._params.scene.add(arrow)
-
-        if(int.length != 0 ){
-          input._keys.forward = false;
-          input._keys.backward = false;
-          this._velocity.x = 0;
-          this._velocity.y = 0;
-          this._velocity.z = 0;
-        }
-      }
-
-      // const collisions = this._FindIntersections(this._position);
-      // if (collisions.length > 0) {
-      //   for (let eachEntity of collisions){
-      //     const dir = this._position.clone();
-      //     dir.sub(eachEntity._position);
-      //     dir.y = 0.0;
-      //     dir.normalize();
-      //     let dirToPlayer = dir;
-
-      //     let v = new THREE.Vector3();
-      //     controlObject.getWorldDirection(v)
-      //     let angle = Math.PI - v.angleTo( dirToPlayer)
-      //     if ((input._keys.forward && angle < Math.PI/8) || (input._keys.backward && angle > Math.PI -Math.PI/8) ){
-      //       input._keys.forward = false;
-      //     }
-      //   }
-      // }
 
       this._stateMachine.Update(timeInSeconds, input);
 
