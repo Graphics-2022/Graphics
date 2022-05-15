@@ -51,9 +51,8 @@ void main() {
   gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 }`;
 
-var level=1;
 
-class myDemo {
+class level1 {
   constructor() {
     this._Initialize();
   }
@@ -116,7 +115,6 @@ class myDemo {
       this._scene.add(plane);
 
     this._entityManager = new entity_manager.EntityManager();
-    // this._grid = new spatial_hash_grid.SpatialHashGrid([[-1000, -1000], [1000, 1000]], [100, 100]);
     this._active = true;
 
     this._monsterVision = [];
@@ -127,6 +125,8 @@ class myDemo {
     this._playerVision.push(plane);
     //this._keyFound = false;
     this._keyObject;
+    this._playerFound = false;
+    this._keyFound = false;
     //console.log(this._objects)
     this._params = {
       camera: this._camera,
@@ -134,9 +134,10 @@ class myDemo {
       monsterVision: this._monsterVision,
       playerVision: this._playerVision,
       player2Vision: this._player2Vision,
-
       keyObject: this._keyObject,
       entityManager: this._entityManager,
+      playerFound: this._playerFound,
+      keyFound: this._keyFound,
     };
 
     // this.controls = new OrbitControls(this._camera, this._threejs.domElement);
@@ -197,7 +198,7 @@ class myDemo {
   // }
 
   _LoadSky() {
-    const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.2);
+    const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.01);
     hemiLight.color.setHSL(0.6, 1, 0.6);
     hemiLight.groundColor.setHSL(0.095, 1, 0.75);
     this._scene.add(hemiLight);
@@ -236,23 +237,37 @@ class myDemo {
           c.castShadow = true;
           this._params.playerVision.push(c);
           this._params.player2Vision.push(c);
+          this._params.monsterVision.push(c);
+
 
         });
-        
-
       });
 
-    // const mirrorBack1 = new Reflector(
-    //   new THREE.PlaneBufferGeometry(20, 20),
-    //   {
-    //       color: new THREE.Color(0x7f7f7f),
-    //       textureWidth: window.innerWidth * window.devicePixelRatio,
-    //       textureHeight: window.innerHeight * window.devicePixelRatio
-    //   }
-    // )
-    // mirrorBack1.position.copy(new THREE.Vector3(3, 10, -30));
-    // this._scene.add(mirrorBack1);
-    // this._playerVision.push(mirrorBack1)
+      const light = new THREE.PointLight( 0xffbb73, 0.1, 100 );
+      light.position.set( 0, 13, -20 );
+      light.castShadow = true;
+      this._params.scene.add( light );
+      light.shadow.mapSize.width = 512; // default
+      light.shadow.mapSize.height = 512; // default
+      light.shadow.camera.near = 0.5; // default
+      light.shadow.camera.far = 500; // default
+      light.shadow.bias = -0.005;
+
+      const sphereSize = 1;
+      const pointLightHelper = new THREE.PointLightHelper( light, sphereSize );
+      this._params.scene.add( pointLightHelper );
+
+    const mirrorBack1 = new Reflector(
+      new THREE.PlaneBufferGeometry(20, 20),
+      {
+          color: new THREE.Color(0x7f7f7f),
+          textureWidth: window.innerWidth * window.devicePixelRatio,
+          textureHeight: window.innerHeight * window.devicePixelRatio
+      }
+    )
+    mirrorBack1.position.copy(new THREE.Vector3(3, 10, -30));
+    this._scene.add(mirrorBack1);
+    this._playerVision.push(mirrorBack1)
 
     //Load Key
     const loader = new FBXLoader();
@@ -322,13 +337,9 @@ class myDemo {
 
   _OnSwitchClicked() {
     if(this._active){
-      // this._active = false;
       this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(false);
-      // this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(true);
     }else{
-      // this._active = true;
       this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(false);
-      // this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(false);
     }
   }
 
@@ -356,7 +367,7 @@ class myDemo {
   }
 
   _RAF() {
-    requestAnimationFrame((t) => {
+    var Req = requestAnimationFrame((t) => {
       if (this._previousRAF === null) {
         this._previousRAF = t;
       }
@@ -385,19 +396,23 @@ class myDemo {
         }
       }
 
-      this._RAF();
-
-      this._threejs.render(this._scene, this._camera);
-      this._Step(t - this._previousRAF);
-      this._previousRAF = t;
+      if(!this._params.playerFound){
+        this._RAF();
+        this._threejs.render(this._scene, this._camera);
+        this._Step(t - this._previousRAF);
+        this._previousRAF = t;
+      }else{
+        // console.log(this._params.playerFound);
+        cancelAnimationFrame(Req);
+        document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+        _APP = new level1();
+        return;
+      }
     });
   }
 
   _Step(timeElapsed) {
     const timeElapsedS = Math.min(1.0 / 30.0, timeElapsed * 0.001);
-
-    //this._UpdateSun();
-
     this._entityManager.Update(timeElapsedS);
   }
 }
@@ -405,5 +420,5 @@ class myDemo {
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  _APP = new myDemo();
+  _APP = new level1();
 });

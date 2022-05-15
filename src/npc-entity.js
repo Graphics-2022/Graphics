@@ -49,6 +49,7 @@ export const npc_entity = (() => {
 
     _Init(params) {
       this._params = params;
+
       this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
       this._acceleration = new THREE.Vector3(1, 0.25, 40.0);
       this._velocity = new THREE.Vector3(0, 0, 0);
@@ -157,6 +158,7 @@ export const npc_entity = (() => {
         this._spotLight.intensity    = 5
         this._spotLight.target = this._targetObject;
         this._spotLight.castShadow = true;
+        this._spotLight.shadow.bias = -0.005;
 
         this._spotLight.shadow.mapSize.width = 512; // default
         this._spotLight.shadow.mapSize.height = 512; // default
@@ -185,6 +187,7 @@ export const npc_entity = (() => {
 
 
     _FindPlayer() {
+      let found = false;
       const controlObject = this._target;
       let search = [];
       for (let i = -Math.PI/10; i <= Math.PI/10; i+=Math.PI/12){
@@ -213,12 +216,12 @@ export const npc_entity = (() => {
         if(int.length > 0){
           if(int[0].object.parent.name == "girl"){
             console.log("player found")
-            return true;
+            found = true;
+            return;
           }
         }  
       })
-
-      return false;
+      return found;
     }
 
     _UpdateAI(timeInSeconds) {
@@ -355,10 +358,13 @@ export const npc_entity = (() => {
     if (!this._stateMachine._currentState) {
       return;
     }
-     var b = this._FindPlayer();
-    // if( this._FindPlayer()){
-    //   //return; // end game
-    // }
+     
+    if(this._FindPlayer()){
+      //console.log(this._params)
+      this._params.playerFound = true;
+      return;
+    }
+
 
     this._input._keys.space = false;
     this._input._keys.forward = false;

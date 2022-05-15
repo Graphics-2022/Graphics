@@ -59,6 +59,7 @@ export const player_input = (() => {
           //console.log(div);
           div.style.backgroundImage = "url('./resources/icons/key.png')";
           this._params.scene.remove(this._params.keyObject);
+          this._params.keyFound = true;
         }
       }
     }

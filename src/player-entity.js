@@ -242,6 +242,53 @@ export const player_entity = (() => {
         return;
       }
 
+
+
+      let blocked = false;
+      let search = [];
+      const start = new THREE.Vector3();
+      start.copy(controlObject.position);
+
+      let ray = new THREE.Raycaster();
+      
+      start.y +=0.1 ;
+      for (let i = -Math.PI/6; i <= Math.PI/6; i+=Math.PI/6){
+        search.push(i);
+      }
+
+      let d = new THREE.Vector3();
+      controlObject.getWorldDirection(d)
+      ray.far = this._dist;
+      ray.near = 0;
+
+      let newDir =new THREE.Vector3(0,0,0)
+
+      start.y +=1.5;
+      ray.far = this._dist;
+      ray.near = 0;
+      search.forEach((direction) => {
+        newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
+        newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
+        ray.set(start, newDir);
+        var int = ray.intersectObjects(this._vision, false )
+        // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
+        // this._params.scene.add(arrow)
+        if(int.length > 0){
+          if(int.length != 0 ){
+            this._velocity.x = 0;
+            this._velocity.y = 0;
+            this._velocity.z = 0;
+            blocked = true;
+            return;
+          }
+        }  
+      })
+
+      if(blocked){
+        this._input._keys.forward = false;
+        return;
+      }
+
       const velocity = this._velocity;
       const frameDecceleration = new THREE.Vector3(
           velocity.x * this._decceleration.x,
