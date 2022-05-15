@@ -205,7 +205,6 @@ export const player_entity = (() => {
           loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
           loader.load('Crouched Walking.fbx', (a) => { _OnLoad('walk', a); });
           loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
-          // loader.load('Sword And Shield Death.fbx', (a) => { _OnLoad('death', a); });
         });
       }
     }

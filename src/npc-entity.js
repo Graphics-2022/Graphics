@@ -124,13 +124,8 @@ export const npc_entity = (() => {
         this._targetObject.position.y += 5.9
         this._targetObject.position.z += 2.2
 
-        // this._spotLight.target = this._targetObject
-       
-        // this._params.scene.add( this._spotLight);
-        // this._params.scene.add( this._spotLight.target);
-
         // add spot light
-        var geometry    = new THREE.CylinderGeometry( 0.1, 10, 30, 322, 20, true);
+        var geometry    = new THREE.CylinderGeometry( 0.1, 7, 20, 322, 20, true);
         // var geometry    = new THREE.CylinderGeometry( 0.1, 5Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
         geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
         geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
@@ -158,10 +153,16 @@ export const npc_entity = (() => {
 
         this._spotLight    = new THREE.SpotLight( 0xff0909 , 8 , 200 , Math.PI/10 )
         this._spotLight.position.copy(this._mesh.position)
-        //spotLight.color.copy(mesh.color)
         this._spotLight.exponent    = 30
         this._spotLight.intensity    = 5
         this._spotLight.target = this._targetObject;
+        this._spotLight.castShadow = true;
+
+        this._spotLight.shadow.mapSize.width = 512; // default
+        this._spotLight.shadow.mapSize.height = 512; // default
+        this._spotLight.shadow.camera.near = 2; // default
+        this._spotLight.shadow.camera.far = 100; // default
+        this._spotLight.shadow.focus = 1; // default
 
         this._params.scene.add( this._spotLight  )
         this._params.scene.add( this._spotLight.target);

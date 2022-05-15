@@ -228,8 +228,6 @@ class myDemo {
     const mapLoader = new GLTFLoader();
     mapLoader.setPath('./resources/haunted_house/');
     mapLoader.load('scene.gltf', (glb) => {
-        // this._params.playerVision.push(glb.scene);
-        // this._params.player2Vision.push(glb.scene);
 
         this._params.scene.add(glb.scene);
         glb.scene.scale.setScalar(1);
@@ -294,13 +292,14 @@ class myDemo {
         new third_person_camera.ThirdPersonCamera({
             camera: this._camera,
             target: this._entityManager.Get('player'), 
-            cameraVision : this._player2Vision}));
+            cameraVision : this._player2Vision,
+            transition: true,
+          }));
     this._entityManager.Add(camera, 'player-camera');
 
     const npc = new entity.Entity();
-      npc.AddComponent(new npc_entity.NPCController(this._params));
-      //npc.AddComponent(new attack_controller.AttackController({timing: 0.35}));
-      this._entityManager.Add(npc, 'npc1');
+    npc.AddComponent(new npc_entity.NPCController(this._params));
+    this._entityManager.Add(npc, 'npc1');
   }
 
   _UIInit(){
@@ -369,14 +368,19 @@ class myDemo {
           this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(true);
           this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
             camera: this._camera,
-            target: this._entityManager.Get('player2')});
+            target: this._entityManager.Get('player2'),
+            cameraVision : this._player2Vision,
+            transition: true,
+          });
         }else{
           this._active = true;
           this._entityManager.Get('player').GetComponent("BasicCharacterControllerInput").ResetR();
           this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(true);
           this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
             camera: this._camera,
-            target: this._entityManager.Get('player')
+            target: this._entityManager.Get('player'),
+            cameraVision : this._player2Vision, 
+            transition: true,
           });
         }
       }
