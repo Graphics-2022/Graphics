@@ -119,9 +119,10 @@ class level1 {
       playerFound: this._playerFound,
       keyFound: this._keyFound,
     };
-    this._LoadPlayer();
     this._LoadSky();
     this._LoadRoom();
+    this._LoadPlayer();
+
     this._UIInit();
     this._previousRAF = null;
     this._RAF();
@@ -194,7 +195,7 @@ class level1 {
           textureHeight: window.innerHeight * window.devicePixelRatio
       }
     )
-    mirrorBack1.position.copy(new THREE.Vector3(3, 10, -30));
+    mirrorBack1.position.set(3, 10, -30);
     this._scene.add(mirrorBack1);
     this._playerVision.push(mirrorBack1)
 
@@ -210,11 +211,32 @@ class level1 {
       fbx.traverse(c => {
         c.castShadow = true;
         c.receiveShadow = true;
+        c.metalness = 1
+
         if (c.material && c.material.map) {
           c.material.map.encoding = THREE.sRGBEncoding;
         }
       });
     });
+
+
+    // const spotLight = new THREE.SpotLight( 0xffffff , 1 , 10 , Math.PI/10 );
+    // spotLight.position.set( 3, 10, -15);
+
+    // spotLight.castShadow = true;
+
+    // spotLight.shadow.mapSize.width = 1024/10;
+    // spotLight.shadow.mapSize.height = 1024/10;
+    // spotLight.shadow.bias = -0.005;
+
+    // spotLight.shadow.camera.near = 1;
+    // spotLight.shadow.camera.far = 20;
+    // spotLight.shadow.camera.fov = 1;
+
+    // this._scene.add( spotLight );
+
+    // const spotLightHelper = new THREE.SpotLightHelper( spotLight );
+    // this._scene.add( spotLightHelper );
   }
 
 
@@ -246,6 +268,11 @@ class level1 {
     npc.SetPosition(new THREE.Vector3(3, 2.5, -20));
     npc.AddComponent(new npc_entity.NPCController(this._params));
     this._entityManager.Add(npc, 'npc1');
+
+    // const npc1 = new entity.Entity();
+    // npc1.SetPosition(new THREE.Vector3(-3, 2.5, -20));
+    // npc1.AddComponent(new npc_entity.NPCController(this._params));
+    // this._entityManager.Add(npc1, 'npc2');
   }
 
   _UIInit(){

@@ -77,14 +77,13 @@ export const npc_entity = (() => {
 
     _LoadModels() {
       const loader = new FBXLoader();
-      loader.setPath('./resources/enemies/');
+      loader.setPath('./resources/enemies/mutant/');
       loader.load('Vampire A Lusth.fbx', (fbx) => {
         fbx.name = 'enemy'
         this._target = fbx;
         //console.log(this._params.objects)
         this._target.scale.setScalar(0.035);
-        this._target.position.copy(new THREE.Vector3(3, 2.5, -20));
-
+        this._target.position.copy(this._parent.Position);
         this._params.scene.add(this._target);
         this._bones = {};
 
@@ -114,7 +113,7 @@ export const npc_entity = (() => {
         };
   
         const loader = new FBXLoader(this._manager);
-        loader.setPath('./resources/enemies/');
+        loader.setPath('./resources/enemies/mutant/');
         loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
         //loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
         loader.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
@@ -122,8 +121,8 @@ export const npc_entity = (() => {
 
         this._targetObject = new THREE.Object3D();
         this._targetObject.position.copy(this._target.position);
-        this._targetObject.position.y += 5.9
-        this._targetObject.position.z += 2.2
+        // this._targetObject.position.y += 5.9
+        // this._targetObject.position.z += 2.2
 
         // add spot light
         var geometry    = new THREE.CylinderGeometry( 0.1, 7, 20, 322, 20, true);

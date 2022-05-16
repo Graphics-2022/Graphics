@@ -132,6 +132,8 @@ export const player_entity = (() => {
           loader.setPath('./resources/mouse/');
           loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
           loader.load('Fast Run.fbx', (a) => { _OnLoad('walk', a); });
+          loader.load('Fast Run (1).fbx', (a) => { _OnLoad('run', a); });
+
         });
         this._input = new AIInput();
       }else{
