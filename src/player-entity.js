@@ -340,6 +340,7 @@ export const player_entity = (() => {
       }
 
       this._target.quaternion.copy(_R);
+      this._parent.SetQuaternion(this._target.quaternion);
 
       if(this._CheckSurroundings(input)){
         this._stateMachine.SetState('idle');

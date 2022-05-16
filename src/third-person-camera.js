@@ -22,7 +22,7 @@ export const third_person_camera = (() => {
     }
 
     _CalculateIdealOffset() {
-      let idealOffset = new THREE.Vector3(-0, 5, -12); //!! // minus distance to this 
+      let idealOffset = new THREE.Vector3(-0, 5, -12); 
       idealOffset.applyQuaternion(this._params.target._rotation);
       idealOffset.add(this._params.target._position);
 
@@ -36,7 +36,7 @@ export const third_person_camera = (() => {
       idealOffset = new THREE.Vector3(-0, 5, -12);
 
       let ray = new THREE.Raycaster();
-      ray.far = 2;
+      ray.far = 3;
       ray.near = 0;
       let d = new THREE.Vector3();
       let newDir =new THREE.Vector3(0,0,0);
@@ -47,28 +47,14 @@ export const third_person_camera = (() => {
         newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
         newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
         ray.set(this._currentPosition , newDir);
-        //console.log(this._params.cameraVision )
         var int = ray.intersectObjects(this._params.cameraVision )
         // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
         // this._params.scene.add(arrow)
-        //console.log(int)
-        //console.log(d)
-
         if(int.length > 0){
           idealOffset.z+=2 * (2/int[0].distance);
           idealOffset.y = 5
         } 
       }); 
-
-      // ray.far = 10;
-      // ray.near = 0;
-      // ray.set(this._currentPosition , new THREE.Vector3(0,-5,-12));
-      // var int = ray.intersectObjects(this._params.cameraVision )
-      // if(int.length > 0){
-      //   idealOffset.z+= 2 * (int[0].distance);
-      //   idealOffset.y = 5
-      // } 
-
 
       newDir =new THREE.Vector3(0,0,0);
       ray.far = 3;
@@ -117,14 +103,10 @@ export const third_person_camera = (() => {
         var int = ray.intersectObjects(this._params.cameraVision )
         // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
         // this._params.scene.add(arrow)
-        //console.log(int)
-        //console.log(this._currentPosition)
 
         if(int.length > 0){
           newPos =new THREE.Vector3()
           newPos.copy(this._currentPosition);
-          //newPos.addScaledVector(d , 10);
-          console.log(newPos)
         }  
       })
       return newPos;
@@ -137,7 +119,6 @@ export const third_person_camera = (() => {
       // const t = 0.05;
       // const t = 4.0 * timeElapsed;
       const t = 1.0 - Math.pow(0.01, timeElapsed);
-      //console.log(t)
       this._currentPosition.lerp(idealOffset, t);
       this._currentLookat.lerp(idealLookat, t);
 

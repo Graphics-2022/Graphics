@@ -7,6 +7,8 @@ import {entity} from './entity.js';
 import {player_entity} from './player-entity.js'
 import {player_state} from './player-state.js';
 import {spotlight_material} from '../modules/spotlightmaterial.js'
+// import {SkeletonUtils} from '../modules/SkeletonUtils.js'
+
 
 
 export const npc_entity = (() => {
@@ -42,14 +44,14 @@ export const npc_entity = (() => {
   };
 
   class NPCController extends entity.Component {
-    constructor(params) {
+    constructor(params, type) {
       super();
+      this._type = type;
       this._Init(params);
     }
 
     _Init(params) {
       this._params = params;
-
       this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
       this._acceleration = new THREE.Vector3(1, 0.25, 40.0);
       this._velocity = new THREE.Vector3(0, 0, 0);
@@ -76,6 +78,7 @@ export const npc_entity = (() => {
     }
 
     _LoadModels() {
+      if(this._type == 'npc1'){
       const loader = new FBXLoader();
       loader.setPath('./resources/enemies/mutant/');
       loader.load('Vampire A Lusth.fbx', (fbx) => {
@@ -109,7 +112,13 @@ export const npc_entity = (() => {
 
         this._manager = new THREE.LoadingManager();
         this._manager.onLoad = () => {
-          this._stateMachine.SetState('idle');
+        this._stateMachine.SetState('idle');
+
+
+        // let x  = SkeletonUtils.clone(fbx.scene);
+        // x.position.copy(new THREE.Vector3(-3, 2.5, -20));
+        // this._params.scene.add(x);
+
         };
   
         const loader = new FBXLoader(this._manager);
@@ -159,6 +168,101 @@ export const npc_entity = (() => {
         this._params.scene.add( this._spotLight  )
         this._params.scene.add( this._spotLight.target);
       });
+    }else{
+      const loader = new FBXLoader();
+      loader.setPath('./resources/enemies/mutant/');
+      loader.load('Vampire A Lusth.fbx', (fbx) => {
+
+        fbx.name = 'enemy'
+        this._target = fbx;
+        //console.log(this._params.objects)
+        this._target.scale.setScalar(0.035);
+        this._target.position.copy(this._parent.Position);
+        this._params.scene.add(this._target);
+        this._bones = {};
+
+        this._target.traverse(c => {
+          c.castShadow = true;
+          c.receiveShadow = true;
+          if (c.material && c.material.map) {
+            c.material.map.encoding = THREE.sRGBEncoding;
+          }
+        });
+
+        this._mixer = new THREE.AnimationMixer(this._target);
+
+        const _OnLoad = (animName, anim) => {
+          const clip = anim.animations[0];
+          const action = this._mixer.clipAction(clip);
+    
+          this._animations[animName] = {
+            clip: clip,
+            action: action,
+          };
+        };
+
+        this._manager = new THREE.LoadingManager();
+        this._manager.onLoad = () => {
+        this._stateMachine.SetState('idle');
+
+
+        // let x  = SkeletonUtils.clone(fbx.scene);
+        // x.position.copy(new THREE.Vector3(-3, 2.5, -20));
+        // this._params.scene.add(x);
+
+        };
+  
+        const loader = new FBXLoader(this._manager);
+        loader.setPath('./resources/enemies/aure/');
+        loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
+        //loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
+        loader.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
+
+        //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
+
+        this._targetObject = new THREE.Object3D();
+        this._targetObject.position.copy(this._target.position);
+        // this._targetObject.position.y += 5.9
+        // this._targetObject.position.z += 2.2
+
+        // add spot light
+        var geometry    = new THREE.CylinderGeometry( 0.1, 7, 20, 322, 20, true);
+        geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
+        geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
+
+        var material    = new spotlight_material.SpotlightMaterial().GetMaterial();
+        this._mesh    = new THREE.Mesh( geometry, material );
+        this._mesh.position.copy(this._target.position);
+        this._mesh.position.y+= 6;
+        this._mesh.position.z+= 1.8;
+
+        this._mesh.lookAt(this._targetObject.position)
+        material.uniforms.lightColor.value.set('red')
+        material.uniforms.spotPosition.value    = this._mesh.position
+        material.uniforms.attenuation.value    = 100
+        material.uniforms.anglePower.value    = 2
+        this._params.scene.add( this._mesh );
+
+        this._spotLight    = new THREE.SpotLight( 0xff0909 , 8 , 200 , Math.PI/10 )
+        this._spotLight.position.copy(this._mesh.position)
+        this._spotLight.exponent    = 30
+        this._spotLight.intensity    = 5
+        this._spotLight.target = this._targetObject;
+        this._spotLight.castShadow = true;
+        this._spotLight.shadow.bias = -0.005;
+
+        this._spotLight.shadow.mapSize.width = 512; // default
+        this._spotLight.shadow.mapSize.height = 512; // default
+        this._spotLight.shadow.camera.near = 2; // default
+        this._spotLight.shadow.camera.far = 100; // default
+        this._spotLight.shadow.focus = 1; // default
+
+        this._params.scene.add( this._spotLight  )
+        this._params.scene.add( this._spotLight.target);
+      });
+    }
+
+
     }
 
     get Position() {
@@ -234,19 +338,22 @@ export const npc_entity = (() => {
       var dirToPlayer =  new THREE.Vector3(0, 0, 0);
 
       const points = [ 
-        new THREE.Vector3( 0, 0, 0 ), 
-        new THREE.Vector3( 10, 0, 0 ),
-        new THREE.Vector3( 10, 0, -20 ),
-        new THREE.Vector3( 0, 0, -20 ),
+        new THREE.Vector3( 0, 2.5, -22 ), 
+        new THREE.Vector3( 35, 2.5, -22 ),
+        new THREE.Vector3( 35, 2.5, -24 ),
+        new THREE.Vector3( 0, 2.5, -20 ),
+        new THREE.Vector3( 2, 2.5, -35 ),
+        new THREE.Vector3( -2, 2.5, -35 ),
+
         ];
     
       let path = new THREE.CatmullRomCurve3( points, true );
       this._time += timeInSeconds;
       // visualize the path
-      // const lineGeometry = new THREE.BufferGeometry().setFromPoints( path.getPoints( 32 ) );
-      // const lineMaterial = new THREE.LineBasicMaterial();
-      // const line = new THREE.Line( lineGeometry, lineMaterial );
-      // this._params.scene.add(line)
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints( path.getPoints( 32 ) );
+      const lineMaterial = new THREE.LineBasicMaterial();
+      const line = new THREE.Line( lineGeometry, lineMaterial );
+      this._params.scene.add(line)
       const pos1=path.getPointAt( (this._time/7)%1);
       //console.log("time",(this._time/1)%1)
       // const pos=new THREE.Vector3(0,0,0);
