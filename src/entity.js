@@ -34,6 +34,10 @@ export const entity = (() => {
       return this._name;
     }
 
+    get Position(){
+      return this._position;
+    }
+
     SetActive(b) {
       this._parent.SetActive(this, b);
     }
@@ -71,10 +75,10 @@ export const entity = (() => {
 
     SetPosition(p) {
       this._position.copy(p);
-      this.Broadcast({
-          topic: 'update.position',
-          value: this._position,
-      });
+      // this.Broadcast({
+      //     topic: 'update.position',
+      //     value: this._position,
+      // });
     }
 
     SetQuaternion(r) {

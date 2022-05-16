@@ -110,7 +110,7 @@ export const npc_entity = (() => {
 
         this._manager = new THREE.LoadingManager();
         this._manager.onLoad = () => {
-        this._stateMachine.SetState('idle');
+          this._stateMachine.SetState('idle');
         };
   
         const loader = new FBXLoader(this._manager);
@@ -127,18 +127,9 @@ export const npc_entity = (() => {
 
         // add spot light
         var geometry    = new THREE.CylinderGeometry( 0.1, 7, 20, 322, 20, true);
-        // var geometry    = new THREE.CylinderGeometry( 0.1, 5Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
         geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
         geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
-        // geometry.computeVertexNormals()
-        // var geometry    = new THREE.BoxGeometry( 3, 1, 3 );
-        // var material    = new THREE.MeshNormalMaterial({
-        //     side    : THREE.DoubleSide
-        // });
-        // var material    = new THREE.MeshPhongMaterial({
-        //     color        : 0x000000,
-        //     wireframe    : true,
-        // })
+
         var material    = new spotlight_material.SpotlightMaterial().GetMaterial();
         this._mesh    = new THREE.Mesh( geometry, material );
         this._mesh.position.copy(this._target.position);
@@ -168,10 +159,7 @@ export const npc_entity = (() => {
 
         this._params.scene.add( this._spotLight  )
         this._params.scene.add( this._spotLight.target);
-
       });
-
-      
     }
 
     get Position() {
@@ -184,7 +172,6 @@ export const npc_entity = (() => {
       }
       return this._target.quaternion;
     }
-
 
     _FindPlayer() {
       let found = false;
@@ -244,7 +231,6 @@ export const npc_entity = (() => {
 
     _OnAIWalk(timeInSeconds) {
       
-
       // const nearby = this._FindPlayer();
       var dirToPlayer =  new THREE.Vector3(0, 0, 0);
 
@@ -285,8 +271,6 @@ export const npc_entity = (() => {
       velocity.add(frameDecceleration);
 
       const controlObject = this._target;
-      // const _Q = new THREE.Quaternion();
-      // const _A = new THREE.Vector3();
       const _R = controlObject.quaternion.clone();
 
       this._input._keys.forward = false;
@@ -295,7 +279,6 @@ export const npc_entity = (() => {
 
       let v = new THREE.Vector3();
       controlObject.getWorldDirection(v)
-      // let angle = Math.PI - v.angleTo( dirToPlayer)
 
       this._input._keys.forward = true;
       velocity.z += acc.z * timeInSeconds;
@@ -337,8 +320,6 @@ export const npc_entity = (() => {
       pos.add(forward);
       pos.add(sideways);
 
-      
-
       controlObject.position.copy(pos);
       this._position.copy(pos);
       this._targetObject.position.copy(pos);
@@ -347,32 +328,23 @@ export const npc_entity = (() => {
 
       this._parent.SetPosition(this._position);
       this._parent.SetQuaternion(this._target.quaternion);
-
-
-      
     }
 
   Update(timeInSeconds) {
-    
-    //this._spotLight.target = // carry on here
     if (!this._stateMachine._currentState) {
       return;
     }
      
     if(this._FindPlayer()){
-      //console.log(this._params)
       this._params.playerFound = true;
       return;
     }
-
 
     this._input._keys.space = false;
     this._input._keys.forward = false;
 
     this._UpdateAI(timeInSeconds);
-
     this._stateMachine.Update(timeInSeconds, this._input);
-
 
     if (this._mixer) {
       this._mixer.update(timeInSeconds);

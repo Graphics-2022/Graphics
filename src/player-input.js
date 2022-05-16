@@ -1,7 +1,5 @@
 import * as THREE from '../modules/three.module.js';
-
 import {entity} from "./entity.js";
-
 
 export const player_input = (() => {
 
