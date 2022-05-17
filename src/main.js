@@ -112,6 +112,7 @@ class level1 {
     this._playerFound = false;
     this._keyFound = false;
     this._keyLight;
+    this._endGame = false;
     this._params = {
       camera: this._camera,
       scene: this._scene,
@@ -427,16 +428,16 @@ class level1 {
     this._threejs.setSize(window.innerWidth, window.innerHeight);
   }
 
-  _UpdateSun() {
-    const player = this._entityManager.Get('player');
-    const pos = player._position;
+  // _UpdateSun() {
+  //   const player = this._entityManager.Get('player');
+  //   const pos = player._position;
 
-    this._sun.position.copy(pos);
-    this._sun.position.add(new THREE.Vector3(-10, 500, -10));
-    this._sun.target.position.copy(pos);
-    this._sun.updateMatrixWorld();
-    this._sun.target.updateMatrixWorld();
-  }
+  //   this._sun.position.copy(pos);
+  //   this._sun.position.add(new THREE.Vector3(-10, 500, -10));
+  //   this._sun.target.position.copy(pos);
+  //   this._sun.updateMatrixWorld();
+  //   this._sun.target.updateMatrixWorld();
+  // }
 
   _RAF() {
     // console.log("Textures in Memory", this._threejs.info.memory.textures)
@@ -482,7 +483,8 @@ class level1 {
         return;
       }
       
-      if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30,0,-75)) < 5){
+      if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30,0,-75)) < 5  && this._endGame == false){
+        this._endGame = true;
         cancelAnimationFrame(Req);
         document.getElementById('container').removeChild(document.getElementById('container').lastChild)
         _APP = new level2();
@@ -694,87 +696,20 @@ class level2 {
   }
 
   _LoadRoom(){
-    const mapLoader = new GLTFLoader();
-    mapLoader.setPath('./resources/haunted_house/');
-    mapLoader.load('map10.glb', (glb) => {
-
-        this._params.scene.add(glb.scene);
-        glb.scene.position.set(0,-2.5,0);
-        glb.scene.scale.setScalar(1);
-        glb.scene.traverse(c => {
-          c.receiveShadow = true;
-          c.castShadow = true;
-          this._params.playerVision.push(c);
-          this._params.player2Vision.push(c);
-          this._params.monsterVision.push(c);
-
-
-
-        });
-
-
-      });
-
-    
-    this._LoadLights();
-
-
-        //Load Door
-    const Doorloader = new GLTFLoader();
-    Doorloader.setPath('./resources/haunted_house/');
-    Doorloader.load('door.glb', (fbx) => {
-      console.log(fbx.scene)
-      fbx.scene.name = 'Door'
-      // fbx.scene.position.set(24,0,-62);
-      fbx.scene.position.set(3,-2.5,-0.5);
-
-      // fbx.scene.scale.setScalar(1.3);
-      this._scene.add(fbx.scene);
-      this._params.doorObject = fbx.scene;
-      // this._params.keyObject = fbx;
-      fbx.scene.traverse(c => {
-        c.castShadow = true;
-        c.receiveShadow = true;
-        c.metalness = 0.1
-
-        this._params.playerVision.push(c);
-        this._params.player2Vision.push(c);
-
-        if (c.material && c.material.map) {
-          c.material.map.encoding = THREE.sRGBEncoding;
-        }
-      });
-    });
-
-    const mirrorBack1 = new Reflector(
-      new THREE.PlaneBufferGeometry(11, 8),
-      {
-          color: new THREE.Color(0x7f7f7f),
-          textureWidth: window.innerWidth * window.devicePixelRatio,
-          textureHeight: window.innerHeight * window.devicePixelRatio
-      }
-    )
-    mirrorBack1.position.set(-2,15,-50 );
-    mirrorBack1.rotateY(-Math.PI/4)
-    this._scene.add(mirrorBack1);
-    this._playerVision.push(mirrorBack1)
-
-    //Load Key
-    const loader = new FBXLoader();
-    loader.setPath('./resources/key/');
-    loader.load('key.fbx', (fbx) => {
-      fbx.name = 'key'
-      fbx.position.set(28,3.5,-9);
-      fbx.scale.setScalar(2);
+    const Maploader = new FBXLoader();
+    Maploader.setPath('./resources/Level2/');
+    Maploader.load('Luxury_House.fbx', (fbx) => {
+      // fbx.position.set(28,3.5,-9);
+      fbx.scale.setScalar(0.03);
       this._scene.add(fbx);
-      this._params.keyObject = fbx;
+      // this._params.keyObject = fbx;
 
       fbx.traverse(c => {
         // c.castShadow = true;
         // c.receiveShadow = true;
         // c.metalness = 1
         this._params.player2Vision.push(c);
-        this._params.monsterVision.push(c);
+        this._params.playerVision.push(c);
 
         if (c.material && c.material.map) {
           c.material.map.encoding = THREE.sRGBEncoding;
@@ -782,12 +717,79 @@ class level2 {
       });
     });
 
-    console.log(this._scene)
+    
+    this._LoadLights();
 
 
-    const keyLight= new THREE.PointLight(0xffd700, 1, 2);
-    keyLight.position.set(28,6,-9);
-    this._scene.add(keyLight)
+        //Load Door
+    // const Doorloader = new GLTFLoader();
+    // Doorloader.setPath('./resources/haunted_house/');
+    // Doorloader.load('door.glb', (fbx) => {
+    //   console.log(fbx.scene)
+    //   fbx.scene.name = 'Door'
+    //   // fbx.scene.position.set(24,0,-62);
+    //   fbx.scene.position.set(3,-2.5,-0.5);
+
+    //   // fbx.scene.scale.setScalar(1.3);
+    //   this._scene.add(fbx.scene);
+    //   this._params.doorObject = fbx.scene;
+    //   // this._params.keyObject = fbx;
+    //   fbx.scene.traverse(c => {
+    //     c.castShadow = true;
+    //     c.receiveShadow = true;
+    //     c.metalness = 0.1
+
+    //     this._params.playerVision.push(c);
+    //     this._params.player2Vision.push(c);
+
+    //     if (c.material && c.material.map) {
+    //       c.material.map.encoding = THREE.sRGBEncoding;
+    //     }
+    //   });
+    // });
+
+    // const mirrorBack1 = new Reflector(
+    //   new THREE.PlaneBufferGeometry(11, 8),
+    //   {
+    //       color: new THREE.Color(0x7f7f7f),
+    //       textureWidth: window.innerWidth * window.devicePixelRatio,
+    //       textureHeight: window.innerHeight * window.devicePixelRatio
+    //   }
+    // )
+    // mirrorBack1.position.set(-2,15,-50 );
+    // mirrorBack1.rotateY(-Math.PI/4)
+    // this._scene.add(mirrorBack1);
+    // this._playerVision.push(mirrorBack1)
+
+    // //Load Key
+    // const loader = new FBXLoader();
+    // loader.setPath('./resources/key/');
+    // loader.load('key.fbx', (fbx) => {
+    //   fbx.name = 'key'
+    //   fbx.position.set(28,3.5,-9);
+    //   fbx.scale.setScalar(2);
+    //   this._scene.add(fbx);
+    //   this._params.keyObject = fbx;
+
+    //   fbx.traverse(c => {
+    //     // c.castShadow = true;
+    //     // c.receiveShadow = true;
+    //     // c.metalness = 1
+    //     this._params.player2Vision.push(c);
+    //     this._params.monsterVision.push(c);
+
+    //     if (c.material && c.material.map) {
+    //       c.material.map.encoding = THREE.sRGBEncoding;
+    //     }
+    //   });
+    // });
+
+    // console.log(this._scene)
+
+
+    // const keyLight= new THREE.PointLight(0xffd700, 1, 2);
+    // keyLight.position.set(28,6,-9);
+    // this._scene.add(keyLight)
 
   }
 
@@ -795,7 +797,7 @@ class level2 {
   _LoadPlayer() {
 
     const player = new entity.Entity();
-    player.SetPosition(new THREE.Vector3(-10,18,-23));
+    player.SetPosition(new THREE.Vector3(-10,10,-23));
     const quaternionP = new THREE.Quaternion();
     quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
     player.SetQuaternion(quaternionP);
@@ -804,7 +806,7 @@ class level2 {
     this._entityManager.Add(player, 'player');
 
     const player2 = new entity.Entity();
-    player2.SetPosition(new THREE.Vector3(-7,18,-23));
+    player2.SetPosition(new THREE.Vector3(-7,10,-23));
     player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
     player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse' , false));
     this._entityManager.Add(player2, 'player2');
@@ -949,7 +951,8 @@ class level2 {
       }
 
       
-      if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30,0,-75)) < 5){
+      if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30,0,-75)) < 5 && this._endGame == false){
+        this._endGame = true;
         cancelAnimationFrame(Req);
         document.getElementById('container').removeChild(document.getElementById('container').lastChild)
         _APP = new level2();
