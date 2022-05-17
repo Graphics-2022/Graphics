@@ -47,7 +47,7 @@ export const player_input = (() => {
       rey.far = 50;
       rey.setFromCamera(pos, this._params.camera);
       var int = rey.intersectObjects( this._params.scene.children, true);
-      console.log(int)
+      //console.log(int)
 
       if ( int.length > 0){
         //console.log(int[0].object.name)
@@ -57,6 +57,7 @@ export const player_input = (() => {
           //console.log(div);
           div.style.backgroundImage = "url('./resources/icons/key.png')";
           this._params.scene.remove(this._params.keyObject);
+          //this._params.scene.remove(this._params.keyLight);
           this._params.keyFound = true;
         }
       }

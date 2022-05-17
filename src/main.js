@@ -51,7 +51,6 @@ void main() {
   gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 }`;
 
-
 class level1 {
   constructor() {
     this._Initialize();
@@ -60,6 +59,8 @@ class level1 {
   _Initialize() {
     this._threejs = new THREE.WebGLRenderer({
       antialias: true,
+      powerPreference: 'high-performance',
+     // autoClear: true
     });
     this._threejs.outputEncoding = THREE.sRGBEncoding;
     //this._threejs.gammaFactor = 2.2;
@@ -108,6 +109,7 @@ class level1 {
     this._keyObject;
     this._playerFound = false;
     this._keyFound = false;
+    this._keyLight;
     this._params = {
       camera: this._camera,
       scene: this._scene,
@@ -118,6 +120,7 @@ class level1 {
       entityManager: this._entityManager,
       playerFound: this._playerFound,
       keyFound: this._keyFound,
+      keyLight:this._keyLight
     };
 
     var listener = new THREE.AudioListener();
@@ -137,7 +140,7 @@ class level1 {
       },
       // onProgress callback
       function ( xhr ) {
-        console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+        //console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
       },
   
       // onError callback
@@ -153,18 +156,19 @@ class level1 {
     this._UIInit();
     this._previousRAF = null;
     this._RAF();
+    console.log("Textures in Memory", this._threejs.info.memory.textures)
   }
   
 
   _LoadSky() {
-    const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.01);
-    hemiLight.color.setHSL(0.6, 1, 0.6);
-    hemiLight.groundColor.setHSL(0.095, 1, 0.75);
+    const hemiLight = new THREE.HemisphereLight(0x210606, 0x210606, 0.01);
+    hemiLight.color.setHSL(0, 0.69, 0.08);
+    hemiLight.groundColor.setHSL(0, 0.69, 0.08);
     this._scene.add(hemiLight);
 
     const uniforms = {
-      "topColor": { value: new THREE.Color(0x0077ff) },
-      "bottomColor": { value: new THREE.Color(0xffffff) },
+      "topColor": { value: new THREE.Color(0x210606) },
+      "bottomColor": { value: new THREE.Color(0x210606) },
       "offset": { value: 33 },
       "exponent": { value: 0.6 }
     };
@@ -195,9 +199,9 @@ class level1 {
     light.shadow.camera.far = 500; // default
     light.shadow.bias = -0.005;
 
-    const sphereSize = 1;
-    const pointLightHelper = new THREE.PointLightHelper( light, sphereSize );
-    this._params.scene.add( pointLightHelper );
+    // const sphereSize = 1;
+    // const pointLightHelper = new THREE.PointLightHelper( light, sphereSize );
+    // this._params.scene.add( pointLightHelper );
 
 
 
@@ -225,9 +229,9 @@ class level1 {
     light2.shadow.camera.far = 500; // default
     light2.shadow.bias = -0.005;
 
-    const sphereSize2 = 1;
-    const pointLightHelper2 = new THREE.PointLightHelper( light2, sphereSize2 );
-    this._params.scene.add( pointLightHelper2 );
+    // const sphereSize2 = 1;
+    // const pointLightHelper2 = new THREE.PointLightHelper( light2, sphereSize2 );
+    // this._params.scene.add( pointLightHelper2 );
 
     const light3 = new THREE.PointLight( 0xffbb73, 0.1, 100 );
     light3.position.set( -25, 13, -50 );
@@ -239,9 +243,9 @@ class level1 {
     light3.shadow.camera.far = 500; // default
     light3.shadow.bias = -0.005;
 
-    const sphereSize3 = 1;
-    const pointLightHelper3 = new THREE.PointLightHelper( light3, sphereSize3 );
-    this._params.scene.add( pointLightHelper3 );
+    // const sphereSize3 = 1;
+    // const pointLightHelper3 = new THREE.PointLightHelper( light3, sphereSize3 );
+    // this._params.scene.add( pointLightHelper3 );
   
     // const spotLight    = new THREE.SpotLight( 0x090909 , 8 , 200 , Math.PI/10 )
     // spotLight.position.set(25, 13, -50)
@@ -298,32 +302,38 @@ class level1 {
       fbx.traverse(c => {
         c.castShadow = true;
         c.receiveShadow = true;
-        c.metalness = 1
+        c.metalness = 1;
+        // c.shininess=100;
+        // c.specular= 0x050505;
 
         if (c.material && c.material.map) {
           c.material.map.encoding = THREE.sRGBEncoding;
         }
       });
     });
+    const pointLightKey=new THREE.PointLight(0xffd700, 1,3);
+    pointLightKey.position.set(3,5,-9);
+    this._params.keyLight=pointLightKey;
+    this._scene.add(pointLightKey)
 
 
-    const spotLight = new THREE.SpotLight( 0xffffff , 1 , 10 , Math.PI/10 );
-    spotLight.position.set( 3, 10, -15);
+    // const spotLight = new THREE.SpotLight( 0xffffff , 1 , 10 , Math.PI/10 );
+    // spotLight.position.set( 3, 10, -15);
 
-    spotLight.castShadow = true;
+    // spotLight.castShadow = true;
 
-    spotLight.shadow.mapSize.width = 1024/10;
-    spotLight.shadow.mapSize.height = 1024/10;
-    spotLight.shadow.bias = -0.005;
+    // spotLight.shadow.mapSize.width = 1024/10;
+    // spotLight.shadow.mapSize.height = 1024/10;
+    // spotLight.shadow.bias = -0.005;
 
-    spotLight.shadow.camera.near = 1;
-    spotLight.shadow.camera.far = 20;
-    spotLight.shadow.camera.fov = 1;
+    // spotLight.shadow.camera.near = 1;
+    // spotLight.shadow.camera.far = 20;
+    // spotLight.shadow.camera.fov = 1;
 
-    this._scene.add( spotLight );
+    // this._scene.add( spotLight );
 
-    const spotLightHelper = new THREE.SpotLightHelper( spotLight );
-    this._scene.add( spotLightHelper );
+    // const spotLightHelper = new THREE.SpotLightHelper( spotLight );
+    // this._scene.add( spotLightHelper );
   }
 
 
@@ -412,6 +422,7 @@ class level1 {
   }
 
   _RAF() {
+    console.log("Textures in Memory", this._threejs.info.memory.textures)
     var Req = requestAnimationFrame((t) => {
       if (this._previousRAF === null) {
         this._previousRAF = t;
@@ -446,13 +457,14 @@ class level1 {
         this._threejs.render(this._scene, this._camera);
         this._Step(t - this._previousRAF);
         this._previousRAF = t;
-      }else{
-        // console.log(this._params.playerFound);
-        cancelAnimationFrame(Req);
-        document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-        _APP = new level2();
-        return;
       }
+      // else{
+      //   // console.log(this._params.playerFound);
+      //   cancelAnimationFrame(Req);
+      //   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+      //   _APP = new level2();
+      //   return;
+      // }
     });
   }
 
