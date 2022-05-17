@@ -51,7 +51,6 @@ void main() {
   gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 }`;
 
-
 class level1 {
   constructor() {
     this._Initialize();
@@ -60,6 +59,8 @@ class level1 {
   _Initialize() {
     this._threejs = new THREE.WebGLRenderer({
       antialias: true,
+      powerPreference: 'high-performance',
+     // autoClear: true
     });
     this._threejs.outputEncoding = THREE.sRGBEncoding;
     //this._threejs.gammaFactor = 2.2;
@@ -110,6 +111,7 @@ class level1 {
     this._doorFrameObject;
     this._playerFound = false;
     this._keyFound = false;
+    this._keyLight;
     this._params = {
       camera: this._camera,
       scene: this._scene,
@@ -122,6 +124,7 @@ class level1 {
       entityManager: this._entityManager,
       playerFound: this._playerFound,
       keyFound: this._keyFound,
+      keyLight:this._keyLight
     };
 
     var listener = new THREE.AudioListener();
@@ -141,7 +144,7 @@ class level1 {
       },
       // onProgress callback
       function ( xhr ) {
-        console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+        //console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
       },
   
       // onError callback
@@ -157,18 +160,22 @@ class level1 {
     this._UIInit();
     this._previousRAF = null;
     this._RAF();
+    console.log("Textures in Memory", this._threejs.info.memory.textures)
   }
   
 
   _LoadSky() {
-    const hemiLight = new THREE.HemisphereLight(0x000000, 0x000000, 0.01);
-    hemiLight.color.setHSL(0.6, 1, 0.6);
-    hemiLight.groundColor.setHSL(0.095, 1, 0.75);
+    const hemiLight = new THREE.HemisphereLight(0x210606, 0x210606, 0.01);
+    hemiLight.color.setHSL(0, 0.69, 0.08);
+    hemiLight.groundColor.setHSL(0, 0.69, 0.08);
     this._scene.add(hemiLight);
 
     const uniforms = {
       "topColor": { value: new THREE.Color(0x0077ff) },
       "bottomColor": { value: new THREE.Color(0xffffff) },
+//       "topColor": { value: new THREE.Color(0x210606) },
+//       "bottomColor": { value: new THREE.Color(0x210606) },
+// >>>>>>> 929fd97a243c8a0d8f0d29e250dc28c7e7b517b1
       "offset": { value: 33 },
       "exponent": { value: 0.6 }
     };
@@ -207,11 +214,11 @@ class level1 {
       light.shadow.camera.near = 0.5; // default
       light.shadow.camera.far = 100; // default
       light.shadow.bias = -0.005;
-
       // const sphereSize = 1;
       // const pointLightHelper = new THREE.PointLightHelper( light, sphereSize );
       // this._params.scene.add( pointLightHelper );
     })
+
 
     const light2 = new THREE.PointLight( 0x09cc09, 0.1, 100 );
     light2.position.set( 25, 9, -50 );
@@ -223,8 +230,6 @@ class level1 {
     light2.shadow.camera.far = 100; // default
     light2.shadow.bias = -0.005;
 
-   
-
 
     const spotLight    = new THREE.SpotLight( 0x09dd09 , 8 , 200 , Math.PI/10 )
     spotLight.position.set( 30,10,-75)
@@ -232,20 +237,8 @@ class level1 {
     spotLight.intensity    = 5
     spotLight.target.position.set(30,0,-75)
     this._params.scene.add( spotLight.target );
-    // spotLight.target = this._targetObject;
-    // spotLight.castShadow = true;
-    // spotLight.shadow.bias = -0.005;
-
-    // thisspotLight.shadow.mapSize.width = 512; // default
-    // this._spotLight.shadow.mapSize.height = 512; // default
-    // this._spotLight.shadow.camera.near = 2; // default
-    // this._spotLight.shadow.camera.far = 100; // default
-    // this._spotLight.shadow.focus = 1; // default
 
     this._params.scene.add( spotLight  )
-    // const sphereSize2 = 1;
-    // const pointLightHelper2 = new THREE.PointLightHelper( light2, sphereSize2 );
-    // this._params.scene.add( pointLightHelper2 );
 
   }
 
@@ -263,54 +256,13 @@ class level1 {
           this._params.playerVision.push(c);
           this._params.player2Vision.push(c);
           this._params.monsterVision.push(c);
-
-
-
         });
-
-
-        // const light = new THREE.PointLight( 0xffbb73, 0.1, 100 );
-        // light.position.x = 0
-        // light.position.y = 0
-        // light.position.z =0
-        // light.castShadow = true;
-        // this._params.scene.add( light );
-        // light.shadow.mapSize.width = 512; // default
-        // light.shadow.mapSize.height = 512; // default
-        // light.shadow.camera.near = 0.5; // default
-        // light.shadow.camera.far = 100; // default
-        // light.shadow.bias = -0.005;
-
-        // const sphereSize = 1;
-        // const pointLightHelper = new THREE.PointLightHelper( light, sphereSize );
-        // this._params.scene.add( pointLightHelper );
       });
 
     
     this._LoadLights();
 
-    
-    // //Load Door
-    // const DoorFloader = new FBXLoader();
-    // DoorFloader.setPath('./resources/haunted_house/');
-    // DoorFloader.load('doorplusframe.fbx', (fbx) => {
-    //   fbx.name = 'DoorFrame'
-    //   fbx.position.set(24,-3,-62);
-    //   fbx.scale.setScalar(0.5);
-    //   this._scene.add(fbx);
-    //   this._params.doorFrameObject = fbx;
-    //   // this._params.keyObject = fbx;
-    //   fbx.traverse(c => {
-    //     c.castShadow = true;
-    //     c.receiveShadow = true;
-    //     c.metalness = 0.1
-
-    //     if (c.material && c.material.map) {
-    //       c.material.map.encoding = THREE.sRGBEncoding;
-    //     }
-    //   });
-    // });
-
+  
         //Load Door
     const Doorloader = new GLTFLoader();
     Doorloader.setPath('./resources/haunted_house/');
@@ -374,35 +326,9 @@ class level1 {
       });
     });
 
-    console.log(this._scene)
-
-    // const loader1 = new FBXLoader();
-    // loader1.setPath('./resources/Level1Rooms/');
-    // loader1.load('Entrance_Door.fbx', (fbx) => {
-    //   fbx.name = 'door'
-    //   fbx.position.copy(new THREE.Vector3(3, 5, -9));
-    //   fbx.scale.setScalar(0.04);
-    //   this._scene.add(fbx);
-    //   this._params.keyObject = fbx;
-    //   fbx.traverse(c => {
-    //     c.castShadow = true;
-    //     c.receiveShadow = true;
-    //     c.metalness = 1
-
-    //     if (c.material && c.material.map) {
-    //       c.material.map.encoding = THREE.sRGBEncoding;
-    //     }
-    //   });
-    // });
-
-
     const keyLight= new THREE.PointLight(0xffd700, 1, 2);
     keyLight.position.set(28,6,-9);
     this._scene.add(keyLight)
-
-    // const sphereSize = 1;
-    // const pointLightHelper = new THREE.PointLightHelper( keyLight, sphereSize );
-    // this._scene.add( pointLightHelper );
 
   }
 
@@ -447,13 +373,6 @@ class level1 {
       ];
     npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points));
     this._entityManager.Add(npc, 'npc1');
-
-    // const npc = new entity.Entity();
-    // npc.SetPosition(new THREE.Vector3(3, 2.5, -20));
-    // npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points1));
-    // this._entityManager.Add(npc, 'npc1');
-
-
 
     const npc1 = new entity.Entity();
     npc1.SetPosition(new THREE.Vector3(3, 0, -20));
@@ -520,6 +439,7 @@ class level1 {
   }
 
   _RAF() {
+    console.log("Textures in Memory", this._threejs.info.memory.textures)
     var Req = requestAnimationFrame((t) => {
       if (this._previousRAF === null) {
         this._previousRAF = t;
@@ -562,7 +482,6 @@ class level1 {
         _APP = new level1();
         return;
       }
-
       
       if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30,0,-75)) < 5){
         cancelAnimationFrame(Req);
@@ -570,6 +489,7 @@ class level1 {
         _APP = new level2();
         return;
       }
+
     });
   }
 
@@ -766,15 +686,6 @@ class level2 {
     spotLight.intensity    = 5
     spotLight.target.position.set(30,0,-75)
     this._params.scene.add( spotLight.target );
-    // spotLight.target = this._targetObject;
-    // spotLight.castShadow = true;
-    // spotLight.shadow.bias = -0.005;
-
-    // thisspotLight.shadow.mapSize.width = 512; // default
-    // this._spotLight.shadow.mapSize.height = 512; // default
-    // this._spotLight.shadow.camera.near = 2; // default
-    // this._spotLight.shadow.camera.far = 100; // default
-    // this._spotLight.shadow.focus = 1; // default
 
     this._params.scene.add( spotLight  )
     // const sphereSize2 = 1;
@@ -803,47 +714,11 @@ class level2 {
         });
 
 
-        // const light = new THREE.PointLight( 0xffbb73, 0.1, 100 );
-        // light.position.x = 0
-        // light.position.y = 0
-        // light.position.z =0
-        // light.castShadow = true;
-        // this._params.scene.add( light );
-        // light.shadow.mapSize.width = 512; // default
-        // light.shadow.mapSize.height = 512; // default
-        // light.shadow.camera.near = 0.5; // default
-        // light.shadow.camera.far = 100; // default
-        // light.shadow.bias = -0.005;
-
-        // const sphereSize = 1;
-        // const pointLightHelper = new THREE.PointLightHelper( light, sphereSize );
-        // this._params.scene.add( pointLightHelper );
       });
 
     
     this._LoadLights();
 
-    
-    // //Load Door
-    // const DoorFloader = new FBXLoader();
-    // DoorFloader.setPath('./resources/haunted_house/');
-    // DoorFloader.load('doorplusframe.fbx', (fbx) => {
-    //   fbx.name = 'DoorFrame'
-    //   fbx.position.set(24,-3,-62);
-    //   fbx.scale.setScalar(0.5);
-    //   this._scene.add(fbx);
-    //   this._params.doorFrameObject = fbx;
-    //   // this._params.keyObject = fbx;
-    //   fbx.traverse(c => {
-    //     c.castShadow = true;
-    //     c.receiveShadow = true;
-    //     c.metalness = 0.1
-
-    //     if (c.material && c.material.map) {
-    //       c.material.map.encoding = THREE.sRGBEncoding;
-    //     }
-    //   });
-    // });
 
         //Load Door
     const Doorloader = new GLTFLoader();
@@ -910,33 +785,10 @@ class level2 {
 
     console.log(this._scene)
 
-    // const loader1 = new FBXLoader();
-    // loader1.setPath('./resources/Level1Rooms/');
-    // loader1.load('Entrance_Door.fbx', (fbx) => {
-    //   fbx.name = 'door'
-    //   fbx.position.copy(new THREE.Vector3(3, 5, -9));
-    //   fbx.scale.setScalar(0.04);
-    //   this._scene.add(fbx);
-    //   this._params.keyObject = fbx;
-    //   fbx.traverse(c => {
-    //     c.castShadow = true;
-    //     c.receiveShadow = true;
-    //     c.metalness = 1
-
-    //     if (c.material && c.material.map) {
-    //       c.material.map.encoding = THREE.sRGBEncoding;
-    //     }
-    //   });
-    // });
-
 
     const keyLight= new THREE.PointLight(0xffd700, 1, 2);
     keyLight.position.set(28,6,-9);
     this._scene.add(keyLight)
-
-    // const sphereSize = 1;
-    // const pointLightHelper = new THREE.PointLightHelper( keyLight, sphereSize );
-    // this._scene.add( pointLightHelper );
 
   }
 

@@ -308,7 +308,7 @@ export const npc_entity = (() => {
 
         if(int.length > 0){
           if(int[0].object.parent.name == "girl"){
-            console.log("player found")
+            //console.log("player found")
             found = true;
             return;
           }
