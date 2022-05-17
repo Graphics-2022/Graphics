@@ -439,7 +439,7 @@ class level1 {
   }
 
   _RAF() {
-    console.log("Textures in Memory", this._threejs.info.memory.textures)
+    // console.log("Textures in Memory", this._threejs.info.memory.textures)
     var Req = requestAnimationFrame((t) => {
       if (this._previousRAF === null) {
         this._previousRAF = t;
@@ -470,13 +470,12 @@ class level1 {
       }
 
 
-      if(!this._params.playerFound){//if(!this._params.playerFound){
+      if(!this._params.playerFound){
         this._RAF();
         this._threejs.render(this._scene, this._camera);
         this._Step(t - this._previousRAF);
         this._previousRAF = t;
       }else{
-        // console.log(this._params.playerFound);
         cancelAnimationFrame(Req);
         document.getElementById('container').removeChild(document.getElementById('container').lastChild)
         _APP = new level1();
