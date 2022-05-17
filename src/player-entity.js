@@ -96,6 +96,10 @@ export const player_entity = (() => {
           fbx.name = 'mouse'
           this._target = fbx;
           this._target.position.copy(this._parent.Position);
+          // this._target.quaternion.copy(_R);
+          console.log(this._parent.Quaternion)
+          this._target.quaternion.copy(this._parent.Quaternion);
+
           this._target.scale.setScalar(0.015);
           this._params.scene.add(this._target);
           this._bones = {};
@@ -146,6 +150,10 @@ export const player_entity = (() => {
           this._params.scene.add(this._target);
           this._dist = 2;
           this._target.position.copy(this._parent.Position);
+          // console.log(this._parent.Quaternion)
+
+          this._target.quaternion.copy(this._parent.Quaternion);
+
           this._vision = this._params.playerVision;
           this._bones = {};
           this._height = 0.7;
@@ -319,6 +327,7 @@ export const player_entity = (() => {
         this._stateMachine.SetState('idle');
       }else{
         this._input._keys.forward = true;
+        // this._input._keys.shift = true;
         this._Walk(timeInSeconds , this._input);
       }
     }
@@ -380,7 +389,7 @@ export const player_entity = (() => {
       if (this._mixer) {
         this._mixer.update(timeInSeconds);
       }
-
+      console.log(this._target.position)
       this._SetHeight();
 
       if (!this._active){
