@@ -59,6 +59,23 @@ export const player_input = (() => {
           this._params.scene.remove(this._params.keyObject);
           this._params.keyFound = true;
         }
+        console.log(int[0].object)
+
+        if(int[0].object.name == "���001_���_0" || int[0].object.name == "Entrance_Door_003"){
+
+          console.log("frame")
+
+          if(this._params.keyFound ){
+            this._params.doorObject.position.set(100,0,0)
+
+            // this._params.scene.remove(this._params.doorObject);
+            
+          }
+          // const quaternionP = new THREE.Quaternion();
+          // quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), -Math.PI/2 );
+          // this._params.doorObject.quaternion.copy(quaternionP);
+        }
+
       }
     }
 

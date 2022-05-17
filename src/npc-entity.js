@@ -337,26 +337,15 @@ export const npc_entity = (() => {
 
     _OnAIWalk(timeInSeconds) {
       
-      // const nearby = this._FindPlayer();
       var dirToPlayer =  new THREE.Vector3(0, 0, 0);
 
-      // const points = [ 
-      //   new THREE.Vector3( 0, 2.5, -22 ), 
-      //   new THREE.Vector3( 35, 2.5, -22 ),
-      //   new THREE.Vector3( 35, 2.5, -24 ),
-      //   new THREE.Vector3( 0, 2.5, -20 ),
-      //   new THREE.Vector3( -2, 2.5, -35 ),
-      //   new THREE.Vector3( 2, 2.5, -35 ),
-
-      //   ];
-    
       let path = new THREE.CatmullRomCurve3( this._points, true );
       this._time += timeInSeconds;
       // visualize the path
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints( path.getPoints( 32 ) );
-      const lineMaterial = new THREE.LineBasicMaterial();
-      const line = new THREE.Line( lineGeometry, lineMaterial );
-      this._params.scene.add(line)
+      // const lineGeometry = new THREE.BufferGeometry().setFromPoints( path.getPoints( 32 ) );
+      // const lineMaterial = new THREE.LineBasicMaterial();
+      // const line = new THREE.Line( lineGeometry, lineMaterial );
+      // this._params.scene.add(line)
       const pos1=path.getPointAt( (this._time/6)%1);
       //console.log("time",(this._time/1)%1)
       // const pos=new THREE.Vector3(0,0,0);

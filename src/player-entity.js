@@ -389,6 +389,8 @@ export const player_entity = (() => {
       if (this._mixer) {
         this._mixer.update(timeInSeconds);
       }
+      // console.log(this._params.playerVision)
+
       console.log(this._target.position)
       this._SetHeight();
 
