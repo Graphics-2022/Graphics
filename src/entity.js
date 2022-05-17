@@ -38,6 +38,10 @@ export const entity = (() => {
       return this._position;
     }
 
+    get Quaternion(){
+      return this._rotation;
+    }
+
     SetActive(b) {
       this._parent.SetActive(this, b);
     }
@@ -83,10 +87,10 @@ export const entity = (() => {
 
     SetQuaternion(r) {
       this._rotation.copy(r);
-      this.Broadcast({
-          topic: 'update.rotation',
-          value: this._rotation,
-      });
+      // this.Broadcast({
+      //     topic: 'update.rotation',
+      //     value: this._rotation,
+      // });
     }
 
     Update(timeElapsed) {
