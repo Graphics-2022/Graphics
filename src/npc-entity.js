@@ -82,7 +82,7 @@ export const npc_entity = (() => {
       if(this._type == 'npc1'){
       const loader = new FBXLoader();
       loader.setPath('./resources/enemies/mutant/');
-      loader.load('Vampire A Lusth.fbx', (fbx) => {
+      loader.load('monster1.fbx', (fbx) => {
         fbx.name = 'enemy'
         this._target = fbx;
         //console.log(this._params.objects)
@@ -174,7 +174,7 @@ export const npc_entity = (() => {
     }else{
       const loader = new FBXLoader();
       loader.setPath('./resources/enemies/aure/');
-      loader.load('Vampire A Lusth.fbx', (fbx) => {
+      loader.load('monster1.fbx', (fbx) => {
         fbx.name = 'enemy'
         this._target = fbx;
         //console.log(this._params.objects)
@@ -282,6 +282,27 @@ export const npc_entity = (() => {
     _FindPlayer() {
       let found = false;
       const controlObject = this._target;
+      let playerPos = this._params.entityManager.Get('player')._position
+      if (controlObject.position.distanceTo(playerPos) > 30){
+        return found;
+      }
+      const dir = controlObject.position.clone();
+
+      dir.sub(this._params.entityManager.Get('player')._position)
+      dir.y = 0.0;
+      dir.normalize();
+      const dirToPlayer = dir;
+
+      let d = new THREE.Vector3();
+      controlObject.getWorldDirection(d)
+
+
+      if (dirToPlayer.angleTo(d) < Math.PI -Math.PI/10){
+        return found;
+      }
+
+      // console.log(dirToPlayer.angleTo(d))
+
       let search = [];
       for (let i = -Math.PI/10; i <= Math.PI/10; i+=Math.PI/12){
         search.push(i);
@@ -289,8 +310,7 @@ export const npc_entity = (() => {
       const start = new THREE.Vector3();
       start.copy(controlObject.position);
       start.y +=2.5;
-      let d = new THREE.Vector3();
-      controlObject.getWorldDirection(d)
+
       let ray = new THREE.Raycaster();
       ray.far = 200;
       ray.near = 0;

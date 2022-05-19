@@ -92,7 +92,7 @@ export const player_entity = (() => {
 
         const loader = new FBXLoader();
         loader.setPath('./resources/mouse/');
-        loader.load('mouse.fbx', (fbx) => {
+        loader.load('mouse1.fbx', (fbx) => {
           fbx.name = 'mouse'
           this._target = fbx;
           this._target.position.copy(this._parent.Position);
@@ -143,7 +143,7 @@ export const player_entity = (() => {
       }else{
         const loader = new FBXLoader();
         loader.setPath('./resources/girl/');
-        loader.load('girl.fbx', (fbx) => {
+        loader.load('girl1.fbx', (fbx) => {
           this._target = fbx;
           this._target.scale.setScalar(0.035);
           this._target.name = "girl"

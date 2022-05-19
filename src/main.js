@@ -137,22 +137,22 @@ class level1 {
     var audioLoader = new THREE.AudioLoader();
   
     //Load a sound and set it as the Audio object's buffer
-    audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function( buffer ) {
-      sound.setBuffer( buffer );
-      sound.setLoop(true);
-      sound.setVolume(0.5);
-      sound.play();
-      },
-      // onProgress callback
-      function ( xhr ) {
-        //console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-      },
+    // audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function( buffer ) {
+    //   sound.setBuffer( buffer );
+    //   sound.setLoop(true);
+    //   sound.setVolume(0.5);
+    //   sound.play();
+    //   },
+    //   // onProgress callback
+    //   function ( xhr ) {
+    //     //console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+    //   },
   
-      // onError callback
-      function ( err ) {
-        console.log( 'An error occured' );
-      }
-    );
+    //   // onError callback
+    //   function ( err ) {
+    //     console.log( 'An error occured' );
+    //   }
+    // );
 
     this._LoadSky();
     this._LoadRoom();
@@ -246,7 +246,7 @@ class level1 {
   _LoadRoom(){
     const mapLoader = new GLTFLoader();
     mapLoader.setPath('./resources/haunted_house/');
-    mapLoader.load('map10.glb', (glb) => {
+    mapLoader.load('map1.glb', (glb) => {
 
         this._params.scene.add(glb.scene);
         glb.scene.position.set(0,-2.5,0);
@@ -267,7 +267,7 @@ class level1 {
         //Load Door
     const Doorloader = new GLTFLoader();
     Doorloader.setPath('./resources/haunted_house/');
-    Doorloader.load('door.glb', (fbx) => {
+    Doorloader.load('door1.glb', (fbx) => {
       console.log(fbx.scene)
       fbx.scene.name = 'Door'
       // fbx.scene.position.set(24,0,-62);
@@ -307,10 +307,10 @@ class level1 {
     //Load Key
     const loader = new FBXLoader();
     loader.setPath('./resources/key/');
-    loader.load('key.fbx', (fbx) => {
+    loader.load('key1.fbx', (fbx) => {
       fbx.name = 'key'
       fbx.position.set(28,3.5,-9);
-      fbx.scale.setScalar(2);
+      fbx.scale.setScalar(0.02);
       this._scene.add(fbx);
       this._params.keyObject = fbx;
 
@@ -503,7 +503,7 @@ class level1 {
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  _APP = new level1();
+  _APP = new level2();
 });
 
 
@@ -696,26 +696,21 @@ class level2 {
   }
 
   _LoadRoom(){
-    const Maploader = new FBXLoader();
-    Maploader.setPath('./resources/Level2/');
-    Maploader.load('Luxury_House.fbx', (fbx) => {
-      // fbx.position.set(28,3.5,-9);
-      fbx.scale.setScalar(0.03);
-      this._scene.add(fbx);
-      // this._params.keyObject = fbx;
+    const mapLoader = new GLTFLoader();
+    mapLoader.setPath('./resources/Level2/');
+    mapLoader.load('Luxury House.glb', (glb) => {
 
-      fbx.traverse(c => {
-        // c.castShadow = true;
-        // c.receiveShadow = true;
-        // c.metalness = 1
-        this._params.player2Vision.push(c);
-        this._params.playerVision.push(c);
-
-        if (c.material && c.material.map) {
-          c.material.map.encoding = THREE.sRGBEncoding;
-        }
+        this._params.scene.add(glb.scene);
+        // glb.scene.position.set(0,-2.5,0);
+        glb.scene.scale.setScalar(3);
+        glb.scene.traverse(c => {
+          c.receiveShadow = true;
+          c.castShadow = true;
+          this._params.playerVision.push(c);
+          this._params.player2Vision.push(c);
+          this._params.monsterVision.push(c);
+        });
       });
-    });
 
     
     this._LoadLights();
