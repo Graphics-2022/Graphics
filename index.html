@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Level1</title>
+  <title>Game</title>
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
   <link rel="stylesheet" type="text/css" href="base.css">
   <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -13,19 +13,25 @@
 </head>
 <body>
   <script src="./src/main.js" type="module"></script>
+  <svg width="200" height="200" viewBox="0 0 100 100">
+    <polyline class="line-cornered stroke-still" points="0,0 100,0 100,100" stroke-width="10" fill="none"></polyline>
+    <polyline class="line-cornered stroke-still" points="0,0 0,100 100,100" stroke-width="10" fill="none"></polyline>
+    <polyline class="line-cornered stroke-animation" points="0,0 100,0 100,100" stroke-width="10" fill="none"></polyline>
+    <polyline class="line-cornered stroke-animation" points="0,0 0,100 100,100" stroke-width="10" fill="none"></polyline>
+  </svg>
   <div class="container" id="container">
  
     <div class="ui">
       <div class="icon-ui">
-        <div class="icon-bar" id="icon-bar">
-          <div class="icon-bar-item" id="icon-bar-inventory" style="background-image: url('./resources/icons/inventory.png');"></div>
+        <div class="icon-bar" id="icon-bar" style="visibility: hidden;">
+          <div class="icon-bar-item" id="icon-bar-inventory"  style="background-image: url('./resources/icons/inventory.png');"></div>
           <div class="icon-bar-item" id="icon-bar-quests" style="background-image: url('./resources/icons/switch.png');"></div>
         </div>
       </div>
     </div>
     
     <div class="ui">
-      <div class="inventory" id="inventory">
+      <div class="inventory" id="inventory" style="visibility: hidden;">
         <div class="inventory-inner">
           <div class="inventory-title">Inventory</div>
           <div class="inventory-row">

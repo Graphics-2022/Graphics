@@ -51,10 +51,14 @@ void main() {
   gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 }`;
 
+
+
+
 class level1 {
   constructor() {
     this._Initialize();
   }
+  
 
   _Initialize() {
     this._threejs = new THREE.WebGLRenderer({
@@ -81,11 +85,38 @@ class level1 {
     const near = 1.0;
     const far = 100.0;
     this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this._camera.position.set(25, 10, 25);
+    // this._camera.position.set(25, 10, 25);
 
     this._scene = new THREE.Scene();
     this._scene.background = new THREE.Color(0x000000);
     this._scene.fog = new THREE.FogExp2(0x89b2eb, 0.002);
+
+    this.loadingScreen = {
+      scene: new THREE.Scene(),
+      camera: new THREE.PerspectiveCamera(fov, aspect, near, far),
+      box: new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5),
+      new THREE.MeshBasicMaterial({ color:0xff0000}))
+    }
+    this.loadingScreen.box.position.set(0,0,5);
+    this.loadingScreen.camera.lookAt(this.loadingScreen.box.position)
+    this.loadingScreen.scene.add(this.loadingScreen.box)
+
+    // this._loaded = true;
+
+    this.loadingManager = new THREE.LoadingManager()
+
+    // this.loadingManager.onProgress = function(item , loaded, total){
+    //   console.log(item, loaded , total)
+    // }
+
+    this.loadingManager.onLoad = ()=>{
+      // console.log(this._loaded)
+
+      // this._loaded = true;
+      this._UIInit();
+      this._RAF();
+    }
+
 
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(1000, 1000, 10, 10),
@@ -125,7 +156,8 @@ class level1 {
       entityManager: this._entityManager,
       playerFound: this._playerFound,
       keyFound: this._keyFound,
-      keyLight:this._keyLight
+      keyLight:this._keyLight,
+      loadingManager: this.loadingManager,
     };
 
     var listener = new THREE.AudioListener();
@@ -158,10 +190,9 @@ class level1 {
     this._LoadRoom();
     this._LoadPlayer();
 
-    this._UIInit();
     this._previousRAF = null;
-    this._RAF();
-    console.log("Textures in Memory", this._threejs.info.memory.textures)
+    // this._RAF();
+    // console.log("Textures in Memory", this._threejs.info.memory.textures)
   }
   
 
@@ -201,9 +232,9 @@ class level1 {
   _LoadLights(){
 
     const posLights = [[0, 9, -20],[ 0, 9, -50], [-25, 9, -50 ], [-20,20,-45 ]];
-    console.log(posLights)
+    // console.log(posLights)
     posLights.forEach((posLight) => {
-      console.log(posLight)
+      // console.log(posLight)
       const light = new THREE.PointLight( 0xffbb73, 0.1, 100 );
       light.position.x = posLight[0];
       light.position.y = posLight[1];
@@ -244,7 +275,7 @@ class level1 {
   }
 
   _LoadRoom(){
-    const mapLoader = new GLTFLoader();
+    const mapLoader = new GLTFLoader(this.loadingManager);
     mapLoader.setPath('./resources/haunted_house/');
     mapLoader.load('map1.glb', (glb) => {
 
@@ -265,10 +296,10 @@ class level1 {
 
   
         //Load Door
-    const Doorloader = new GLTFLoader();
+    const Doorloader = new GLTFLoader(this.loadingManager);
     Doorloader.setPath('./resources/haunted_house/');
     Doorloader.load('door1.glb', (fbx) => {
-      console.log(fbx.scene)
+      // console.log(fbx.scene)
       fbx.scene.name = 'Door'
       // fbx.scene.position.set(24,0,-62);
       fbx.scene.position.set(3,-2.5,-0.5);
@@ -305,7 +336,7 @@ class level1 {
     this._playerVision.push(mirrorBack1)
 
     //Load Key
-    const loader = new FBXLoader();
+    const loader = new FBXLoader(this.loadingManager);
     loader.setPath('./resources/key/');
     loader.load('key1.fbx', (fbx) => {
       fbx.name = 'key'
@@ -337,16 +368,21 @@ class level1 {
   _LoadPlayer() {
 
     const player = new entity.Entity();
-    player.SetPosition(new THREE.Vector3(-10,18,-23));
+    player.SetPosition(new THREE.Vector3(-10,13,-23));
     const quaternionP = new THREE.Quaternion();
     quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
     player.SetQuaternion(quaternionP);
     player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
     player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl' , true));
     this._entityManager.Add(player, 'player');
+    this._camera.position.copy(player.Position);
+    this._camera.position.y += 4;
+    this._camera.position.z += 7;
+    this._currentLookat = player.Position;
+
 
     const player2 = new entity.Entity();
-    player2.SetPosition(new THREE.Vector3(-7,18,-23));
+    player2.SetPosition(new THREE.Vector3(-7,13,-23));
     player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
     player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse' , false));
     this._entityManager.Add(player2, 'player2');
@@ -361,7 +397,9 @@ class level1 {
           }));
     this._entityManager.Add(camera, 'player-camera');
 
-        const npc = new entity.Entity();
+    this.npcManager = new THREE.LoadingManager();
+
+    const npc = new entity.Entity();
     npc.SetPosition(new THREE.Vector3(-35,12,-30));
     const quaternionM1 = new THREE.Quaternion();
     quaternionM1.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
@@ -372,29 +410,32 @@ class level1 {
       new THREE.Vector3( -36, 15,  -56),
       new THREE.Vector3( -33, 15, -53 ),
       ];
-    npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points));
+    npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points, this.npcManager));
     this._entityManager.Add(npc, 'npc1');
 
-    const npc1 = new entity.Entity();
-    npc1.SetPosition(new THREE.Vector3(3, 0, -20));
-    const points1 = [ 
-      new THREE.Vector3( 0, 2.5, -22 ), 
-      new THREE.Vector3( 35, 2.5, -22 ),
-      new THREE.Vector3( 35, 2.5, -24 ),
-      new THREE.Vector3( 0, 2.5, -20 ),
-      new THREE.Vector3( -2, 2.5, -35 ),
-      new THREE.Vector3( 2, 2.5, -35 ),
+    this.npcManager.onLoad = () => {
+      const npc1 = new entity.Entity();
+      this._entityManager.Add(npc1, 'npc2');
 
-      ];
-    npc1.AddComponent(new npc_entity.NPCController(this._params , 'npc2', points1));
-    this._entityManager.Add(npc1, 'npc2');
+      npc1.SetPosition(new THREE.Vector3(3, 0, -20));
+      const points1 = [ 
+        new THREE.Vector3( 0, 2.5, -22 ), 
+        new THREE.Vector3( 35, 2.5, -22 ),
+        new THREE.Vector3( 35, 2.5, -24 ),
+        new THREE.Vector3( 0, 2.5, -20 ),
+        new THREE.Vector3( -2, 2.5, -35 ),
+        new THREE.Vector3( 2, 2.5, -35 ),
+        ];
+      npc1.AddComponent(new npc_entity.NPCController(this._params , 'npc2', points1, this.npcManager));
+    };
+
+    
   }
 
   _UIInit(){
       this._iconBar = {
-        stats: document.getElementById('icon-bar-stats'),
         inventory: document.getElementById('icon-bar-inventory'),
-        quests: document.getElementById('icon-bar-quests'),
+        switch: document.getElementById('icon-bar-quests'),
       };
 
       this._ui = {
@@ -403,8 +444,10 @@ class level1 {
       };
 
       this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
-      this._iconBar.quests.onclick = (m) => { this._OnSwitchClicked(m); };
+      this._iconBar.switch.onclick = (m) => { this._OnSwitchClicked(m); };
       this._ui.inventory.style.visibility = 'hidden';
+      this._iconBar.inventory.style.visibility = 'visible';
+      this._iconBar.switch.style.visibility = 'visible';
 
   }
 
@@ -439,12 +482,33 @@ class level1 {
   //   this._sun.target.updateMatrixWorld();
   // }
 
+
+
   _RAF() {
-    // console.log("Textures in Memory", this._threejs.info.memory.textures)
+    // console.log(this._loaded)
+    // if (!this._loaded){
+    //   var l = requestAnimationFrame((t) => { this._RAF()})
+    //   this._threejs.render(this.loadingScreen.scene , this.loadingScreen.camera)
+    //   return;
+    // }else{
+    //   cancelAnimationFrame(l);
+    //   this._threejs.render(this._scene, this._camera);
+
+    // }
+
     var Req = requestAnimationFrame((t) => {
+      // console.log(this._loaded)
+      // if(!this._loaded){
+      //   this._RAF();
+      //   this._threejs.render(this.loadingScreen.scene , this.loadingScreen.camera)
+      //   return;
+      // }
+
       if (this._previousRAF === null) {
         this._previousRAF = t;
       }
+
+      
       
       if(!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()){
         if(this._active ){
@@ -503,7 +567,7 @@ class level1 {
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  _APP = new level2();
+  _APP = new level1();
 });
 
 
@@ -677,8 +741,6 @@ class level2 {
     light2.shadow.camera.near = 0.5; // default
     light2.shadow.camera.far = 100; // default
     light2.shadow.bias = -0.005;
-
-   
 
 
     const spotLight    = new THREE.SpotLight( 0x09dd09 , 8 , 200 , Math.PI/10 )

@@ -90,14 +90,14 @@ export const player_entity = (() => {
     _LoadModels() {
       if (this._type == 'mouse'){
 
-        const loader = new FBXLoader();
+        const loader = new FBXLoader(this._params.loadingManager);
         loader.setPath('./resources/mouse/');
         loader.load('mouse1.fbx', (fbx) => {
           fbx.name = 'mouse'
           this._target = fbx;
           this._target.position.copy(this._parent.Position);
           // this._target.quaternion.copy(_R);
-          console.log(this._parent.Quaternion)
+          // console.log(this._parent.Quaternion)
           this._target.quaternion.copy(this._parent.Quaternion);
 
           this._target.scale.setScalar(0.015);
@@ -127,7 +127,7 @@ export const player_entity = (() => {
             };
           };
 
-          this._manager = new THREE.LoadingManager();
+          this._manager = new THREE.LoadingManager(this._params.loadingManager);
           this._manager.onLoad = () => {
           this._stateMachine.SetState('idle');
           };
@@ -141,7 +141,7 @@ export const player_entity = (() => {
         });
         this._input = new AIInput();
       }else{
-        const loader = new FBXLoader();
+        const loader = new FBXLoader(this._params.loadingManager);
         loader.setPath('./resources/girl/');
         loader.load('girl1.fbx', (fbx) => {
           this._target = fbx;
@@ -181,12 +181,13 @@ export const player_entity = (() => {
             };
           };
 
-          this._manager = new THREE.LoadingManager();
+          this._manager = new THREE.LoadingManager(this._params.loadingManager);
           this._manager.onLoad = () => {
-          this._stateMachine.SetState('idle');
+            this._stateMachine.SetState('idle');
+
           };
     
-          const loader = new FBXLoader(this._manager);
+          const loader = new FBXLoader(this._manager,this._params.loadingManager);
           loader.setPath('./resources/girl/');
           loader.load('Female Crouch Pose.fbx', (a) => { _OnLoad('idle', a); });
           loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });

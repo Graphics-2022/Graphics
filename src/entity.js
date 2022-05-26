@@ -79,18 +79,10 @@ export const entity = (() => {
 
     SetPosition(p) {
       this._position.copy(p);
-      // this.Broadcast({
-      //     topic: 'update.position',
-      //     value: this._position,
-      // });
     }
 
     SetQuaternion(r) {
       this._rotation.copy(r);
-      // this.Broadcast({
-      //     topic: 'update.rotation',
-      //     value: this._rotation,
-      // });
     }
 
     Update(timeElapsed) {
