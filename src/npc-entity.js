@@ -1,14 +1,11 @@
 import * as THREE from '../modules/three.module.js';
-
 import {FBXLoader} from '../modules/FBXLoader.js';
-
 import {finite_state_machine} from './finite-state-machine.js';
 import {entity} from './entity.js';
 import {player_entity} from './player-entity.js'
 import {player_state} from './player-state.js';
 import {spotlight_material} from '../modules/spotlightmaterial.js'
-// import {SkeletonUtils} from '../modules/SkeletonUtils.js'
-
+import * as SkeletonUtils from '../modules/SkeletonUtils.js'
 
 
 export const npc_entity = (() => {
@@ -44,10 +41,11 @@ export const npc_entity = (() => {
   };
 
   class NPCController extends entity.Component {
-    constructor(params, type , points) {
+    constructor(params, type , points , npcManager) {
       super();
       this._type = type;
-      this._points = points
+      this._points = points;
+      this._npcManager = npcManager;
       this._Init(params);
     }
 
@@ -59,6 +57,7 @@ export const npc_entity = (() => {
       this._position = new THREE.Vector3();
       this._time = 0.1;
       this._spotLight;
+      this._target;
 
       this._animations = {};
       this._input = new AIInput();
@@ -67,205 +66,95 @@ export const npc_entity = (() => {
       this._LoadModels();
     }
 
-    InitComponent() {
-      this._RegisterHandler('health.death', (m) => { this._OnDeath(m); });
-      this._RegisterHandler('update.position', (m) => { this._OnPosition(m); });
-    }
+    _LoadModels() {
 
-    _OnPosition(m) {
-      if (this._target) {
-        this._target.position.copy(m.value);
+      if(this._type == 'npc1'){
+        const loader = new FBXLoader( this._npcManager);
+        loader.setPath('./resources/enemies/mutant/');
+        loader.load('monster1.fbx', (fbx) => {
+          this._target= fbx;
+          this._setModel();
+        });
+      }else{
+        this._target = SkeletonUtils.clone(this._params.entityManager.Get('npc1').GetComponent("NPCController")._target);
+        this._parent = this._params.entityManager.Get(this._type);
+        this._setModel();
       }
     }
 
-    _LoadModels() {
-      if(this._type == 'npc1'){
-      const loader = new FBXLoader();
-      loader.setPath('./resources/enemies/mutant/');
-      loader.load('monster1.fbx', (fbx) => {
-        fbx.name = 'enemy'
-        this._target = fbx;
-        //console.log(this._params.objects)
-        this._target.scale.setScalar(0.035);
-        this._target.position.copy(this._parent.Position);
-        this._target.quaternion.copy(this._parent.Quaternion);
+    _setModel(){
+      this._target.scale.setScalar(0.035);
+      this._target.position.copy(this._parent.Position);
+      this._target.quaternion.copy(this._parent.Quaternion);
 
-        this._params.scene.add(this._target);
-        this._bones = {};
+      this._params.scene.add(this._target);
+      this._bones = {};
 
-        this._target.traverse(c => {
-          c.castShadow = true;
-          c.receiveShadow = true;
-          if (c.material && c.material.map) {
-            c.material.map.encoding = THREE.sRGBEncoding;
-          }
-        });
-
-        this._mixer = new THREE.AnimationMixer(this._target);
-
-        const _OnLoad = (animName, anim) => {
-          const clip = anim.animations[0];
-          const action = this._mixer.clipAction(clip);
-    
-          this._animations[animName] = {
-            clip: clip,
-            action: action,
-          };
-        };
-
-        this._manager = new THREE.LoadingManager();
-        this._manager.onLoad = () => {
-        this._stateMachine.SetState('idle');
-
-
-        // let x  = SkeletonUtils.clone(fbx.scene);
-        // x.position.copy(new THREE.Vector3(-3, 2.5, -20));
-        // this._params.scene.add(x);
-
-        };
-  
-        const loader = new FBXLoader(this._manager);
-        loader.setPath('../resources/enemies/mutant/');
-        loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
-        //loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
-        loader.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
-        //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
-
-        this._targetObject = new THREE.Object3D();
-        this._targetObject.position.copy(this._target.position);
-        // this._targetObject.position.y += 5.9
-        // this._targetObject.position.z += 2.2
-
-        // add spot light
-        var geometry    = new THREE.CylinderGeometry( 0.1, 7, 20, 322, 20, true);
-        geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
-        geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
-
-        var material    = new spotlight_material.SpotlightMaterial().GetMaterial();
-        this._mesh    = new THREE.Mesh( geometry, material );
-        this._mesh.position.copy(this._target.position);
-        this._mesh.position.y+= 6;
-        this._mesh.position.z+= 1.8;
-
-        this._mesh.lookAt(this._targetObject.position)
-        material.uniforms.lightColor.value.set('red')
-        material.uniforms.spotPosition.value    = this._mesh.position
-        material.uniforms.attenuation.value    = 100
-        material.uniforms.anglePower.value    = 2
-        this._params.scene.add( this._mesh );
-
-        this._spotLight    = new THREE.SpotLight( 0xff0909 , 8 , 200 , Math.PI/10 )
-        this._spotLight.position.copy(this._mesh.position)
-        this._spotLight.exponent    = 30
-        this._spotLight.intensity    = 5
-        this._spotLight.target = this._targetObject;
-        this._spotLight.castShadow = true;
-        this._spotLight.shadow.bias = -0.005;
-
-        this._spotLight.shadow.mapSize.width = 512; // default
-        this._spotLight.shadow.mapSize.height = 512; // default
-        this._spotLight.shadow.camera.near = 2; // default
-        this._spotLight.shadow.camera.far = 100; // default
-        this._spotLight.shadow.focus = 1; // default
-
-        this._params.scene.add( this._spotLight  )
-        this._params.scene.add( this._spotLight.target);
+      this._target.traverse(c => {
+        c.castShadow = true;
+        c.receiveShadow = true;
+        if (c.material && c.material.map) {
+          c.material.map.encoding = THREE.sRGBEncoding;
+        }
       });
-    }else{
-      const loader = new FBXLoader();
-      loader.setPath('./resources/enemies/aure/');
-      loader.load('monster1.fbx', (fbx) => {
-        fbx.name = 'enemy'
-        this._target = fbx;
-        //console.log(this._params.objects)
-        this._target.scale.setScalar(0.035);
-        this._target.position.copy(this._parent.Position);
-        this._target.quaternion.copy(this._parent.Quaternion);
 
-        this._params.scene.add(this._target);
-        this._bones = {};
+      this._mixer = new THREE.AnimationMixer(this._target);
 
-        this._target.traverse(c => {
-          c.castShadow = true;
-          c.receiveShadow = true;
-          if (c.material && c.material.map) {
-            c.material.map.encoding = THREE.sRGBEncoding;
-          }
-        });
-
-        this._mixer = new THREE.AnimationMixer(this._target);
-
-        const _OnLoad = (animName, anim) => {
-          const clip = anim.animations[0];
-          const action = this._mixer.clipAction(clip);
-    
-          this._animations[animName] = {
-            clip: clip,
-            action: action,
-          };
-        };
-
-        this._manager = new THREE.LoadingManager();
-        this._manager.onLoad = () => {
-        this._stateMachine.SetState('idle');
-
-
-        // let x  = SkeletonUtils.clone(fbx.scene);
-        // x.position.copy(new THREE.Vector3(-3, 2.5, -20));
-        // this._params.scene.add(x);
-
-        };
+      const _OnLoad = (animName, anim) => {
+        const clip = anim.animations[0];
+        const action = this._mixer.clipAction(clip);
   
-        const loader = new FBXLoader(this._manager);
-        loader.setPath('../resources/enemies/aure/');
-        loader.load('Idle copy.fbx', (a) => { _OnLoad('idle', a); });
-        //loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
-        loader.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
-        //loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
+        this._animations[animName] = {
+          clip: clip,
+          action: action,
+        };
+      };
 
-        this._targetObject = new THREE.Object3D();
-        this._targetObject.position.copy(this._target.position);
-        // this._targetObject.position.y += 5.9
-        // this._targetObject.position.z += 2.2
+      this._manager = new THREE.LoadingManager();
+      this._manager.onLoad = () => {
+      this._stateMachine.SetState('idle');
+      };
 
-        // add spot light
-        var geometry    = new THREE.CylinderGeometry( 0.1, 7, 20, 322, 20, true);
-        geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
-        geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
+      const loader1 = new FBXLoader(this._manager);
+      loader1.setPath('../resources/enemies/mutant/');
+      loader1.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
+      loader1.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
 
-        var material    = new spotlight_material.SpotlightMaterial().GetMaterial();
-        this._mesh    = new THREE.Mesh( geometry, material );
-        this._mesh.position.copy(this._target.position);
-        this._mesh.position.y+= 6;
-        this._mesh.position.z+= 1.8;
+      this._targetObject = new THREE.Object3D();
+      this._targetObject.position.copy(this._target.position);
 
-        this._mesh.lookAt(this._targetObject.position)
-        material.uniforms.lightColor.value.set('red')
-        material.uniforms.spotPosition.value    = this._mesh.position
-        material.uniforms.attenuation.value    = 100
-        material.uniforms.anglePower.value    = 2
-        this._params.scene.add( this._mesh );
+      // add spot light
+      var geometry    = new THREE.CylinderGeometry( 0.1, 7, 20, 322, 20, true);
+      geometry.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, -geometry.parameters.height/2, 0 ) );
+      geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
 
-        this._spotLight    = new THREE.SpotLight( 0xff0909 , 8 , 200 , Math.PI/10 )
-        this._spotLight.position.copy(this._mesh.position)
-        this._spotLight.exponent    = 30
-        this._spotLight.intensity    = 5
-        this._spotLight.target = this._targetObject;
-        this._spotLight.castShadow = true;
-        this._spotLight.shadow.bias = -0.005;
+      var material    = new spotlight_material.SpotlightMaterial().GetMaterial();
+      this._mesh    = new THREE.Mesh( geometry, material );
+      this._mesh.position.copy(this._target.position);
 
-        this._spotLight.shadow.mapSize.width = 512; // default
-        this._spotLight.shadow.mapSize.height = 512; // default
-        this._spotLight.shadow.camera.near = 2; // default
-        this._spotLight.shadow.camera.far = 100; // default
-        this._spotLight.shadow.focus = 1; // default
+      this._mesh.lookAt(this._targetObject.position)
+      material.uniforms.lightColor.value.set('red')
+      material.uniforms.spotPosition.value    = this._mesh.position
+      material.uniforms.attenuation.value    = 100
+      material.uniforms.anglePower.value    = 2
+      this._params.scene.add( this._mesh );
 
-        this._params.scene.add( this._spotLight  )
-        this._params.scene.add( this._spotLight.target);
-      });
-    }
+      this._spotLight    = new THREE.SpotLight( 0xff0909 , 8 , 200 , Math.PI/10 )
+      this._spotLight.position.copy(this._mesh.position)
+      this._spotLight.exponent    = 30
+      this._spotLight.intensity    = 5
+      this._spotLight.target = this._targetObject;
+      this._spotLight.castShadow = true;
+      this._spotLight.shadow.bias = -0.005;
 
+      this._spotLight.shadow.mapSize.width = 512; // default
+      this._spotLight.shadow.mapSize.height = 512; // default
+      this._spotLight.shadow.camera.near = 2; // default
+      this._spotLight.shadow.camera.far = 100; // default
+      this._spotLight.shadow.focus = 1; // default
 
+      this._params.scene.add( this._spotLight  )
+      this._params.scene.add( this._spotLight.target);
     }
 
     get Position() {
@@ -300,8 +189,6 @@ export const npc_entity = (() => {
       if (dirToPlayer.angleTo(d) < Math.PI -Math.PI/10){
         return found;
       }
-
-      // console.log(dirToPlayer.angleTo(d))
 
       let search = [];
       for (let i = -Math.PI/10; i <= Math.PI/10; i+=Math.PI/12){
@@ -448,27 +335,27 @@ export const npc_entity = (() => {
       this._parent.SetQuaternion(this._target.quaternion);
     }
 
-  Update(timeInSeconds) {
-    if (!this._stateMachine._currentState) {
-      return;
-    }
-     
-    if(this._FindPlayer()){
-      this._params.playerFound = true;
-      return;
-    }
+    Update(timeInSeconds) {
+      if (!this._stateMachine._currentState) {
+        return;
+      }
+      
+      if(this._FindPlayer()){
+        this._params.playerFound = true;
+        return;
+      }
 
-    this._input._keys.space = false;
-    this._input._keys.forward = false;
+      this._input._keys.space = false;
+      this._input._keys.forward = false;
 
-    this._UpdateAI(timeInSeconds);
-    this._stateMachine.Update(timeInSeconds, this._input);
+      this._UpdateAI(timeInSeconds);
+      this._stateMachine.Update(timeInSeconds, this._input);
 
-    if (this._mixer) {
-      this._mixer.update(timeInSeconds);
+      if (this._mixer) {
+        this._mixer.update(timeInSeconds);
+      }
     }
-  }
-};
+  };
 
   return {
     NPCController: NPCController,
