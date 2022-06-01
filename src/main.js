@@ -1,14 +1,15 @@
 import * as THREE from '../modules/three.module.js';
-import {third_person_camera} from './third-person-camera.js';
-import {entity_manager} from './entity-manager.js';
-import {player_entity} from './player-entity.js'
-import {entity} from './entity.js';
-import {player_input} from './player-input.js';
-import {npc_entity} from './npc-entity.js';
- import {GLTFLoader} from '../modules/GLTFLoader.js';
- import { Reflector } from '../modules/Reflector.js';
-import {FBXLoader} from '../modules/FBXLoader.js';
-
+import { third_person_camera } from './third-person-camera.js';
+import { entity_manager } from './entity-manager.js';
+import { player_entity } from './player-entity.js'
+import { entity } from './entity.js';
+import { player_input } from './player-input.js';
+import { npc_entity } from './npc-entity.js';
+import { GLTFLoader } from '../modules/GLTFLoader.js';
+import { Reflector } from '../modules/Reflector.js';
+import { FBXLoader } from '../modules/FBXLoader.js';
+import { FontLoader } from '../modules/FontLoader.js';
+import { TextGeometry } from '../modules/TextGeometry.js';
 
 
 const _VS = `
@@ -35,20 +36,591 @@ void main() {
   gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 }`;
 
+var level = 1;
+
+class menu {
+  constructor() {
+    this._Initialize();
+  }
+
+  _Initialize() {
+
+    var renderer, scene, container;
+
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+
+    function onMouseMove(event) {
+
+      // calculate mouse position in normalized device coordinates
+      // (-1 to +1) for both components
+
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    }
+    // init renderer
+    renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // document.body.appendChild( renderer.domElement );
+
+    container = document.getElementById('container');
+    container.appendChild(renderer.domElement);
+
+    // init scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color('black');
 
 
+    //loading the fonts, have three text geometries
+    const loader = new FontLoader();
+
+    loader.load('../resources/fonts/helvetiker_regular.typeface.json', function (font) {
+
+      const Textgeometry = new TextGeometry('Menu', {
+        font: font,
+        size: 30,
+        height: 3,
+        curveSegments: 20,
+        bevelEnabled: true,
+        bevelThickness: 1,
+        bevelSize: 0.01,
+        bevelOffset: 0,
+        bevelSegments: 3
+      });
+      var Textmaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var menuText = new THREE.Mesh(Textgeometry, Textmaterial);
+      menuText.position.x = -50;
+      menuText.position.y = 20;
+      //menuText.lookAt(-50, 20,0)
+      scene.add(menuText);
+      const Play = new TextGeometry('Play', {
+        font: font,
+        size: 6,
+        height: 1,
+        curveSegments: 5,
+        // bevelEnabled: true,
+        // bevelThickness:0,
+        // bevelSize: 0,
+        // bevelOffset: 0,
+        // bevelSegments: 0
+      });
+      var playMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var playText = new THREE.Mesh(Play, playMaterial);
+      playText.name = "play";
+      playText.position.x = -47;
+      playText.position.y = -20;
+      playText.position.z = 15;
+      playText.lookAt(0, -10, 50)
+      scene.add(playText);
+
+      const Credits = new TextGeometry('Credits', {
+        font: font,
+        size: 6,
+        height: 1,
+        curveSegments: 5,
+        // bevelEnabled: true,
+        // bevelThickness:0,
+        // bevelSize: 0,
+        // bevelOffset: 0,
+        // bevelSegments: 0
+      });
+      var creditMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var creditText = new THREE.Mesh(Credits, creditMaterial);
+      creditText.name = "credit";
+      creditText.position.x = 27;
+      creditText.position.y = -18;
+      creditText.position.z = 15;
+      creditText.lookAt(0, -10, 45);
+      scene.add(creditText);
+    });
+
+    const geometry = new THREE.BoxGeometry(25, 15, 15);
+    const material = new THREE.MeshLambertMaterial({ color: 0x505050 });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.name = "sphere";
+    sphere.position.x = -50;
+    sphere.position.y = -20
+    sphere.lookAt(0, -10, 50);
+    scene.add(sphere);
+
+    const geometry2 = new THREE.BoxGeometry(40, 15, 15);
+    const material2 = new THREE.MeshLambertMaterial({ color: 0x505050 });
+    const sphere2 = new THREE.Mesh(geometry2, material2);
+    sphere2.name = "sphere2";
+    sphere2.position.x = 50;
+    sphere2.position.y = -20
+    sphere2.lookAt(0, -10, 50)
+    scene.add(sphere2);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.x = -150;
+    directionalLight.position.y = 10;
+    directionalLight.position.z = -10;
+    scene.add(directionalLight);
+
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight2.position.x = 150;
+    directionalLight2.position.y = 10;
+    directionalLight2.position.z = -10;
+    scene.add(directionalLight2);
+
+    const light = new THREE.AmbientLight(0x404040, 3.2); // soft white light
+    scene.add(light);
+
+    const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight3.position.x = 0;
+    directionalLight3.position.y = 150;
+    directionalLight3.position.z = 50;
+    scene.add(directionalLight3);
+
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.z = 100;
+    console.log(camera.position)
+    var continueAnimating = true; //variable used to cancel animation frame
+    function render() {
+
+      // update the picking ray with the camera and mouse position
+      raycaster.setFromCamera(mouse, camera); //use raycaster to detect object in mouse position
+
+      // calculate objects intersecting the picking ray
+      var intersects = raycaster.intersectObjects(scene.children);
+      if (intersects.length > 0) {
+        for (var i = 0; i < intersects.length; i++) {
+          if (intersects[i].object.name == 'sphere') { //if you click on the first block which says pla
+            continueAnimating = false;
+            document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+            _APP = new level1();
+            return;
+
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+    window.addEventListener('click', onMouseMove, false); //add click listener 
+
+    // Here's the bbasic render loop implementation
+
+    function animate() {
+      if (continueAnimating) {
+        requestAnimationFrame(animate);
+
+        render();
+        //console.log(clicked)
+
+      }
+
+    }
+    animate();
+  }
+
+}
+
+class gameOver {
+  constructor() {
+    this._Initialize();
+  }
+
+  _Initialize() {
+    var renderer, scene, container;
+
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+
+    function onMouseMove(event) {
+
+      // calculate mouse position in normalized device coordinates
+      // (-1 to +1) for both components
+
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    }
+    // init renderer
+    renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // document.body.appendChild( renderer.domElement );
+
+    container = document.getElementById('container');
+    container.appendChild(renderer.domElement);
+
+    // init scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color('black');
+
+
+    //loading the fonts, have three text geometries
+    const loader = new FontLoader();
+
+    loader.load('../resources/fonts/helvetiker_regular.typeface.json', function (font) {
+
+      const Textgeometry = new TextGeometry('GAME OVER', {
+        font: font,
+        size: 30,
+        height: 3,
+        curveSegments: 20,
+        bevelEnabled: true,
+        bevelThickness: 1,
+        bevelSize: 0.01,
+        bevelOffset: 0,
+        bevelSegments: 3
+      });
+      var Textmaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var gameOverText = new THREE.Mesh(Textgeometry, Textmaterial);
+      gameOverText.position.x = -120;
+      gameOverText.position.y = 20;
+      //menuText.lookAt(-50, 20,0)
+      scene.add(gameOverText);
+      const tryAgain = new TextGeometry('Try Again', {
+        font: font,
+        size: 6,
+        height: 1,
+        curveSegments: 5,
+        // bevelEnabled: true,
+        // bevelThickness:0,
+        // bevelSize: 0,
+        // bevelOffset: 0,
+        // bevelSegments: 0
+      });
+      var tryAgainMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var tryAgainText = new THREE.Mesh(tryAgain, tryAgainMaterial);
+      tryAgainText.name = "tryAgain";
+      tryAgainText.position.x = -45;
+      tryAgainText.position.y = -18;
+      tryAgainText.position.z = 35;
+      tryAgainText.lookAt(-15, -10, 50)
+      scene.add(tryAgainText);
+
+      const Quit = new TextGeometry('Quit', {
+        font: font,
+        size: 6,
+        height: 1,
+        curveSegments: 5,
+        // bevelEnabled: true,
+        // bevelThickness:0,
+        // bevelSize: 0,
+        // bevelOffset: 0,
+        // bevelSegments: 0
+      });
+      var quitMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var quitText = new THREE.Mesh(Quit, quitMaterial);
+      quitText.name = "quit";
+      quitText.position.x = 32;
+      quitText.position.y = -18;
+      quitText.position.z = 15;
+      quitText.lookAt(0, -10, 45);
+      scene.add(quitText)
+    });
+
+    const geometry = new THREE.BoxGeometry(40, 15, 15);
+    const material = new THREE.MeshLambertMaterial({ color: 0x505050 });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.name = "sphere";
+    sphere.position.x = -50;
+    sphere.position.y = -20
+    sphere.lookAt(0, -10, 50);
+    scene.add(sphere);
+
+    const geometry2 = new THREE.BoxGeometry(25, 15, 15);
+    const material2 = new THREE.MeshLambertMaterial({ color: 0x505050 });
+    const sphere2 = new THREE.Mesh(geometry2, material2);
+    sphere2.name = "sphere2";
+    sphere2.position.x = 50;
+    sphere2.position.y = -20
+    sphere2.lookAt(0, -10, 50)
+    scene.add(sphere2);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.x = -150;
+    directionalLight.position.y = 10;
+    directionalLight.position.z = -10;
+    scene.add(directionalLight);
+
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight2.position.x = 150;
+    directionalLight2.position.y = 10;
+    directionalLight2.position.z = -10;
+    scene.add(directionalLight2);
+
+    const light = new THREE.AmbientLight(0x404040, 3.2); // soft white light
+    scene.add(light);
+
+    const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight3.position.x = 0;
+    directionalLight3.position.y = 150;
+    directionalLight3.position.z = 50;
+    scene.add(directionalLight3);
+
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.z = 100;
+    console.log(camera.position)
+    var continueAnimating = true; //variable used to cancel animation frame
+    function render() {
+
+      // update the picking ray with the camera and mouse position
+      raycaster.setFromCamera(mouse, camera); //use raycaster to detect object in mouse position
+
+      // calculate objects intersecting the picking ray
+      var intersects = raycaster.intersectObjects(scene.children);
+      if (intersects.length > 0) {
+        for (var i = 0; i < intersects.length; i++) {
+          if (intersects[i].object.name == 'sphere') { //if you click on the first block which says try again
+            continueAnimating = false;
+            document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+            if (level == 1) {
+              _APP = new level1();
+            }
+            else if (level == 2) {
+              _APP = new level2();
+            }
+
+            return;
+
+          }
+          else if (intersects[i].object.name == 'sphere2') {
+            continueAnimating = false;
+
+            document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+            _APP = new menu();
+            return
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+    window.addEventListener('click', onMouseMove, false); //add click listener 
+
+    // Here's the bbasic render loop implementation
+
+    function animate() {
+      if (continueAnimating) {
+        requestAnimationFrame(animate);
+
+        render();
+        //console.log(clicked)
+
+      }
+
+    }
+    animate();
+  }
+}
+
+class levelPassed {
+  constructor() {
+    this._Initialize();
+  }
+
+  _Initialize() {
+    var renderer, scene, container;
+
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+
+    function onMouseMove(event) {
+
+      // calculate mouse position in normalized device coordinates
+      // (-1 to +1) for both components
+
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    }
+    // init renderer
+    renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // document.body.appendChild( renderer.domElement );
+
+    container = document.getElementById('container');
+    container.appendChild(renderer.domElement);
+
+    // init scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color('black');
+
+    let levelString='LEVEL '+level+' PASSED';
+    //loading the fonts, have three text geometries
+    const loader = new FontLoader();
+
+    loader.load('../resources/fonts/helvetiker_regular.typeface.json', function (font) {
+
+      const Textgeometry = new TextGeometry(levelString, {
+        font: font,
+        size: 20,
+        height: 3,
+        curveSegments: 20,
+        bevelEnabled: true,
+        bevelThickness: 1,
+        bevelSize: 0.01,
+        bevelOffset: 0,
+        bevelSegments: 3
+      });
+      var Textmaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var levelPassedText = new THREE.Mesh(Textgeometry, Textmaterial);
+      levelPassedText.position.x = -110;
+      levelPassedText.position.y = 20;
+      //menuText.lookAt(-50, 20,0)
+      scene.add(levelPassedText);
+      const Continue = new TextGeometry('Continue', {
+        font: font,
+        size: 6,
+        height: 1,
+        curveSegments: 5,
+        // bevelEnabled: true,
+        // bevelThickness:0,
+        // bevelSize: 0,
+        // bevelOffset: 0,
+        // bevelSegments: 0
+      });
+      var continueMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var continueText = new THREE.Mesh(Continue, continueMaterial);
+      continueText.name = "continue";
+      continueText.position.x = -45;
+      continueText.position.y = -18;
+      continueText.position.z = 35;
+      continueText.lookAt(-15, -10, 55)
+      scene.add(continueText);
+
+      const Quit = new TextGeometry('Quit', {
+        font: font,
+        size: 6,
+        height: 1,
+        curveSegments: 5,
+        // bevelEnabled: true,
+        // bevelThickness:0,
+        // bevelSize: 0,
+        // bevelOffset: 0,
+        // bevelSegments: 0
+      });
+      var quitMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+      var quitText = new THREE.Mesh(Quit, quitMaterial);
+      quitText.name = "quit";
+      quitText.position.x = 32;
+      quitText.position.y = -18;
+      quitText.position.z = 15;
+      quitText.lookAt(0, -10, 45);
+      scene.add(quitText)
+    });
+
+    const geometry = new THREE.BoxGeometry(40, 15, 15);
+    const material = new THREE.MeshLambertMaterial({ color: 0x505050 });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.name = "sphere";
+    sphere.position.x = -50;
+    sphere.position.y = -20
+    sphere.lookAt(0, -10, 50);
+    scene.add(sphere);
+
+    const geometry2 = new THREE.BoxGeometry(25, 15, 15);
+    const material2 = new THREE.MeshLambertMaterial({ color: 0x505050 });
+    const sphere2 = new THREE.Mesh(geometry2, material2);
+    sphere2.name = "sphere2";
+    sphere2.position.x = 50;
+    sphere2.position.y = -20
+    sphere2.lookAt(0, -10, 50)
+    scene.add(sphere2);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.x = -150;
+    directionalLight.position.y = 10;
+    directionalLight.position.z = -10;
+    scene.add(directionalLight);
+
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight2.position.x = 150;
+    directionalLight2.position.y = 10;
+    directionalLight2.position.z = -10;
+    scene.add(directionalLight2);
+
+    const light = new THREE.AmbientLight(0x404040, 3.2); // soft white light
+    scene.add(light);
+
+    const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight3.position.x = 0;
+    directionalLight3.position.y = 150;
+    directionalLight3.position.z = 50;
+    scene.add(directionalLight3);
+
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.z = 100;
+    console.log(camera.position)
+    var continueAnimating = true; //variable used to cancel animation frame
+    function render() {
+
+      // update the picking ray with the camera and mouse position
+      raycaster.setFromCamera(mouse, camera); //use raycaster to detect object in mouse position
+
+      // calculate objects intersecting the picking ray
+      var intersects = raycaster.intersectObjects(scene.children);
+      if (intersects.length > 0) {
+        for (var i = 0; i < intersects.length; i++) {
+          if (intersects[i].object.name == 'sphere') { //if you click on the first block which says try again
+            continueAnimating = false;
+            document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+            if (level == 1) {
+              _APP = new level2();
+            }
+            else if (level == 2) {
+              _APP = new level2();
+            }
+
+            return;
+
+          }
+          else if (intersects[i].object.name == 'sphere2') {
+            continueAnimating = false;
+
+            document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+            _APP = new menu();
+            return
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+    window.addEventListener('click', onMouseMove, false); //add click listener 
+
+    // Here's the bbasic render loop implementation
+
+    function animate() {
+      if (continueAnimating) {
+        requestAnimationFrame(animate);
+
+        render();
+        //console.log(clicked)
+
+      }
+
+    }
+    animate();
+  }
+}
 
 class level1 {
   constructor() {
     this._Initialize();
   }
-  
+
 
   _Initialize() {
+    level=1;
     this._threejs = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: 'high-performance',
-     // autoClear: true
+      // autoClear: true
     });
     this._threejs.outputEncoding = THREE.sRGBEncoding;
     //this._threejs.gammaFactor = 2.2;
@@ -78,10 +650,10 @@ class level1 {
     this.loadingScreen = {
       scene: new THREE.Scene(),
       camera: new THREE.PerspectiveCamera(fov, aspect, near, far),
-      box: new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5),
-      new THREE.MeshBasicMaterial({ color:0xff0000}))
+      box: new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5),
+        new THREE.MeshBasicMaterial({ color: 0xff0000 }))
     }
-    this.loadingScreen.box.position.set(0,0,5);
+    this.loadingScreen.box.position.set(0, 0, 5);
     this.loadingScreen.camera.lookAt(this.loadingScreen.box.position)
     this.loadingScreen.scene.add(this.loadingScreen.box)
 
@@ -93,7 +665,7 @@ class level1 {
     //   console.log(item, loaded , total)
     // }
 
-    this.loadingManager.onLoad = ()=>{
+    this.loadingManager.onLoad = () => {
       // console.log(this._loaded)
 
       // this._loaded = true;
@@ -105,13 +677,13 @@ class level1 {
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(1000, 1000, 10, 10),
       new THREE.MeshStandardMaterial({
-          color: 0x1e601c,
-        }));
-      plane.name = "plane"
-      plane.receiveShadow = true;
-      plane.rotation.x = -Math.PI / 2;
-      plane.position.y = 0.01;
-      this._scene.add(plane);
+        color: 0x1e601c,
+      }));
+    plane.name = "plane"
+    plane.receiveShadow = true;
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.y = 0.01;
+    this._scene.add(plane);
 
     this._entityManager = new entity_manager.EntityManager();
     this._active = true;
@@ -140,18 +712,18 @@ class level1 {
       entityManager: this._entityManager,
       playerFound: this._playerFound,
       keyFound: this._keyFound,
-      keyLight:this._keyLight,
+      keyLight: this._keyLight,
       loadingManager: this.loadingManager,
     };
 
     var listener = new THREE.AudioListener();
-    this._camera.add( listener );
-  
+    this._camera.add(listener);
+
     // create a global audio source
-    var sound = new THREE.Audio( listener );
-  
+    var sound = new THREE.Audio(listener);
+
     var audioLoader = new THREE.AudioLoader();
-  
+
     //Load a sound and set it as the Audio object's buffer
     // audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function( buffer ) {
     //   sound.setBuffer( buffer );
@@ -163,7 +735,7 @@ class level1 {
     //   function ( xhr ) {
     //     //console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
     //   },
-  
+
     //   // onError callback
     //   function ( err ) {
     //     console.log( 'An error occured' );
@@ -178,7 +750,7 @@ class level1 {
     // this._RAF();
     // console.log("Textures in Memory", this._threejs.info.memory.textures)
   }
-  
+
 
   _LoadSky() {
     const hemiLight = new THREE.HemisphereLight(0x210606, 0x210606, 0.01);
@@ -189,9 +761,9 @@ class level1 {
     const uniforms = {
       "topColor": { value: new THREE.Color(0x0077ff) },
       "bottomColor": { value: new THREE.Color(0xffffff) },
-//       "topColor": { value: new THREE.Color(0x210606) },
-//       "bottomColor": { value: new THREE.Color(0x210606) },
-// >>>>>>> 929fd97a243c8a0d8f0d29e250dc28c7e7b517b1
+      //       "topColor": { value: new THREE.Color(0x210606) },
+      //       "bottomColor": { value: new THREE.Color(0x210606) },
+      // >>>>>>> 929fd97a243c8a0d8f0d29e250dc28c7e7b517b1
       "offset": { value: 33 },
       "exponent": { value: 0.6 }
     };
@@ -203,28 +775,28 @@ class level1 {
 
     const skyGeo = new THREE.SphereBufferGeometry(1000, 32, 15);
     const skyMat = new THREE.ShaderMaterial({
-        uniforms: uniforms,
-        vertexShader: _VS,
-        fragmentShader: _FS,
-        side: THREE.BackSide
+      uniforms: uniforms,
+      vertexShader: _VS,
+      fragmentShader: _FS,
+      side: THREE.BackSide
     });
 
     const sky = new THREE.Mesh(skyGeo, skyMat);
     this._scene.add(sky);
   }
 
-  _LoadLights(){
+  _LoadLights() {
 
-    const posLights = [[0, 9, -20],[ 0, 9, -50], [-25, 9, -50 ], [-20,20,-45 ]];
+    const posLights = [[0, 9, -20], [0, 9, -50], [-25, 9, -50], [-20, 20, -45]];
     // console.log(posLights)
     posLights.forEach((posLight) => {
       // console.log(posLight)
-      const light = new THREE.PointLight( 0xffbb73, 0.1, 100 );
+      const light = new THREE.PointLight(0xffbb73, 0.1, 100);
       light.position.x = posLight[0];
       light.position.y = posLight[1];
-      light.position.z =posLight[2];
+      light.position.z = posLight[2];
       light.castShadow = true;
-      this._params.scene.add( light );
+      this._params.scene.add(light);
       light.shadow.mapSize.width = 512; // default
       light.shadow.mapSize.height = 512; // default
       light.shadow.camera.near = 0.5; // default
@@ -236,10 +808,10 @@ class level1 {
     })
 
 
-    const light2 = new THREE.PointLight( 0x09cc09, 0.1, 100 );
-    light2.position.set( 25, 9, -50 );
+    const light2 = new THREE.PointLight(0x09cc09, 0.1, 100);
+    light2.position.set(25, 9, -50);
     light2.castShadow = true;
-    this._params.scene.add( light2 );
+    this._params.scene.add(light2);
     light2.shadow.mapSize.width = 512; // default
     light2.shadow.mapSize.height = 512; // default
     light2.shadow.camera.near = 0.5; // default
@@ -247,46 +819,46 @@ class level1 {
     light2.shadow.bias = -0.005;
 
 
-    const spotLight    = new THREE.SpotLight( 0x09dd09 , 8 , 200 , Math.PI/10 )
-    spotLight.position.set( 30,10,-75)
-    spotLight.exponent    = 30
-    spotLight.intensity    = 5
-    spotLight.target.position.set(30,0,-75)
-    this._params.scene.add( spotLight.target );
+    const spotLight = new THREE.SpotLight(0x09dd09, 8, 200, Math.PI / 10)
+    spotLight.position.set(30, 10, -75)
+    spotLight.exponent = 30
+    spotLight.intensity = 5
+    spotLight.target.position.set(30, 0, -75)
+    this._params.scene.add(spotLight.target);
 
-    this._params.scene.add( spotLight  )
+    this._params.scene.add(spotLight)
 
   }
 
-  _LoadRoom(){
+  _LoadRoom() {
     const mapLoader = new GLTFLoader(this.loadingManager);
     mapLoader.setPath('./resources/haunted_house/');
     mapLoader.load('map1.glb', (glb) => {
 
-        this._params.scene.add(glb.scene);
-        glb.scene.position.set(0,-2.5,0);
-        glb.scene.scale.setScalar(1);
-        glb.scene.traverse(c => {
-          c.receiveShadow = true;
-          c.castShadow = true;
-          this._params.playerVision.push(c);
-          this._params.player2Vision.push(c);
-          this._params.monsterVision.push(c);
-        });
+      this._params.scene.add(glb.scene);
+      glb.scene.position.set(0, -2.5, 0);
+      glb.scene.scale.setScalar(1);
+      glb.scene.traverse(c => {
+        c.receiveShadow = true;
+        c.castShadow = true;
+        this._params.playerVision.push(c);
+        this._params.player2Vision.push(c);
+        this._params.monsterVision.push(c);
       });
+    });
 
-    
+
     this._LoadLights();
 
-  
-        //Load Door
+
+    //Load Door
     const Doorloader = new GLTFLoader(this.loadingManager);
     Doorloader.setPath('./resources/haunted_house/');
     Doorloader.load('door1.glb', (fbx) => {
       // console.log(fbx.scene)
       fbx.scene.name = 'Door'
       // fbx.scene.position.set(24,0,-62);
-      fbx.scene.position.set(3,-2.5,-0.5);
+      fbx.scene.position.set(3, -2.5, -0.5);
 
       // fbx.scene.scale.setScalar(1.3);
       this._scene.add(fbx.scene);
@@ -309,13 +881,13 @@ class level1 {
     const mirrorBack1 = new Reflector(
       new THREE.PlaneBufferGeometry(11, 8),
       {
-          color: new THREE.Color(0x7f7f7f),
-          textureWidth: window.innerWidth * window.devicePixelRatio,
-          textureHeight: window.innerHeight * window.devicePixelRatio
+        color: new THREE.Color(0x7f7f7f),
+        textureWidth: window.innerWidth * window.devicePixelRatio,
+        textureHeight: window.innerHeight * window.devicePixelRatio
       }
     )
-    mirrorBack1.position.set(-2,15,-50 );
-    mirrorBack1.rotateY(-Math.PI/4)
+    mirrorBack1.position.set(-2, 15, -50);
+    mirrorBack1.rotateY(-Math.PI / 4)
     this._scene.add(mirrorBack1);
     this._playerVision.push(mirrorBack1)
 
@@ -324,7 +896,7 @@ class level1 {
     loader.setPath('./resources/key/');
     loader.load('key1.fbx', (fbx) => {
       fbx.name = 'key'
-      fbx.position.set(28,3.5,-9);
+      fbx.position.set(28, 3.5, -9);
       fbx.scale.setScalar(0.02);
       this._scene.add(fbx);
       this._params.keyObject = fbx;
@@ -342,8 +914,8 @@ class level1 {
       });
     });
 
-    const keyLight= new THREE.PointLight(0xffd700, 1, 2);
-    keyLight.position.set(28,6,-9);
+    const keyLight = new THREE.PointLight(0xffd700, 1, 2);
+    keyLight.position.set(28, 6, -9);
     this._scene.add(keyLight)
 
   }
@@ -352,12 +924,12 @@ class level1 {
   _LoadPlayer() {
 
     const player = new entity.Entity();
-    player.SetPosition(new THREE.Vector3(-10,13,-23));
+    player.SetPosition(new THREE.Vector3(-10, 13, -23));
     const quaternionP = new THREE.Quaternion();
-    quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
+    quaternionP.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     player.SetQuaternion(quaternionP);
     player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
-    player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl' , true));
+    player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl', true));
     this._entityManager.Add(player, 'player');
     this._camera.position.copy(player.Position);
     this._camera.position.y += 4;
@@ -366,34 +938,34 @@ class level1 {
 
 
     const player2 = new entity.Entity();
-    player2.SetPosition(new THREE.Vector3(-7,13,-23));
+    player2.SetPosition(new THREE.Vector3(-7, 13, -23));
     player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
-    player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse' , false));
+    player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse', false));
     this._entityManager.Add(player2, 'player2');
 
     const camera = new entity.Entity();
     camera.AddComponent(
-        new third_person_camera.ThirdPersonCamera({
-            camera: this._camera,
-            target: this._entityManager.Get('player'), 
-            cameraVision : this._player2Vision,
-            transition: true,
-          }));
+      new third_person_camera.ThirdPersonCamera({
+        camera: this._camera,
+        target: this._entityManager.Get('player'),
+        cameraVision: this._player2Vision,
+        transition: true,
+      }));
     this._entityManager.Add(camera, 'player-camera');
 
     this.npcManager = new THREE.LoadingManager();
 
     const npc = new entity.Entity();
-    npc.SetPosition(new THREE.Vector3(-35,12,-30));
+    npc.SetPosition(new THREE.Vector3(-35, 12, -30));
     const quaternionM1 = new THREE.Quaternion();
-    quaternionM1.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
+    quaternionM1.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     npc.SetQuaternion(quaternionM1);
-    const points = [ 
-      new THREE.Vector3( -33,15,-33 ), 
-      new THREE.Vector3( -39, 15, -34 ),
-      new THREE.Vector3( -36, 15,  -56),
-      new THREE.Vector3( -33, 15, -53 ),
-      ];
+    const points = [
+      new THREE.Vector3(-33, 15, -33),
+      new THREE.Vector3(-39, 15, -34),
+      new THREE.Vector3(-36, 15, -56),
+      new THREE.Vector3(-33, 15, -53),
+    ];
     npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points, this.npcManager));
     this._entityManager.Add(npc, 'npc1');
 
@@ -402,43 +974,43 @@ class level1 {
       this._entityManager.Add(npc1, 'npc2');
 
       npc1.SetPosition(new THREE.Vector3(3, 0, -20));
-      const points1 = [ 
-        new THREE.Vector3( 0, 2.5, -22 ), 
-        new THREE.Vector3( 35, 2.5, -22 ),
-        new THREE.Vector3( 35, 2.5, -24 ),
-        new THREE.Vector3( 0, 2.5, -20 ),
-        new THREE.Vector3( -2, 2.5, -35 ),
-        new THREE.Vector3( 2, 2.5, -35 ),
-        ];
-      npc1.AddComponent(new npc_entity.NPCController(this._params , 'npc2', points1, this.npcManager));
+      const points1 = [
+        new THREE.Vector3(0, 2.5, -22),
+        new THREE.Vector3(35, 2.5, -22),
+        new THREE.Vector3(35, 2.5, -24),
+        new THREE.Vector3(0, 2.5, -20),
+        new THREE.Vector3(-2, 2.5, -35),
+        new THREE.Vector3(2, 2.5, -35),
+      ];
+      npc1.AddComponent(new npc_entity.NPCController(this._params, 'npc2', points1, this.npcManager));
     };
 
-    
+
   }
 
-  _UIInit(){
-      this._iconBar = {
-        inventory: document.getElementById('icon-bar-inventory'),
-        switch: document.getElementById('icon-bar-quests'),
-      };
+  _UIInit() {
+    this._iconBar = {
+      inventory: document.getElementById('icon-bar-inventory'),
+      switch: document.getElementById('icon-bar-quests'),
+    };
 
-      this._ui = {
-        inventory: document.getElementById('inventory'),
-        quests: document.getElementById('quest-journal'),
-      };
+    this._ui = {
+      inventory: document.getElementById('inventory'),
+      quests: document.getElementById('quest-journal'),
+    };
 
-      this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
-      this._iconBar.switch.onclick = (m) => { this._OnSwitchClicked(m); };
-      this._ui.inventory.style.visibility = 'hidden';
-      this._iconBar.inventory.style.visibility = 'visible';
-      this._iconBar.switch.style.visibility = 'visible';
+    this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
+    this._iconBar.switch.onclick = (m) => { this._OnSwitchClicked(m); };
+    this._ui.inventory.style.visibility = 'hidden';
+    this._iconBar.inventory.style.visibility = 'visible';
+    this._iconBar.switch.style.visibility = 'visible';
 
   }
 
   _OnSwitchClicked() {
-    if(this._active){
+    if (this._active) {
       this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(false);
-    }else{
+    } else {
       this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(false);
     }
   }
@@ -492,50 +1064,55 @@ class level1 {
         this._previousRAF = t;
       }
 
-      
-      
-      if(!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()){
-        if(this._active ){
+
+
+      if (!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()) {
+        if (this._active) {
           this._active = false;
           this._entityManager.Get('player2').GetComponent("BasicCharacterControllerInput").ResetR();
           this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(true);
           this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
             camera: this._camera,
             target: this._entityManager.Get('player2'),
-            cameraVision : this._player2Vision,
+            cameraVision: this._player2Vision,
             transition: true,
           });
-        }else{
+        } else {
           this._active = true;
           this._entityManager.Get('player').GetComponent("BasicCharacterControllerInput").ResetR();
           this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(true);
           this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
             camera: this._camera,
             target: this._entityManager.Get('player'),
-            cameraVision : this._player2Vision, 
+            cameraVision: this._player2Vision,
             transition: true,
           });
         }
       }
 
 
-      if(!this._params.playerFound){
+      if (!this._params.playerFound) {
         this._RAF();
         this._threejs.render(this._scene, this._camera);
         this._Step(t - this._previousRAF);
         this._previousRAF = t;
-      }else{
+      } else {
         cancelAnimationFrame(Req);
         document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-        _APP = new level1();
+        console.log('game over')
+        document.getElementById('icon-bar-inventory').style.visibility='hidden'
+        document.getElementById('icon-bar-quests').style.visibility='hidden'
+        document.getElementById('inventory').style.visibility='hidden'
+        //document.getElementById('quest-journal').style.visibility='hidden'
+        _APP = new gameOver();
         return;
       }
-      
-      if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30,0,-75)) < 5  && this._endGame == false){
+
+      if (this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30, 0, -75)) < 5 && this._endGame == false) {
         this._endGame = true;
         cancelAnimationFrame(Req);
         document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-        _APP = new level2();
+        _APP = new levelPassed();
         return;
       }
 
@@ -548,19 +1125,13 @@ class level1 {
   }
 }
 
-let _APP = null;
-
-window.addEventListener('DOMContentLoaded', () => {
-  _APP = new level1();
-});
-
-
 class level2 {
   constructor() {
     this._Initialize();
   }
 
   _Initialize() {
+    level=2;
     this._threejs = new THREE.WebGLRenderer({
       antialias: true,
     });
@@ -592,13 +1163,13 @@ class level2 {
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(1000, 1000, 10, 10),
       new THREE.MeshStandardMaterial({
-          color: 0x1e601c,
-        }));
-      plane.name = "plane"
-      plane.receiveShadow = true;
-      plane.rotation.x = -Math.PI / 2;
-      plane.position.y = 0.01;
-      this._scene.add(plane);
+        color: 0x1e601c,
+      }));
+    plane.name = "plane"
+    plane.receiveShadow = true;
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.y = 0.01;
+    this._scene.add(plane);
 
     this._entityManager = new entity_manager.EntityManager();
     this._active = true;
@@ -628,28 +1199,28 @@ class level2 {
     };
 
     var listener = new THREE.AudioListener();
-    this._camera.add( listener );
-  
+    this._camera.add(listener);
+
     // create a global audio source
-    var sound = new THREE.Audio( listener );
-  
+    var sound = new THREE.Audio(listener);
+
     var audioLoader = new THREE.AudioLoader();
-  
+
     //Load a sound and set it as the Audio object's buffer
-    audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function( buffer ) {
-      sound.setBuffer( buffer );
+    audioLoader.load('../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function (buffer) {
+      sound.setBuffer(buffer);
       sound.setLoop(true);
       sound.setVolume(0.5);
       sound.play();
-      },
+    },
       // onProgress callback
-      function ( xhr ) {
-        console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+      function (xhr) {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
       },
-  
+
       // onError callback
-      function ( err ) {
-        console.log( 'An error occured' );
+      function (err) {
+        console.log('An error occured');
       }
     );
 
@@ -661,7 +1232,7 @@ class level2 {
     this._previousRAF = null;
     this._RAF();
   }
-  
+
 
   _LoadSky() {
     const hemiLight = new THREE.HemisphereLight(0x000000, 0x000000, 0.01);
@@ -683,28 +1254,28 @@ class level2 {
 
     const skyGeo = new THREE.SphereBufferGeometry(1000, 32, 15);
     const skyMat = new THREE.ShaderMaterial({
-        uniforms: uniforms,
-        vertexShader: _VS,
-        fragmentShader: _FS,
-        side: THREE.BackSide
+      uniforms: uniforms,
+      vertexShader: _VS,
+      fragmentShader: _FS,
+      side: THREE.BackSide
     });
 
     const sky = new THREE.Mesh(skyGeo, skyMat);
     this._scene.add(sky);
   }
 
-  _LoadLights(){
+  _LoadLights() {
 
-    const posLights = [[0, 9, -20],[ 0, 9, -50], [-25, 9, -50 ], [-20,20,-45 ]];
+    const posLights = [[0, 9, -20], [0, 9, -50], [-25, 9, -50], [-20, 20, -45]];
     console.log(posLights)
     posLights.forEach((posLight) => {
       console.log(posLight)
-      const light = new THREE.PointLight( 0xffbb73, 0.1, 100 );
+      const light = new THREE.PointLight(0xffbb73, 0.1, 100);
       light.position.x = posLight[0];
       light.position.y = posLight[1];
-      light.position.z =posLight[2];
+      light.position.z = posLight[2];
       light.castShadow = true;
-      this._params.scene.add( light );
+      this._params.scene.add(light);
       light.shadow.mapSize.width = 512; // default
       light.shadow.mapSize.height = 512; // default
       light.shadow.camera.near = 0.5; // default
@@ -716,10 +1287,10 @@ class level2 {
       // this._params.scene.add( pointLightHelper );
     })
 
-    const light2 = new THREE.PointLight( 0x09cc09, 0.1, 100 );
-    light2.position.set( 25, 9, -50 );
+    const light2 = new THREE.PointLight(0x09cc09, 0.1, 100);
+    light2.position.set(25, 9, -50);
     light2.castShadow = true;
-    this._params.scene.add( light2 );
+    this._params.scene.add(light2);
     light2.shadow.mapSize.width = 512; // default
     light2.shadow.mapSize.height = 512; // default
     light2.shadow.camera.near = 0.5; // default
@@ -727,42 +1298,42 @@ class level2 {
     light2.shadow.bias = -0.005;
 
 
-    const spotLight    = new THREE.SpotLight( 0x09dd09 , 8 , 200 , Math.PI/10 )
-    spotLight.position.set( 30,10,-75)
-    spotLight.exponent    = 30
-    spotLight.intensity    = 5
-    spotLight.target.position.set(30,0,-75)
-    this._params.scene.add( spotLight.target );
+    const spotLight = new THREE.SpotLight(0x09dd09, 8, 200, Math.PI / 10)
+    spotLight.position.set(30, 10, -75)
+    spotLight.exponent = 30
+    spotLight.intensity = 5
+    spotLight.target.position.set(30, 0, -75)
+    this._params.scene.add(spotLight.target);
 
-    this._params.scene.add( spotLight  )
+    this._params.scene.add(spotLight)
     // const sphereSize2 = 1;
     // const pointLightHelper2 = new THREE.PointLightHelper( light2, sphereSize2 );
     // this._params.scene.add( pointLightHelper2 );
 
   }
 
-  _LoadRoom(){
+  _LoadRoom() {
     const mapLoader = new GLTFLoader();
     mapLoader.setPath('./resources/Level2/');
     mapLoader.load('Luxury House.glb', (glb) => {
 
-        this._params.scene.add(glb.scene);
-        // glb.scene.position.set(0,-2.5,0);
-        glb.scene.scale.setScalar(3);
-        glb.scene.traverse(c => {
-          c.receiveShadow = true;
-          c.castShadow = true;
-          this._params.playerVision.push(c);
-          this._params.player2Vision.push(c);
-          this._params.monsterVision.push(c);
-        });
+      this._params.scene.add(glb.scene);
+      // glb.scene.position.set(0,-2.5,0);
+      glb.scene.scale.setScalar(3);
+      glb.scene.traverse(c => {
+        c.receiveShadow = true;
+        c.castShadow = true;
+        this._params.playerVision.push(c);
+        this._params.player2Vision.push(c);
+        this._params.monsterVision.push(c);
       });
+    });
 
-    
+
     this._LoadLights();
 
 
-        //Load Door
+    //Load Door
     // const Doorloader = new GLTFLoader();
     // Doorloader.setPath('./resources/haunted_house/');
     // Doorloader.load('door.glb', (fbx) => {
@@ -838,41 +1409,41 @@ class level2 {
   _LoadPlayer() {
 
     const player = new entity.Entity();
-    player.SetPosition(new THREE.Vector3(-10,10,-23));
+    player.SetPosition(new THREE.Vector3(-10, 10, -23));
     const quaternionP = new THREE.Quaternion();
-    quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
+    quaternionP.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     player.SetQuaternion(quaternionP);
     player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
-    player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl' , true));
+    player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl', true));
     this._entityManager.Add(player, 'player');
 
     const player2 = new entity.Entity();
-    player2.SetPosition(new THREE.Vector3(-7,10,-23));
+    player2.SetPosition(new THREE.Vector3(-7, 10, -23));
     player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
-    player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse' , false));
+    player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse', false));
     this._entityManager.Add(player2, 'player2');
 
     const camera = new entity.Entity();
     camera.AddComponent(
-        new third_person_camera.ThirdPersonCamera({
-            camera: this._camera,
-            target: this._entityManager.Get('player'), 
-            cameraVision : this._player2Vision,
-            transition: true,
-          }));
+      new third_person_camera.ThirdPersonCamera({
+        camera: this._camera,
+        target: this._entityManager.Get('player'),
+        cameraVision: this._player2Vision,
+        transition: true,
+      }));
     this._entityManager.Add(camera, 'player-camera');
 
-        const npc = new entity.Entity();
-    npc.SetPosition(new THREE.Vector3(-35,12,-30));
+    const npc = new entity.Entity();
+    npc.SetPosition(new THREE.Vector3(-35, 12, -30));
     const quaternionM1 = new THREE.Quaternion();
-    quaternionM1.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
+    quaternionM1.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     npc.SetQuaternion(quaternionM1);
-    const points = [ 
-      new THREE.Vector3( -33,15,-33 ), 
-      new THREE.Vector3( -39, 15, -34 ),
-      new THREE.Vector3( -36, 15,  -56),
-      new THREE.Vector3( -33, 15, -53 ),
-      ];
+    const points = [
+      new THREE.Vector3(-33, 15, -33),
+      new THREE.Vector3(-39, 15, -34),
+      new THREE.Vector3(-36, 15, -56),
+      new THREE.Vector3(-33, 15, -53),
+    ];
     npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points));
     this._entityManager.Add(npc, 'npc1');
 
@@ -885,41 +1456,41 @@ class level2 {
 
     const npc1 = new entity.Entity();
     npc1.SetPosition(new THREE.Vector3(3, 0, -20));
-    const points1 = [ 
-      new THREE.Vector3( 0, 2.5, -22 ), 
-      new THREE.Vector3( 35, 2.5, -22 ),
-      new THREE.Vector3( 35, 2.5, -24 ),
-      new THREE.Vector3( 0, 2.5, -20 ),
-      new THREE.Vector3( -2, 2.5, -35 ),
-      new THREE.Vector3( 2, 2.5, -35 ),
+    const points1 = [
+      new THREE.Vector3(0, 2.5, -22),
+      new THREE.Vector3(35, 2.5, -22),
+      new THREE.Vector3(35, 2.5, -24),
+      new THREE.Vector3(0, 2.5, -20),
+      new THREE.Vector3(-2, 2.5, -35),
+      new THREE.Vector3(2, 2.5, -35),
 
-      ];
-    npc1.AddComponent(new npc_entity.NPCController(this._params , 'npc2', points1));
+    ];
+    npc1.AddComponent(new npc_entity.NPCController(this._params, 'npc2', points1));
     this._entityManager.Add(npc1, 'npc2');
   }
 
-  _UIInit(){
-      this._iconBar = {
-        stats: document.getElementById('icon-bar-stats'),
-        inventory: document.getElementById('icon-bar-inventory'),
-        quests: document.getElementById('icon-bar-quests'),
-      };
+  _UIInit() {
+    this._iconBar = {
+      stats: document.getElementById('icon-bar-stats'),
+      inventory: document.getElementById('icon-bar-inventory'),
+      quests: document.getElementById('icon-bar-quests'),
+    };
 
-      this._ui = {
-        inventory: document.getElementById('inventory'),
-        quests: document.getElementById('quest-journal'),
-      };
+    this._ui = {
+      inventory: document.getElementById('inventory'),
+      quests: document.getElementById('quest-journal'),
+    };
 
-      this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
-      this._iconBar.quests.onclick = (m) => { this._OnSwitchClicked(m); };
-      this._ui.inventory.style.visibility = 'hidden';
+    this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
+    this._iconBar.quests.onclick = (m) => { this._OnSwitchClicked(m); };
+    this._ui.inventory.style.visibility = 'hidden';
 
   }
 
   _OnSwitchClicked() {
-    if(this._active){
+    if (this._active) {
       this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(false);
-    }else{
+    } else {
       this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(false);
     }
   }
@@ -952,38 +1523,38 @@ class level2 {
       if (this._previousRAF === null) {
         this._previousRAF = t;
       }
-      
-      if(!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()){
-        if(this._active ){
+
+      if (!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()) {
+        if (this._active) {
           this._active = false;
           this._entityManager.Get('player2').GetComponent("BasicCharacterControllerInput").ResetR();
           this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(true);
           this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
             camera: this._camera,
             target: this._entityManager.Get('player2'),
-            cameraVision : this._player2Vision,
+            cameraVision: this._player2Vision,
             transition: true,
           });
-        }else{
+        } else {
           this._active = true;
           this._entityManager.Get('player').GetComponent("BasicCharacterControllerInput").ResetR();
           this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(true);
           this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
             camera: this._camera,
             target: this._entityManager.Get('player'),
-            cameraVision : this._player2Vision, 
+            cameraVision: this._player2Vision,
             transition: true,
           });
         }
       }
 
 
-      if(!this._params.playerFound){//if(!this._params.playerFound){
+      if (!this._params.playerFound) {//if(!this._params.playerFound){
         this._RAF();
         this._threejs.render(this._scene, this._camera);
         this._Step(t - this._previousRAF);
         this._previousRAF = t;
-      }else{
+      } else {
         // console.log(this._params.playerFound);
         cancelAnimationFrame(Req);
         document.getElementById('container').removeChild(document.getElementById('container').lastChild)
@@ -991,8 +1562,8 @@ class level2 {
         return;
       }
 
-      
-      if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30,0,-75)) < 5 && this._endGame == false){
+
+      if (this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(30, 0, -75)) < 5 && this._endGame == false) {
         this._endGame = true;
         cancelAnimationFrame(Req);
         document.getElementById('container').removeChild(document.getElementById('container').lastChild)
@@ -1007,3 +1578,9 @@ class level2 {
     this._entityManager.Update(timeElapsedS);
   }
 }
+
+let _APP = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+  _APP = new menu();
+});
