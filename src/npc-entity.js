@@ -6,6 +6,7 @@ import {player_entity} from './player-entity.js'
 import {player_state} from './player-state.js';
 import {spotlight_material} from '../modules/spotlightmaterial.js'
 import * as SkeletonUtils from '../modules/SkeletonUtils.js'
+import { GLTFLoader } from '../modules/GLTFLoader.js';
 
 
 export const npc_entity = (() => {
@@ -69,21 +70,33 @@ export const npc_entity = (() => {
     _LoadModels() {
 
       if(this._type == 'npc1'){
-        const loader = new FBXLoader( this._npcManager);
+        const loader = new GLTFLoader( this._npcManager);
         loader.setPath('./resources/enemies/mutant/');
-        loader.load('monster1.fbx', (fbx) => {
-          this._target= fbx;
+        loader.load('ghoul2.glb', (fbx) => {
+          this._target= fbx.scene;
+          this._mixer = new THREE.AnimationMixer(this._target);
+          // const clips = fbx
+          this.clip = THREE.AnimationClip.findByName(fbx , 'Ghoul')
+          // console.log(this.fbx)
+          const action = this._mixer.clipAction(this.clip);
+          action.play();
           this._setModel();
         });
       }else{
         this._target = SkeletonUtils.clone(this._params.entityManager.Get('npc1').GetComponent("NPCController")._target);
         this._parent = this._params.entityManager.Get(this._type);
+        this._mixer = new THREE.AnimationMixer(this._target);
+        // const clips = this.fbx
+        this.clip = this._params.entityManager.Get('npc1').GetComponent("NPCController").clip;
+        // console.log(this.fbx)
+        const action = this._mixer.clipAction(this.clip);
+        action.play();
         this._setModel();
       }
     }
 
     _setModel(){
-      this._target.scale.setScalar(0.035);
+      this._target.scale.setScalar(0.025);
       this._target.position.copy(this._parent.Position);
       this._target.quaternion.copy(this._parent.Quaternion);
       this._params.scene.add(this._target);
@@ -98,31 +111,28 @@ export const npc_entity = (() => {
         }
       });
 
-      this._mixer = new THREE.AnimationMixer(this._target);
 
-      const _OnLoad = (animName, anim) => {
-        const clip = anim.animations[0];
-        const action = this._mixer.clipAction(clip);
-  
-        this._animations[animName] = {
-          clip: clip,
-          action: action,
-        };
+      // const _OnLoad = (animName, anim) => {
+
+        // this._animations[animName] = {
+        //   clip: clip,
+        //   action: action,
+        // };
         // console.log(this._type,this._mixer)
 
-      };
+      // };
 
-      this._manager = new THREE.LoadingManager();
-      this._manager.onLoad = () => {
+      // this._manager = new THREE.LoadingManager();
+      // this._manager.onLoad = () => {
 
-        this._stateMachine.SetState('walk');
+      //   this._stateMachine.SetState('walk');
 
-      };
+      // };
 
-      const loader1 = new FBXLoader(this._manager);
-      loader1.setPath('../resources/enemies/mutant/');
-      loader1.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
-      loader1.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
+      // const loader1 = new FBXLoader(this._manager);
+      // loader1.setPath('../resources/enemies/mutant/');
+      // loader1.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
+      // loader1.load('Mutant Walking.fbx', (a) => { _OnLoad('walk', a); });
 
       this._targetObject = new THREE.Object3D();
       this._targetObject.position.copy(this._target.position);
@@ -286,9 +296,9 @@ export const npc_entity = (() => {
     Update(timeInSeconds) {
       // console.log(this._type)
 
-      if (!this._stateMachine._currentState) {
-        return;
-      }
+      // if (!this._stateMachine._currentState) {
+      //   return;
+      // }
       
       if(this._FindPlayer()){
         this._params.playerFound = true;
