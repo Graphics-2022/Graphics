@@ -160,7 +160,9 @@ export const menu = (() =>{
                 if (intersects[i].object.name == 'sphere') { //if you click on the first block which says pla
                   continueAnimating = false;
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                  _APP = new level1.level1;
+                //   window.addEventListener('DOMContentLoaded', () => {
+                    _APP = new level1.level1;
+                //   });
                   return;
       
                 }
@@ -178,7 +180,7 @@ export const menu = (() =>{
               requestAnimationFrame(animate);
       
               render();
-              //console.log(clicked)
+            //   console.log(clicked)
       
             }
       

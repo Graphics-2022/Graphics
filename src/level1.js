@@ -12,6 +12,7 @@ import { FontLoader } from '../modules/FontLoader.js';
 import { TextGeometry } from '../modules/TextGeometry.js';
 import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
+import { level2 } from './level2.js';
 
 export const level1 = (() =>{
 
@@ -559,7 +560,7 @@ export const level1 = (() =>{
                 this._endGame = true;
                 cancelAnimationFrame(Req);
                 document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                this._APP = new level2();
+                this._APP = new level2.level2();
                 return;
               }
         

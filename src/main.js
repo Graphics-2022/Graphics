@@ -14,31 +14,6 @@ import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
 import { level1 } from './level1.js';
 
-const _VS = `
-varying vec3 vWorldPosition;
-
-void main() {
-  vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-  vWorldPosition = worldPosition.xyz;
-
-  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-}`;
-
-
-const _FS = `
-uniform vec3 topColor;
-uniform vec3 bottomColor;
-uniform float offset;
-uniform float exponent;
-
-varying vec3 vWorldPosition;
-
-void main() {
-  float h = normalize( vWorldPosition + offset ).y;
-  gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
-}`;
-
-var level = 1;
 
 let _APP = null;
 
