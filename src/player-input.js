@@ -43,10 +43,10 @@ export const player_input = (() => {
         y: ((event.clientY - rect.top ) / rect.height) * -2 + 1,
       };
 
-      let rey = new THREE.Raycaster();
-      rey.far = 50;
-      rey.setFromCamera(pos, this._params.camera);
-      var int = rey.intersectObjects( this._params.scene.children, true);
+      // let rey = new THREE.Raycaster();
+      this._raycaster.far = 50;
+      this._raycaster.setFromCamera(pos, this._params.camera);
+      var int = this._raycaster.intersectObjects( this._params.scene.children, true);
       //console.log(int)
 
       if ( int.length > 0){

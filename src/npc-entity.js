@@ -86,9 +86,9 @@ export const npc_entity = (() => {
       this._target.scale.setScalar(0.035);
       this._target.position.copy(this._parent.Position);
       this._target.quaternion.copy(this._parent.Quaternion);
-
       this._params.scene.add(this._target);
       this._bones = {};
+
 
       this._target.traverse(c => {
         c.castShadow = true;
@@ -108,11 +108,15 @@ export const npc_entity = (() => {
           clip: clip,
           action: action,
         };
+        // console.log(this._type,this._mixer)
+
       };
 
       this._manager = new THREE.LoadingManager();
       this._manager.onLoad = () => {
-      this._stateMachine.SetState('idle');
+
+        this._stateMachine.SetState('walk');
+
       };
 
       const loader1 = new FBXLoader(this._manager);
@@ -135,12 +139,12 @@ export const npc_entity = (() => {
       this._mesh.lookAt(this._targetObject.position)
       material.uniforms.lightColor.value.set('red')
       material.uniforms.spotPosition.value    = this._mesh.position
-      material.uniforms.attenuation.value    = 100
+      material.uniforms.attenuation.value    = 50
       material.uniforms.anglePower.value    = 2
       this._params.scene.add( this._mesh );
 
       this._spotLight    = new THREE.SpotLight( 0xff0909 , 8 , 200 , Math.PI/10 )
-      this._spotLight.position.copy(this._mesh.position)
+      this._spotLight.position.copy(this._target.position)
       this._spotLight.exponent    = 30
       this._spotLight.intensity    = 5
       this._spotLight.target = this._targetObject;
@@ -155,6 +159,28 @@ export const npc_entity = (() => {
 
       this._params.scene.add( this._spotLight  )
       this._params.scene.add( this._spotLight.target);
+
+
+      this.d = new THREE.Vector3();
+      this.start = new THREE.Vector3();
+      this.dirToPlayer =  new THREE.Vector3(0, 0, 0);
+      this.path = new THREE.CatmullRomCurve3( this._points, true );
+      this.frameDecceleration= new THREE.Vector3();;
+      this.oldPosition= new THREE.Vector3();
+      this.forward =new THREE.Vector3();
+      this.sideways = new THREE.Vector3();
+      this.m = new THREE.Matrix4()
+      this.eye = new THREE.Vector3(0,0,0);
+      this.up = new THREE.Vector3(0,1,0);
+      this.down = new THREE.Vector3(0,-1,0);
+
+      this._Q = new THREE.Quaternion();
+      this._A = new THREE.Vector3();
+      this.p = new THREE.Vector3();
+      this.ray = new THREE.Raycaster();
+      this.ray.far = 100;
+      this.ray.near = 0;
+      this.int;
     }
 
     get Position() {
@@ -170,165 +196,87 @@ export const npc_entity = (() => {
 
     _FindPlayer() {
       let found = false;
-      const controlObject = this._target;
       let playerPos = this._params.entityManager.Get('player')._position
-      if (controlObject.position.distanceTo(playerPos) > 30){
-        return found;
+      if (this._target.position.distanceTo(playerPos) > 30){
+        return false;
       }
-      const dir = controlObject.position.clone();
+      const dir = this._target.position.clone();
 
       dir.sub(this._params.entityManager.Get('player')._position)
       dir.y = 0.0;
       dir.normalize();
-      const dirToPlayer = dir;
+      dir.multiplyScalar(-1);
 
-      let d = new THREE.Vector3();
-      controlObject.getWorldDirection(d)
+      this._target.getWorldDirection(this.d)
 
 
-      if (dirToPlayer.angleTo(d) < Math.PI -Math.PI/10){
-        return found;
+      if (dir.angleTo(this.d) > 0.31419){// 2.8274){  // Math.PI -Math.PI/10 = 2.8274
+        return false;
       }
 
-      let search = [];
-      for (let i = -Math.PI/10; i <= Math.PI/10; i+=Math.PI/12){
-        search.push(i);
+      this.start.copy(this._target.position);
+      this.start.y +=2.5;
+
+      this.ray.set(this.start, dir);
+      this.int = this.ray.intersectObjects(this._params.monsterVision, true )
+      // var arrow = new THREE.ArrowHelper( this.ray.ray.direction, this.ray.ray.origin, this.ray.far, 0xff0000 );
+      // this._params.scene.add(arrow);
+
+      if(this.int.length > 0){
+        if(this.int[0].object.parent.name == "girl"){
+          console.log("player found")
+          // found = true;
+          return true;
+        }
       }
-      const start = new THREE.Vector3();
-      start.copy(controlObject.position);
-      start.y +=2.5;
 
-      let ray = new THREE.Raycaster();
-      ray.far = 200;
-      ray.near = 0;
-      var int;
-      
-      let newDir =new THREE.Vector3(0,0,0)
-
-      search.forEach((direction) => {
-        newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
-        newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
-        ray.set(start, newDir);
-        int = ray.intersectObjects(this._params.monsterVision, false )
-        // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
-        // this._params.scene.add(arrow)
-
-        if(int.length > 0){
-          if(int[0].object.parent.name == "girl"){
-            //console.log("player found")
-            found = true;
-            return;
-          }
-        }  
-      })
-      return found;
+      return false;
     }
 
-    _UpdateAI(timeInSeconds) {
-      const currentState = this._stateMachine._currentState;
-      if (currentState.Name != 'walk' &&
-          currentState.Name != 'run' &&
-          currentState.Name != 'idle') {
-        return;
-      }
-
-      if (currentState.Name == 'death') {
-        return;
-      }
-
-      if (currentState.Name == 'idle' ||
-          currentState.Name == 'walk') {
-        this._OnAIWalk(timeInSeconds);
-      }
-    }
 
     _OnAIWalk(timeInSeconds) {
       
-      var dirToPlayer =  new THREE.Vector3(0, 0, 0);
-
-      let path = new THREE.CatmullRomCurve3( this._points, true );
       this._time += timeInSeconds;
       // visualize the path
       // const lineGeometry = new THREE.BufferGeometry().setFromPoints( path.getPoints( 32 ) );
       // const lineMaterial = new THREE.LineBasicMaterial();
       // const line = new THREE.Line( lineGeometry, lineMaterial );
       // this._params.scene.add(line)
-      const pos1=path.getPointAt( (this._time/6)%1);
-      //console.log("time",(this._time/1)%1)
-      // const pos=new THREE.Vector3(0,0,0);
-      //console.log("pos",pos1)
+
+      const pos1=this.path.getPointAt( (this._time/5)%1);  //  lvl 1:5 ,  lvl 3 :15
       const dir = this._parent._position.clone();
       dir.sub(pos1);
       dir.y = 0.0;
-      dir.normalize();
-      dirToPlayer = dir;
+      // dir.normalize();
+      const _R = this._target.quaternion.clone();
 
-      const velocity = this._velocity;
-      const frameDecceleration = new THREE.Vector3(
-          velocity.x * this._decceleration.x,
-          velocity.y * this._decceleration.y,
-          velocity.z * this._decceleration.z
-      );
-      frameDecceleration.multiplyScalar(timeInSeconds);
-      frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
-          Math.abs(frameDecceleration.z), Math.abs(velocity.z));
-  
-      velocity.add(frameDecceleration);
+      this.m.lookAt(this.eye,dir,this.up);
+      _R.setFromRotationMatrix(this.m);
 
-      const controlObject = this._target;
-      const _R = controlObject.quaternion.clone();
+      this._target.quaternion.copy(_R);
 
-      this._input._keys.forward = false;
+      this.forward.set(0,0,1);
+      this.forward.applyQuaternion(this._target.quaternion);
+      this.forward.normalize();
 
-      const acc = this._acceleration;
+      this.forward.multiplyScalar(8 * timeInSeconds);
 
-      let v = new THREE.Vector3();
-      controlObject.getWorldDirection(v)
+      const pos = this._target.position.clone();
 
-      this._input._keys.forward = true;
-      velocity.z += acc.z * timeInSeconds;
+      this._target.getWorldDirection(this.d);
 
-      const m = new THREE.Matrix4();
-      m.lookAt(
-          new THREE.Vector3(0, 0, 0),
-          dirToPlayer,
-          new THREE.Vector3(0, 1, 0));
-      _R.setFromRotationMatrix(m);
-
-      controlObject.quaternion.copy(_R);
-
-      const oldPosition = new THREE.Vector3();
-      oldPosition.copy(controlObject.position);
-
-      const forward = new THREE.Vector3(0, 0, 1);
-      forward.applyQuaternion(controlObject.quaternion);
-      forward.normalize();
-
-      const sideways = new THREE.Vector3(1, 0, 0);
-      sideways.applyQuaternion(controlObject.quaternion);
-      sideways.normalize();
-
-      sideways.multiplyScalar(velocity.x * timeInSeconds);
-      forward.multiplyScalar(velocity.z * timeInSeconds);
-
-      const pos = controlObject.position.clone();
-
-      let d = new THREE.Vector3();
-      controlObject.getWorldDirection(d);
-
-      
       this._mesh.position.copy(pos);
-      this._mesh.position.addScaledVector(d, 1.5);
+      this._mesh.position.addScaledVector(this.d, 1.5);
       this._mesh.position.y+= 5.5;
       this._spotLight.position.copy(this._mesh.position);
       
-      pos.add(forward);
-      pos.add(sideways);
+      pos.add(this.forward);
+      // pos.add(sideways);
 
-      controlObject.position.copy(pos);
+      this._target.position.copy(pos);
       this._position.copy(pos);
       this._targetObject.position.copy(pos);
-      this._targetObject.position.addScaledVector(d, 20);
+      this._targetObject.position.addScaledVector(this.d, 20);
       this._mesh.lookAt(this._targetObject.position);
 
       this._parent.SetPosition(this._position);
@@ -336,6 +284,8 @@ export const npc_entity = (() => {
     }
 
     Update(timeInSeconds) {
+      // console.log(this._type)
+
       if (!this._stateMachine._currentState) {
         return;
       }
@@ -345,11 +295,8 @@ export const npc_entity = (() => {
         return;
       }
 
-      this._input._keys.space = false;
-      this._input._keys.forward = false;
 
-      this._UpdateAI(timeInSeconds);
-      this._stateMachine.Update(timeInSeconds, this._input);
+      this._OnAIWalk(timeInSeconds);
 
       if (this._mixer) {
         this._mixer.update(timeInSeconds);
