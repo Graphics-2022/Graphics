@@ -12,6 +12,7 @@ import { FontLoader } from '../modules/FontLoader.js';
 import { TextGeometry } from '../modules/TextGeometry.js';
 import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
+import { levelPassed } from './levelPassed.js';
 
 export const level2 = (() =>{
 
@@ -565,7 +566,7 @@ export const level2 = (() =>{
             }else{
               cancelAnimationFrame(Req);
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new level1();
+              _APP = new gameOver.gameOver(2);
               return;
             }
             
@@ -573,7 +574,7 @@ export const level2 = (() =>{
               this._endGame = true;
               cancelAnimationFrame(Req);
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new level2();
+              _APP = new levelPassed.levelPassed(2);
               return;
             }
       
