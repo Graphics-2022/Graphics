@@ -13,8 +13,9 @@ import { TextGeometry } from '../modules/TextGeometry.js';
 import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
 import { level2 } from './level2.js';
+import { levelPassed } from './levelPassed.js';
 
-export const level1 = (() =>{
+export const level1 = (() => {
 
     class level1 {
         constructor(_APP) {
@@ -82,15 +83,7 @@ export const level1 = (() =>{
           const light = new THREE.AmbientLight( 0x070707 ); // soft white light
           this._scene.add( light );
       
-          // this.loadingScreen = {
-          //   scene: new THREE.Scene(),
-          //   camera: new THREE.PerspectiveCamera(fov, aspect, near, far),
-          //   box: new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5),
-          //   new THREE.MeshBasicMaterial({ color:0xff0000}))
-          // }
-          // this.loadingScreen.box.position.set(0,0,5);
-          // this.loadingScreen.camera.lookAt(this.loadingScreen.box.position)
-          // this.loadingScreen.scene.add(this.loadingScreen.box)
+
           this.loadingScreen = {
             scene: new THREE.Scene(),
             camera: new THREE.PerspectiveCamera(fov, aspect, near, far),
@@ -560,7 +553,7 @@ export const level1 = (() =>{
                 this._endGame = true;
                 cancelAnimationFrame(Req);
                 document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                this._APP = new level2.level2();
+                this._APP = new levelPassed.levelPassed(1);
                 return;
               }
 

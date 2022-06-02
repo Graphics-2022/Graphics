@@ -1,15 +1,18 @@
 import * as THREE from '../modules/three.module.js';
 import { FontLoader } from '../modules/FontLoader.js';
 import { TextGeometry } from '../modules/TextGeometry.js';
+import { level1 } from './level1.js';
+import { level2 } from './level2.js';
+import { level3 } from './level3.js';
 
 export const gameOver = (() =>{
 
     class gameOver {
-        constructor() {
-          this._Initialize();
+        constructor(level) {
+          this._Initialize(level);
         }
       
-        _Initialize() {
+        _Initialize(level) {
           var renderer, scene, container;
       
           var raycaster = new THREE.Raycaster();
@@ -159,10 +162,13 @@ export const gameOver = (() =>{
                   continueAnimating = false;
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                   if (level == 1) {
-                    _APP = new level1();
+                    _APP = new level1.level1();
                   }
                   else if (level == 2) {
-                    _APP = new level2();
+                    _APP = new level2.level2();
+                  }
+                  else if (level==3){
+                    _APP=new level3.level3();
                   }
       
                   return;

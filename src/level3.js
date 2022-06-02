@@ -564,7 +564,7 @@ export const level3 = (() =>{
             }else{
               cancelAnimationFrame(Req);
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new level1();
+              _APP = new gameOver.gameOver(3);
               return;
             }
             
