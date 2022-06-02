@@ -158,14 +158,16 @@ export const npc_entity = (() => {
       this._spotLight.exponent    = 30
       this._spotLight.intensity    = 5
       this._spotLight.target = this._targetObject;
+      this._spotLight.distance = 50;
       this._spotLight.castShadow = true;
       this._spotLight.shadow.bias = -0.005;
 
       this._spotLight.shadow.mapSize.width = 512; // default
       this._spotLight.shadow.mapSize.height = 512; // default
-      this._spotLight.shadow.camera.near = 2; // default
+      this._spotLight.shadow.camera.near = 1; // default
       this._spotLight.shadow.camera.far = 100; // default
       this._spotLight.shadow.focus = 1; // default
+
 
       this._params.scene.add( this._spotLight  )
       this._params.scene.add( this._spotLight.target);
@@ -277,7 +279,7 @@ export const npc_entity = (() => {
 
       this._mesh.position.copy(pos);
       this._mesh.position.addScaledVector(this.d, 1.5);
-      this._mesh.position.y+= 5.5;
+      this._mesh.position.y+= 5;
       this._spotLight.position.copy(this._mesh.position);
       
       pos.add(this.forward);

@@ -12,17 +12,19 @@ import { FontLoader } from '../modules/FontLoader.js';
 import { TextGeometry } from '../modules/TextGeometry.js';
 import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
+import { level3 } from './level3.js';
 
 export const level2 = (() =>{
 
     class level2 {
-        constructor() {
-          this._Initialize();
+        constructor(_APP) {
+            this._APP = _APP;
+            this._Initialize();
         }
         
       
         _Initialize() {
-          level=2;
+        //   level=2;
           this._threejs = new THREE.WebGLRenderer({
             antialias: true,
             powerPreference: 'high-performance',
@@ -291,7 +293,7 @@ export const level2 = (() =>{
           });
       
       
-          this._LoadLights();
+        //   this._LoadLights();
       
         
           //     //Load Door
@@ -565,7 +567,7 @@ export const level2 = (() =>{
             }else{
               cancelAnimationFrame(Req);
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new level1();
+              this._APP = new level2(this._APP);
               return;
             }
             
@@ -573,7 +575,7 @@ export const level2 = (() =>{
               this._endGame = true;
               cancelAnimationFrame(Req);
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new level2();
+              this._APP = new level3.level3(this._APP);
               return;
             }
       

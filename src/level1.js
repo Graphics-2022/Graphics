@@ -31,7 +31,7 @@ export const level1 = (() =>{
             // autoClear: true
           });
           this._threejs.outputEncoding = THREE.sRGBEncoding;
-          // this._threejs.gammaFactor = 2.2;
+          this._threejs.gammaFactor = 2.2;
           this._threejs.shadowMap.enabled = true;
           this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
           this._threejs.setPixelRatio(window.devicePixelRatio);
@@ -79,7 +79,7 @@ export const level1 = (() =>{
           this._scene.background = new THREE.Color(0x000000);
           // this._scene.fog = new THREE.FogExp2(0x89b2eb, 0.002);
       
-          const light = new THREE.AmbientLight( 0x010101 ); // soft white light
+          const light = new THREE.AmbientLight( 0x070707 ); // soft white light
           this._scene.add( light );
       
           // this.loadingScreen = {
@@ -278,7 +278,7 @@ export const level1 = (() =>{
         _LoadRoom() {
           const mapLoader = new GLTFLoader(this.loadingManager);
           mapLoader.setPath('./resources/haunted_house/');
-          mapLoader.load('map1.glb', (glb) => {
+          mapLoader.load('map2.glb', (glb) => {
       
             this._params.scene.add(glb.scene);
             glb.scene.position.set(0, -2.5, 0);
@@ -293,20 +293,48 @@ export const level1 = (() =>{
           });
       
       
-          this._LoadLights();
+        //   this._LoadLights();
       
       
           //Load Door
           const Doorloader = new GLTFLoader(this.loadingManager);
           Doorloader.setPath('./resources/haunted_house/');
-          Doorloader.load('door1.glb', (fbx) => {
+          Doorloader.load('door2.glb', (fbx) => {
+            // console.log(fbx.scene)
+            fbx.scene.name = 'Door1'
+            // fbx.scene.position.set(24,0,-62);
+            fbx.scene.position.set(28.2,0,-62.5);
+            fbx.scene.scale.setScalar(0.035);
+            // fbx.scene.scale.setScalar(1.3);
+            this._scene.add(fbx.scene);
+
+            // this._params.doorObject = fbx.scene;
+            // this._params.keyObject = fbx;
+            fbx.scene.traverse(c => {
+              c.castShadow = true;
+              c.receiveShadow = true;
+              c.metalness = 0.1
+      
+              this._params.playerVision.push(c);
+              this._params.player2Vision.push(c);
+      
+              if (c.material && c.material.map) {
+                c.material.map.encoding = THREE.sRGBEncoding;
+              }
+            });
+          });
+
+          const Doorloader2 = new GLTFLoader(this.loadingManager);
+          Doorloader2.setPath('./resources/haunted_house/');
+          Doorloader2.load('door3.glb', (fbx) => {
             // console.log(fbx.scene)
             fbx.scene.name = 'Door'
             // fbx.scene.position.set(24,0,-62);
-            fbx.scene.position.set(3, -2.5, -0.5);
-      
+            fbx.scene.position.set(28.2,0,-62.5);
+            fbx.scene.scale.setScalar(0.035);
             // fbx.scene.scale.setScalar(1.3);
             this._scene.add(fbx.scene);
+
             this._params.doorObject = fbx.scene;
             // this._params.keyObject = fbx;
             fbx.scene.traverse(c => {
@@ -528,7 +556,15 @@ export const level1 = (() =>{
                 }
               }
         
-              if(!this._params.playerFound){
+              if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(27,0,-76)) < 5 && this._params.keyFound && this._endGame == false){
+                this._endGame = true;
+                cancelAnimationFrame(Req);
+                document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+                this._APP = new level2.level2();
+                return;
+              }
+
+              if(!this._params.playerFound && !this._endGame){
                 this._RAF();
                 // var w = window.innerWidth, h = window.innerHeight;
         
@@ -556,13 +592,7 @@ export const level1 = (() =>{
                 return;
               }
               
-              if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(36,20,-11)) < 5 && this._params.keyFound && this._endGame == false){
-                this._endGame = true;
-                cancelAnimationFrame(Req);
-                document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                this._APP = new level2.level2();
-                return;
-              }
+
         
             });
           }, 1000 / 30 );
