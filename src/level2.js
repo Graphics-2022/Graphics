@@ -17,13 +17,14 @@ import { levelPassed } from './levelPassed.js';
 export const level2 = (() =>{
 
     class level2 {
-        constructor() {
-          this._Initialize();
+        constructor(_APP) {
+            this._APP = _APP;
+            this._Initialize();
         }
         
       
         _Initialize() {
-          level=2;
+        //   level=2;
           this._threejs = new THREE.WebGLRenderer({
             antialias: true,
             powerPreference: 'high-performance',
@@ -292,7 +293,7 @@ export const level2 = (() =>{
           });
       
       
-          this._LoadLights();
+        //   this._LoadLights();
       
         
           //     //Load Door

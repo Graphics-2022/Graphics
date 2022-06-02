@@ -44,7 +44,7 @@ export const level3 = (() =>{
           const fov = 60;
           const aspect = 1920 / 1080;
           const near = 1.0;
-          const far = 1000.0;
+          const far = 120.0;
           this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
           // this._camera.position.set(25, 10, 25);
       
@@ -275,11 +275,11 @@ export const level3 = (() =>{
         _LoadRoom(){
           const mapLoader = new GLTFLoader();
           mapLoader.setPath('./resources/Level3/');
-          mapLoader.load('scene.gltf', (glb) => {
+          mapLoader.load('map2.glb', (glb) => {
       
               this._params.scene.add(glb.scene);
               // glb.scene.position.set(0,-2.5,0);
-              glb.scene.scale.setScalar(3);
+              glb.scene.scale.setScalar(2.5);
               glb.scene.traverse(c => {
                 c.receiveShadow = true;
                 c.castShadow = true;
@@ -367,7 +367,7 @@ export const level3 = (() =>{
         _LoadPlayer() {
       
           const player = new entity.Entity();
-          player.SetPosition(new THREE.Vector3(-31,11,-80));
+          player.SetPosition(new THREE.Vector3(-28,8,-70));
           const quaternionP = new THREE.Quaternion();
           quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI/3 );
           player.SetQuaternion(quaternionP);
