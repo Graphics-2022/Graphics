@@ -20,7 +20,7 @@ import { levelPassed} from './levelPassed.js'
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  _APP = new menu.menu(_APP);
+  //_APP = new menu.menu(_APP);
   // _APP = new gameOver.gameOver(_APP);
-
+_APP=new gameOver.gameOver();
 });
