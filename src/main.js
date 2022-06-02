@@ -19,7 +19,7 @@ import { level3} from './level3.js';
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  // _APP = new menu.menu(_APP);
-  _APP = new level3.level3(_APP);
+  _APP = new menu.menu(_APP);
+  // _APP = new level3.level3(_APP);
 
 });
