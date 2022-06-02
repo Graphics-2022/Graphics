@@ -553,7 +553,7 @@ export const level1 = (() => {
                 this._endGame = true;
                 cancelAnimationFrame(Req);
                 document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                this._APP = new levelPassed.levelPassed(1);
+                this._APP = new levelPassed.levelPassed(1,this._APP);
                 return;
               }
 

@@ -9,13 +9,13 @@ import { level3 } from './level3.js';
 export const levelPassed = (() =>{
 
     class levelPassed {
-        constructor(level) {
-          this._Initialize(level);
+        constructor(level, _APP) {
+          this._Initialize(level, _APP);
         }
       
         _Initialize(level) {
+          this._APP = _APP;
           var renderer, scene, container;
-      
           var raycaster = new THREE.Raycaster();
           var mouse = new THREE.Vector2();
       
@@ -163,10 +163,10 @@ export const levelPassed = (() =>{
                   continueAnimating = false;
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                   if (level == 1) {
-                    _APP = new level2.level2();
+                    this._APP = new level2.level2();
                   }
                   else if (level == 2) {
-                    _APP = new level3.level3();
+                    this._APP = new level3.level3();
                   }
       
                   return;
@@ -176,7 +176,7 @@ export const levelPassed = (() =>{
                   continueAnimating = false;
       
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                  _APP = new menu();
+                  this._APP = new menu();
                   return
                 }
               }
