@@ -13,6 +13,11 @@ export const third_person_camera = (() => {
       this._active = params._active;
       this._currentPosition = new THREE.Vector3();
       this._currentLookat = new THREE.Vector3();
+      this.idealOffset = new THREE.Vector3(-0, 5, -10); 
+      this.newDir = new THREE.Vector3(); 
+      this.ray = new THREE.Raycaster();
+      this.d = new THREE.Vector3();
+
     }
 
     ChangePlayer(params){
@@ -22,59 +27,58 @@ export const third_person_camera = (() => {
     }
 
     _CalculateIdealOffset() {
-      let idealOffset = new THREE.Vector3(-0, 5, -12); 
-      idealOffset.applyQuaternion(this._params.target._rotation);
-      idealOffset.add(this._params.target._position);
+      this.idealOffset.set(-0, 5, -10);
+      this.idealOffset.applyQuaternion(this._params.target._rotation);
+      this.idealOffset.add(this._params.target._position);
 
       if(this._transition){
-        if (this._currentPosition.distanceTo(idealOffset) < 5){
+        if (this._currentPosition.distanceTo(this.idealOffset) < 5){
           this._transition = false;
         }else{
-          return idealOffset;
+          return this.idealOffset;
         }
       }
-      idealOffset = new THREE.Vector3(-0, 5, -12);
+      this.idealOffset.set(-0, 5, -10);
 
-      let ray = new THREE.Raycaster();
-      ray.far = 3;
-      ray.near = 0;
-      let d = new THREE.Vector3();
-      let newDir =new THREE.Vector3(0,0,0);
+      this.ray.far = 3;
+      this.ray.near = 0;
+      // let d = new THREE.Vector3();
+      this.newDir.set(0,0,0)
 
-      this._camera.getWorldDirection(d);
+      this._camera.getWorldDirection(this.d);
       let search = [0, Math.PI/2 , Math.PI , -Math.PI/2];
       search.forEach((direction) => {
-        newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
-        newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
-        ray.set(this._currentPosition , newDir);
-        var int = ray.intersectObjects(this._params.cameraVision )
+        this.newDir.x =this.d.x*Math.cos(direction) -this.d.z*Math.sin(direction);
+        this.newDir.z =this.d.x*Math.sin(direction) +this.d.z*Math.cos(direction)
+        this.ray.set(this._currentPosition , this.newDir);
+        var int = this.ray.intersectObjects(this._params.cameraVision )
         // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
         // this._params.scene.add(arrow)
         if(int.length > 0){
-          idealOffset.z+=2 * (2/int[0].distance);
-          idealOffset.y = 5
+          this.idealOffset.z+=2 * (2/int[0].distance);
+          this.idealOffset.y = 5
         } 
       }); 
 
-      newDir =new THREE.Vector3(0,0,0);
-      ray.far = 3;
-      ray.near = 0;
+      this.newDir.set(0,0,0)
+      this.ray.far = 3;
+      this.ray.near = 0;
       search = [1,-1]
       search.forEach((direction) => {
-        newDir.y = direction
-        ray.set(this._currentPosition , newDir);
-        var int = ray.intersectObjects(this._params.cameraVision )
+        this.newDir.y = direction
+        this.ray.set(this._currentPosition , this.newDir);
+        var int = this.ray.intersectObjects(this._params.cameraVision )
 
         if(int.length > 0){
           if(direction == -1 ){
-            idealOffset.z+=2
-            idealOffset.y += 3;
+            this.idealOffset.z+=2
+            this.idealOffset.y += 1;
           }
         } 
       }); 
-      idealOffset.applyQuaternion(this._params.target._rotation);
-      idealOffset.add(this._params.target._position);
-      return idealOffset;
+      this.idealOffset.applyQuaternion(this._params.target._rotation);
+      this.idealOffset.add(this._params.target._position);
+      return this.idealOffset;
     }
 
     _CalculateIdealLookat() {
@@ -86,21 +90,21 @@ export const third_person_camera = (() => {
     }
 
     _CheckSuroundings(){
-      let ray = new THREE.Raycaster();
-      ray.far = 2;
-      ray.near = 0;
-      let d = new THREE.Vector3();
-      let newDir =new THREE.Vector3(0,0,0);
+      // let ray = new THREE.Raycaster();
+      this.ray.far = 2;
+      this.ray.near = 0;
+      // let d = new THREE.Vector3();
+      this.newDir.set(0,0,0)
       let newPos ;
 
       this._camera.getWorldDirection(d);
       let search = [0 , Math.PI/2 , Math.PI , -Math.PI/2];
       search.forEach((direction) => {
-        newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
-        newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
-        ray.set(this._currentPosition , newDir);
+        this.newDir.x =d.x*Math.cos(direction) -d.z*Math.sin(direction);
+        this.newDir.z =d.x*Math.sin(direction) +d.z*Math.cos(direction)
+        this.ray.set(this._currentPosition , this.newDir);
 
-        var int = ray.intersectObjects(this._params.cameraVision )
+        var int = this.ray.intersectObjects(this._params.cameraVision )
         // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
         // this._params.scene.add(arrow)
 

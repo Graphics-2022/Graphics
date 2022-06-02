@@ -19,9 +19,9 @@ export const entity_manager = (() => {
       return this._entitiesMap[n];
     }
 
-    Filter(cb) {
-      return this._entities.filter(cb);
-    }
+    // Filter(cb) {
+    //   return this._entities.filter(cb);
+    // }
 
     Add(e, n) {
       if (!n) {
@@ -35,14 +35,24 @@ export const entity_manager = (() => {
       e.SetName(n);
     }
 
-    SetActive(e, b) {
-      const i = this._entities.indexOf(e);
-      if (i < 0) {
-        return;
+    Delete(e){
+      for( let i = 0 ; i < this._entities.length ; i++){
+        if( this._entities[i]._name == e){
+          console.log(this._entities[i])
+          this._entities[i].Delete();
+          this._entities.splice(i , 1);
+        }
       }
-
-      this._entities.splice(i, 1);
     }
+
+    // SetActive(e, b) {
+    //   const i = this._entities.indexOf(e);
+    //   if (i < 0) {
+    //     return;
+    //   }
+
+    //   this._entities.splice(i, 1);
+    // }
 
     Update(timeElapsed) {
       for (let e of this._entities) {

@@ -13,7 +13,7 @@ export const levelPassed = (() =>{
           this._Initialize(level, _APP);
         }
       
-        _Initialize(level) {
+        _Initialize(level, _APP) {
           this._APP = _APP;
           var renderer, scene, container;
           var raycaster = new THREE.Raycaster();

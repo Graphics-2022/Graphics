@@ -46,50 +46,16 @@ export const level3 = (() =>{
           const near = 1.0;
           const far = 120.0;
           this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-          // this._camera.position.set(25, 10, 25);
-      
-          // this._mapCamera = new THREE.OrthographicCamera(
-          //   -1000,		// Left
-          //   1000,		// Right
-          //   1000,		// Top
-          //   -1000,		// Bottom
-          //   1,            			// Near 
-          //   1000 );           			// Far 
-          //   this._mapCamera.up = new THREE.Vector3(0,0,-1);
-          //   this._mapCamera.lookAt( new THREE.Vector3(0,-1,0) );
-          //   this._mapCamera.position.y = 500;
-          //   // this._scene.add(this._mapCamera);
-          //   var parameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
-          //   this._mapComposer = new EffectComposer( this._threejs, new THREE.WebGLRenderTarget(512,512) );
-          //   this._mapComposer.setSize( 512,512 );
-          //   var renderModel2 = new RenderPass( this._scene, this._mapCamera );
-          //   this._mapComposer.addPass( renderModel2 );
-          //   var effectFXAA2 = new ShaderPass( THREE.FXAAShader );
-          //   // effectFXAA2.uniforms[ 'resolution' ].value.set( 1 / 512, 1 / 512 );   // undo
-          //   // effectFXAA2.renderToScreen = true;	
-          //   this._mapComposer.addPass( effectFXAA2 );
-          //   var effectCopy2 = new ShaderPass( THREE.CopyShader );
-          //   effectCopy2.renderToScreen = true;
-          //   this._mapComposer.addPass( effectCopy2 );
+
       
           this._scene = new THREE.Scene();
-          this._scene.background = new THREE.Color(0xaaaaaa);
+          this._scene.background = new THREE.Color(0x000000);
           // this._scene.fog = new THREE.FogExp2(0x89b2eb, 0.002);
       
-          const light = new THREE.AmbientLight( 0x999999); // soft white light
+          const light = new THREE.AmbientLight( 0x060605); // soft white light
           this._scene.add( light );
       
-          // this.loadingScreen = {
-          //   scene: new THREE.Scene(),
-          //   camera: new THREE.PerspectiveCamera(fov, aspect, near, far),
-          //   box: new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5),
-          //   new THREE.MeshBasicMaterial({ color:0xff0000}))
-          // }
-          // this.loadingScreen.box.position.set(0,0,5);
-          // this.loadingScreen.camera.lookAt(this.loadingScreen.box.position)
-          // this.loadingScreen.scene.add(this.loadingScreen.box)
-      
-          // this._loaded = true;
+
       
           this.loadingManager = new THREE.LoadingManager()
       
@@ -105,20 +71,6 @@ export const level3 = (() =>{
             this._RAF();
           }
       
-      
-          // const plane = new THREE.Mesh(
-          //   new THREE.PlaneGeometry(1000, 1000, 10, 10),
-          //   new THREE.MeshStandardMaterial({
-          //       color: 0x1e601c,
-          //     }));
-          //   plane.name = "plane"
-          //   plane.receiveShadow = true;
-          //   plane.rotation.x = -Math.PI / 2;
-          //   plane.position.y = 0.01;
-          //   this._scene.add(plane);
-          // this._playerVision.push(plane);
-      // 
-      
           this._entityManager = new entity_manager.EntityManager();
           this._active = true;
       
@@ -133,6 +85,8 @@ export const level3 = (() =>{
           this._keyFound = false;
           this._keyLight;
           this._endGame = false;
+          this.openDoor = false;
+          this._passPoint = new THREE.Vector3(-92,-17,13);
           this._params = {
             camera: this._camera,
             scene: this._scene,
@@ -147,7 +101,17 @@ export const level3 = (() =>{
             keyFound: this._keyFound,
             keyLight:this._keyLight,
             loadingManager: this.loadingManager,
+            openDoor: this.openDoor,
           };
+
+          this.blockeddoor1;
+          this.blockeddoor1islocked = false;
+          this.blockeddoor1_activationPoint = new THREE.Vector3(36.8,12,40);
+
+          this.blockeddoor2;
+          this.blockeddoor2islocked = false;
+          this.blockeddoor2_activationPoint = new THREE.Vector3(15,5,-50);
+
       
           var listener = new THREE.AudioListener();
           this._camera.add( listener );
@@ -273,93 +237,98 @@ export const level3 = (() =>{
         }
       
         _LoadRoom(){
-          const mapLoader = new GLTFLoader();
+          const mapLoader = new GLTFLoader(this.loadingManager);
           mapLoader.setPath('./resources/Level3/');
-          mapLoader.load('map2.glb', (glb) => {
-      
-              this._params.scene.add(glb.scene);
-              // glb.scene.position.set(0,-2.5,0);
-              glb.scene.scale.setScalar(2.5);
-              glb.scene.traverse(c => {
-                c.receiveShadow = true;
-                c.castShadow = true;
-                this._params.playerVision.push(c);
-                this._params.player2Vision.push(c);
-                this._params.monsterVision.push(c);
-              });
-            });
-      
-          
-          // this._LoadLights();
-      
-        
-          //     //Load Door
-          // const Doorloader = new GLTFLoader(this.loadingManager);
-          // Doorloader.setPath('./resources/haunted_house/');
-          // Doorloader.load('door1.glb', (fbx) => {
-          //   // console.log(fbx.scene)
-          //   fbx.scene.name = 'Door'
-          //   // fbx.scene.position.set(24,0,-62);
-          //   fbx.scene.position.set(3,-2.5,-0.5);
-      
-          //   // fbx.scene.scale.setScalar(1.3);
-          //   this._scene.add(fbx.scene);
-          //   this._params.doorObject = fbx.scene;
-          //   // this._params.keyObject = fbx;
-          //   fbx.scene.traverse(c => {
-          //     c.castShadow = true;
-          //     c.receiveShadow = true;
-          //     c.metalness = 0.1
-      
-          //     this._params.playerVision.push(c);
-          //     this._params.player2Vision.push(c);
-      
-          //     if (c.material && c.material.map) {
-          //       c.material.map.encoding = THREE.sRGBEncoding;
-          //     }
-          //   });
-          // });
-      
-          // const mirrorBack1 = new Reflector(
-          //   new THREE.PlaneBufferGeometry(11, 8),
-          //   {
-          //       color: new THREE.Color(0x7f7f7f),
-          //       textureWidth: window.innerWidth * window.devicePixelRatio,
-          //       textureHeight: window.innerHeight * window.devicePixelRatio
-          //   }
-          // )
-          // mirrorBack1.position.set(-2,15,-50 );
-          // mirrorBack1.rotateY(-Math.PI/4)
-          // this._scene.add(mirrorBack1);
-          // this._playerVision.push(mirrorBack1)
-      
-          //Load Key
-          const loader = new FBXLoader(this.loadingManager);
-          loader.setPath('./resources/key/');
-          loader.load('key1.fbx', (fbx) => {
-            fbx.name = 'key'
-            fbx.position.set(99,-2,17);
-            fbx.scale.setScalar(0.02);
-            this._scene.add(fbx);
-            this._params.keyObject = fbx;
-      
-            fbx.traverse(c => {
-              // c.castShadow = true;
-              // c.receiveShadow = true;
-              // c.metalness = 1
+          mapLoader.load('level3map.glb', (glb) => {
+            this._params.scene.add(glb.scene);
+            // glb.scene.position.set(0,-2.5,0);
+            glb.scene.scale.setScalar(2.5);
+            glb.scene.traverse(c => {
+              c.receiveShadow = true;
+              c.castShadow = true;
+              this._params.playerVision.push(c);
               this._params.player2Vision.push(c);
               this._params.monsterVision.push(c);
-      
-              if (c.material && c.material.map) {
-                c.material.map.encoding = THREE.sRGBEncoding;
-              }
             });
-            const keyLight= new THREE.PointLight(0xffd700, 1, 2);
-            keyLight.position.copy(fbx.position);
-            this._scene.add(keyLight)
+          });
+
+          const doorLoader = new GLTFLoader(this.loadingManager);
+          doorLoader.setPath('./resources/Level3/');
+          doorLoader.load('map3door.glb', (glb) => {
+            this._params.scene.add(glb.scene);
+            this.mainDoor = glb.scene;
+            glb.scene.scale.setScalar(2.5);
+            glb.scene.traverse(c => {
+              c.name = "map3door";
+              c.receiveShadow = true;
+              c.castShadow = true;
+              this._params.playerVision.push(c);
+              this._params.player2Vision.push(c);
+              // this._params.monsterVision.push(c);
+            });
+          });
+    
+        
+          const noteBookLoader = new GLTFLoader(this.loadingManager);
+          noteBookLoader.setPath('./resources/Level3/');
+          noteBookLoader.load('level3notebook.glb', (glb) => {
+            this._params.scene.add(glb.scene);
+            glb.scene.scale.setScalar(2.5);
+            this._params.keyObject = glb.scene;
           });
       
       
+          const blockeddoorLoader = new GLTFLoader(this.loadingManager);
+          blockeddoorLoader.setPath('./resources/Level3/');
+          blockeddoorLoader.load('level3blockdoor1.glb', (glb) => {
+            // this._params.scene.add(glb.scene);
+            // glb.scene.position.set(0,-2.5,0);
+            glb.scene.name = "level3blockdoor1";
+            glb.scene.scale.setScalar(2.5);
+            this.blockeddoor1 = glb.scene;
+            glb.scene.traverse(c => {
+              c.receiveShadow = true;
+              c.castShadow = true;
+              // this._params.playerVision.push(c);
+              // this._params.player2Vision.push(c);
+              // this._params.monsterVision.push(c);
+            });
+          });
+
+          const blockeddoor2Loader = new GLTFLoader(this.loadingManager);
+          blockeddoor2Loader.setPath('./resources/Level3/');
+          blockeddoor2Loader.load('level3blockdoor2.glb', (glb) => {
+            // this._params.scene.add(glb.scene);
+            // glb.scene.position.set(0,-2.5,0);
+            glb.scene.name = "level3blockdoor2";
+            glb.scene.scale.setScalar(2.5);
+            this.blockeddoor2 = glb.scene;
+            glb.scene.traverse(c => {
+              c.receiveShadow = true;
+              c.castShadow = true;
+              // this._params.playerVision.push(c);
+              // this._params.player2Vision.push(c);
+              // this._params.monsterVision.push(c);
+            });
+          });
+
+          const blockeddoor3Loader = new GLTFLoader(this.loadingManager);
+          blockeddoor3Loader.setPath('./resources/Level3/');
+          blockeddoor3Loader.load('level3blockdoor3.glb', (glb) => {
+            // this._params.scene.add(glb.scene);
+            // glb.scene.position.set(0,-2.5,0);
+            glb.scene.name = "level3blockdoor3";
+            glb.scene.scale.setScalar(2.5);
+            this._params.scene.add(glb.scene);
+
+            glb.scene.traverse(c => {
+              c.receiveShadow = true;
+              c.castShadow = true;
+              this._params.playerVision.push(c);
+              this._params.player2Vision.push(c);
+              this._params.monsterVision.push(c);
+            });
+          });
       
         }
       
@@ -367,7 +336,7 @@ export const level3 = (() =>{
         _LoadPlayer() {
       
           const player = new entity.Entity();
-          player.SetPosition(new THREE.Vector3(-28,8,-70));
+          player.SetPosition(new THREE.Vector3(-83,-3,-20));
           const quaternionP = new THREE.Quaternion();
           quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI/3 );
           player.SetQuaternion(quaternionP);
@@ -381,7 +350,7 @@ export const level3 = (() =>{
       
       
           const player2 = new entity.Entity();
-          player2.SetPosition(new THREE.Vector3(-31,11,-84));
+          player2.SetPosition(new THREE.Vector3(-83,-3,-23));
           player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
           player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse' , false));
           this._entityManager.Add(player2, 'player2');
@@ -396,54 +365,74 @@ export const level3 = (() =>{
                 }));
           this._entityManager.Add(camera, 'player-camera');
       
-          // this.npcManager = new THREE.LoadingManager();
+          this.npcManager = new THREE.LoadingManager();
       
           const npc = new entity.Entity();
-          npc.SetPosition(new THREE.Vector3(-29,11,-50));
+          npc.SetPosition(new THREE.Vector3(-54,19,32));
           const quaternionM1 = new THREE.Quaternion();
           quaternionM1.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
           npc.SetQuaternion(quaternionM1);
           const points = [ 
-            new THREE.Vector3( -26,11,-43 ), 
-            new THREE.Vector3( 6,11,-48 ),
-            new THREE.Vector3( -13,11,-26),
-            new THREE.Vector3( -13,11,0 ),
-            new THREE.Vector3( 1,11,-7 ),
+            new THREE.Vector3( -54 , 20 , 32 ), 
+            new THREE.Vector3( -24 , 20 , 33 ),
+            new THREE.Vector3( -23 , 20 , 52 ),
+            new THREE.Vector3( -23 , 20 , 47 ),
+            new THREE.Vector3( -23 , 20 , 52 ),
+            new THREE.Vector3( -24 , 20 , 33 ),
+            new THREE.Vector3( -54 , 20 , 32 ), 
+            new THREE.Vector3( -54 , 20 , 46 ), 
+            new THREE.Vector3( -54 , 20 , 32 ), 
+
             ];
-          npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points, this.npcManager));
+          npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points, this.npcManager, 13));
           this._entityManager.Add(npc, 'npc1');
       
-          // this.npcManager.onLoad = () => {
+          this.npcManager.onLoad = () => {
       
-          //   const npc2 = new entity.Entity();
-          //   this._entityManager.Add(npc2, 'npc3');
+            const npc2 = new entity.Entity();
+            this._entityManager.Add(npc2, 'npc3');
       
-          //   npc2.SetPosition(new THREE.Vector3(0,0,0));
-          //   const points2 = [ 
-          //     new THREE.Vector3( 0,0,0 ), 
-          //     new THREE.Vector3( 5,0,25 ),
-          //     new THREE.Vector3( 34,0,29),
-          //     // new THREE.Vector3( 0, 11, -20 ),
-          //     new THREE.Vector3( 43,0,1),
-          //   ];
-          //   npc2.AddComponent(new npc_entity.NPCController(this._params , 'npc3', points2, this.npcManager));
+            npc2.SetPosition(new THREE.Vector3(59, 12 , 40));
+            const points2 = [ 
+              new THREE.Vector3( 59 , 13 , 40 ), 
+              new THREE.Vector3( 59 , 13 , -19 ),
+              new THREE.Vector3( 58 , 13 , 40 ), 
+
+            ];
+            npc2.AddComponent(new npc_entity.NPCController(this._params , 'npc3', points2, this.npcManager, 13));
       
-          //   const npc1 = new entity.Entity();
-          //   this._entityManager.Add(npc1, 'npc2');
-      
-          //   npc1.SetPosition(new THREE.Vector3(50,11,-30));
-          //   const points1 = [ 
-          //     new THREE.Vector3( 50,11,-30 ), 
-          //     new THREE.Vector3( 68,11,-20 ),
-          //     new THREE.Vector3( 68,11, 24),
-          //     // new THREE.Vector3( 0, 11, -20 ),
-          //     new THREE.Vector3( 65,11,-19),
-          //   ];
+            const npc1 = new entity.Entity();
+            this._entityManager.Add(npc1, 'npc2');
+            npc1.SetPosition(new THREE.Vector3(52 , 4 , -49));
+            const points1 = [ 
+              new THREE.Vector3( 52 , 5 , -49 ), 
+              new THREE.Vector3( 51.5 , 5 , -49 ), 
+              new THREE.Vector3( 52 , 5 ,2),
+              new THREE.Vector3( 51.5 , 5 ,2),
+              new THREE.Vector3( 52 , 5 , -49 ), 
+
+            ];
+
+            const npc4 = new entity.Entity();
+            this._entityManager.Add(npc4, 'npc4');
+            npc4.SetPosition(new THREE.Vector3(-8,-6,-50 ));
+            const points4 = [ 
+              new THREE.Vector3( -18,-6,-50.5 ), 
+              new THREE.Vector3( -18,-6,-50 ), 
+              new THREE.Vector3( -38 , -6 , -50 ), 
+              new THREE.Vector3( -38 , -6 , -50.5 ), 
+
+            ];
               
-          //   setTimeout(() => {
-          //     npc1.AddComponent(new npc_entity.NPCController(this._params , 'npc2', points1, this.npcManager));
-          //   }, 1000);
-          // };
+            setTimeout(() => {
+              npc1.AddComponent(new npc_entity.NPCController(this._params , 'npc2', points1, this.npcManager, 12));
+              setTimeout(() => {
+                npc4.AddComponent(new npc_entity.NPCController(this._params , 'npc4', points4, this.npcManager, 5));
+              }, 1000);
+            }, 1000);
+
+            
+          };
         }
       
         _UIInit(){
@@ -499,85 +488,88 @@ export const level3 = (() =>{
       
       
         _RAF() {
-          // console.log(this._loaded)
-          // if (!this._loaded){
-          //   var l = requestAnimationFrame((t) => { this._RAF()})
-          //   this._threejs.render(this.loadingScreen.scene , this.loadingScreen.camera)
-          //   return;
-          // }else{
-          //   cancelAnimationFrame(l);
-          //   this._threejs.render(this._scene, this._camera);
-      
-          // }
-          setTimeout( ()=> {
-          var Req = requestAnimationFrame((t) => {
-      
-            if (this._previousRAF === null) {
-              this._previousRAF = t;
-            }
-            
-            if(!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()){
-              if(this._active ){
-                this._active = false;
-                this._entityManager.Get('player2').GetComponent("BasicCharacterControllerInput").ResetR();
-                this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(true);
-                this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
-                  camera: this._camera,
-                  target: this._entityManager.Get('player2'),
-                  cameraVision : this._player2Vision,
-                  transition: true,
-                });
-              }else{
-                this._active = true;
-                this._entityManager.Get('player').GetComponent("BasicCharacterControllerInput").ResetR();
-                this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(true);
-                this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
-                  camera: this._camera,
-                  target: this._entityManager.Get('player'),
-                  cameraVision : this._player2Vision, 
-                  transition: true,
-                });
-              }
-            }
-      
-            if(!this._params.playerFound){
-              this._RAF();
-              // var w = window.innerWidth, h = window.innerHeight;
-      
-              // // setViewport parameters:
-              // //  lower_left_x, lower_left_y, viewport_width, viewport_height
-              
-              // // full display
-              // this._threejs.setViewport( 0, 0, w, h );
-              // // renderer.render( scene, camera );
-              // composer.render();
-      
-              // renderer.clear( false, true, false ); // clear the depth buffer -- thanks @WestLangley!
-      
-              // // minimap (overhead orthogonal camera)
-              // renderer.setViewport( 10, h - mapHeight - 10, mapWidth, mapHeight);
-              // // renderer.render( scene, mapCamera );
-              // mapComposer.render();
-              this._threejs.render(this._scene, this._camera);
-              this._Step(t - this._previousRAF);
-              this._previousRAF = t;
-            }else{
-              cancelAnimationFrame(Req);
-              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new gameOver.gameOver(3);
-              return;
-            }
-            
-            if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(36,20,-11)) < 5 && this._params.keyFound && this._endGame == false){
-              this._endGame = true;
-              cancelAnimationFrame(Req);
-              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new level2();
-              return;
-            }
-      
-          });
-        }, 1000 / 30 );
+          if (!this._endGame){
+            setTimeout( ()=> {
+              requestAnimationFrame((t) => {
+          
+                if (this._previousRAF === null) {
+                  this._previousRAF = t;
+                }
+                // controls which character the camera will follow
+                if(!this._entityManager.Get('player').GetComponent("BasicCharacterController").GetActive() && !this._entityManager.Get('player2').GetComponent("BasicCharacterController").GetActive()){
+                  if(this._active ){
+                    this._active = false;
+                    this._entityManager.Get('player2').GetComponent("BasicCharacterControllerInput").ResetR();
+                    this._entityManager.Get('player2').GetComponent("BasicCharacterController").SetActive(true);
+                    this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
+                      camera: this._camera,
+                      target: this._entityManager.Get('player2'),
+                      cameraVision : this._player2Vision,
+                      transition: true,
+                    });
+                  }else{
+                    this._active = true;
+                    this._entityManager.Get('player').GetComponent("BasicCharacterControllerInput").ResetR();
+                    this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(true);
+                    this._entityManager.Get('player-camera').GetComponent("ThirdPersonCamera").ChangePlayer({
+                      camera: this._camera,
+                      target: this._entityManager.Get('player'),
+                      cameraVision : this._player2Vision, 
+                      transition: true,
+                    });
+                  }
+                }
+
+                if (!this.blockeddoor1islocked && this._entityManager.Get('player').Position.distanceTo(this.blockeddoor1_activationPoint) < 5){
+                  this._scene.add(this.blockeddoor1);
+                  this.blockeddoor1islocked = true;
+                  this.blockeddoor1.traverse(c => {
+                    this._params.playerVision.push(c);
+                    this._params.player2Vision.push(c);
+                  });
+                  this._entityManager.Delete("npc1");
+                }
+
+                if (!this.blockeddoor2islocked && this._entityManager.Get('player').Position.distanceTo(this.blockeddoor2_activationPoint) < 3 && this._keyFound){
+                  this._scene.add(this.blockeddoor2);
+                  this.blockeddoor2islocked = true;
+                  this.blockeddoor2.traverse(c => {
+                    this._params.playerVision.push(c);
+                    this._params.player2Vision.push(c);
+                  });
+                  this._entityManager.Delete("npc2");
+                  this._entityManager.Delete("npc3");
+                }
+
+                // open door when activated
+                if (this._params.openDoor){
+                  this.mainDoor.position.z += 0.1;
+                  if(this.mainDoor.position.z > 6){
+                    this._params.openDoor= false;
+                  }
+                }
+          
+                if(!this._params.playerFound){
+                  this._RAF();
+                  this._threejs.render(this._scene, this._camera);
+                  this._Step(t - this._previousRAF);
+                  this._previousRAF = t;
+                }else{
+                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+                  _APP = new gameOver.gameOver(3);
+                  this._endGame = true;
+                  return;
+                }
+                
+                if(this._entityManager.Get('player').Position.distanceTo(this._passPoint) < 5 && this._params.keyFound){
+                  this._endGame = true;
+                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+                  _APP = new menu.menu();
+                  return;
+                }
+              });
+            }, 1000 / 30 );
+          }
         }
       
         _Step(timeElapsed) {

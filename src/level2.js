@@ -136,6 +136,7 @@ export const level2 = (() =>{
           this._keyFound = false;
           this._keyLight;
           this._endGame = false;
+          this._passPoint = new THREE.Vector3(36,20,-11);
           this._params = {
             camera: this._camera,
             scene: this._scene,
@@ -276,7 +277,7 @@ export const level2 = (() =>{
         }
       
         _LoadRoom() {
-          const mapLoader = new GLTFLoader();
+          const mapLoader = new GLTFLoader(this.loadingManager);
           mapLoader.setPath('./resources/Level2/');
           mapLoader.load('FancyHouse1.glb', (glb) => {
       
@@ -413,7 +414,7 @@ export const level2 = (() =>{
             new THREE.Vector3( -13,11,0 ),
             new THREE.Vector3( 1,11,-7 ),
             ];
-          npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points, this.npcManager));
+          npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points, this.npcManager, 12));
           this._entityManager.Add(npc, 'npc1');
       
           this.npcManager.onLoad = () => {
@@ -429,7 +430,7 @@ export const level2 = (() =>{
               // new THREE.Vector3( 0, 11, -20 ),
               new THREE.Vector3( 43,0,1),
             ];
-            npc2.AddComponent(new npc_entity.NPCController(this._params , 'npc3', points2, this.npcManager));
+            npc2.AddComponent(new npc_entity.NPCController(this._params , 'npc3', points2, this.npcManager , 15 ));
       
             const npc1 = new entity.Entity();
             this._entityManager.Add(npc1, 'npc2');
@@ -444,7 +445,7 @@ export const level2 = (() =>{
             ];
               
             setTimeout(() => {
-              npc1.AddComponent(new npc_entity.NPCController(this._params , 'npc2', points1, this.npcManager));
+              npc1.AddComponent(new npc_entity.NPCController(this._params , 'npc2', points1, this.npcManager, 12));
             }, 1000);
           };
         }
@@ -567,15 +568,15 @@ export const level2 = (() =>{
             }else{
               cancelAnimationFrame(Req);
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new gameOver.gameOver(2);
+              this._APP = new gameOver.gameOver(2);
               return;
             }
             
-            if(this._entityManager.Get('player').Position.distanceTo(new THREE.Vector3(36,20,-11)) < 5 && this._params.keyFound && this._endGame == false){
+            if(this._entityManager.Get('player').Position.distanceTo(this._passPoint) < 5 && this._params.keyFound && this._endGame == false){
               this._endGame = true;
               cancelAnimationFrame(Req);
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              _APP = new levelPassed.levelPassed(2);
+              this._APP = new levelPassed.levelPassed(2, this._APP);
               return;
             }
       

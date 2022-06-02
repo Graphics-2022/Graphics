@@ -4,15 +4,18 @@ import { TextGeometry } from '../modules/TextGeometry.js';
 import { level1 } from './level1.js';
 import { level2 } from './level2.js';
 import { level3 } from './level3.js';
+import { menu } from './menu.js';
 
 export const gameOver = (() =>{
 
     class gameOver {
-        constructor(level) {
-          this._Initialize(level);
+        constructor(level, _APP) {
+          this._Initialize(level, _APP);
+
         }
       
-        _Initialize(level) {
+        _Initialize(level, _APP) {
+          this._APP = _APP;
           var renderer, scene, container;
       
           var raycaster = new THREE.Raycaster();
@@ -168,7 +171,7 @@ export const gameOver = (() =>{
                     _APP = new level2.level2();
                   }
                   else if (level==3){
-                    _APP=new level3.level3();
+                    _APP = new level3.level3();
                   }
       
                   return;
@@ -178,7 +181,7 @@ export const gameOver = (() =>{
                   continueAnimating = false;
       
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                  _APP = new menu();
+                  _APP = new menu.menu();
                   return
                 }
               }

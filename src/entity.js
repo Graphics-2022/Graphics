@@ -59,6 +59,10 @@ export const entity = (() => {
       return this._components[n];
     }
 
+    Delete(){
+      this.GetComponent("NPCController").Delete();
+    }
+
     FindEntity(n) {
       return this._parent.Get(n);
     }

@@ -244,7 +244,7 @@ export const player_entity = (() => {
       // console.log(this._vision)
       
       this.start.copy(this._target.position);
-      this.start.y +=1.7;
+      this.start.y +=3;
 
       this.ray.far = this._dist;
       this.ray.near = 0;
@@ -451,7 +451,7 @@ export const player_entity = (() => {
       if (this._mixer) {
         this._mixer.update(timeInSeconds);
       }
-      // console.log(this._target.position)
+      console.log(this._target.position)
       this._SetHeight();
 
       if (!this._active){

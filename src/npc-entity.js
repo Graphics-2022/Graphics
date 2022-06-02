@@ -42,11 +42,12 @@ export const npc_entity = (() => {
   };
 
   class NPCController extends entity.Component {
-    constructor(params, type , points , npcManager) {
+    constructor(params, type , points , npcManager, t) {
       super();
       this._type = type;
       this._points = points;
       this._npcManager = npcManager;
+      this._t = t;
       this._Init(params);
     }
 
@@ -59,7 +60,6 @@ export const npc_entity = (() => {
       this._time = 0.1;
       this._spotLight;
       this._target;
-
       this._animations = {};
       this._input = new AIInput();
       this._stateMachine = new NPCFSM(new player_entity.BasicCharacterControllerProxy(this._animations));
@@ -73,7 +73,9 @@ export const npc_entity = (() => {
         const loader = new GLTFLoader( this._npcManager);
         loader.setPath('./resources/enemies/mutant/');
         loader.load('ghoul2.glb', (fbx) => {
+          // fbx.name = "ncp1"
           this._target= fbx.scene;
+          this._target.name = this._type;
           this._mixer = new THREE.AnimationMixer(this._target);
           // const clips = fbx
           this.clip = THREE.AnimationClip.findByName(fbx , 'Ghoul')
@@ -84,6 +86,7 @@ export const npc_entity = (() => {
         });
       }else{
         this._target = SkeletonUtils.clone(this._params.entityManager.Get('npc1').GetComponent("NPCController")._target);
+        this._target.name = this._type;
         this._parent = this._params.entityManager.Get(this._type);
         this._mixer = new THREE.AnimationMixer(this._target);
         // const clips = this.fbx
@@ -93,6 +96,8 @@ export const npc_entity = (() => {
         action.play();
         this._setModel();
       }
+
+
     }
 
     _setModel(){
@@ -144,6 +149,7 @@ export const npc_entity = (() => {
 
       var material    = new spotlight_material.SpotlightMaterial().GetMaterial();
       this._mesh    = new THREE.Mesh( geometry, material );
+      this._mesh.name = this._type+"mesh";
       this._mesh.position.copy(this._target.position);
 
       this._mesh.lookAt(this._targetObject.position)
@@ -154,6 +160,7 @@ export const npc_entity = (() => {
       this._params.scene.add( this._mesh );
 
       this._spotLight    = new THREE.SpotLight( 0xff0909 , 8 , 200 , Math.PI/10 )
+      this._spotLight.name = this._type+"spot"
       this._spotLight.position.copy(this._target.position)
       this._spotLight.exponent    = 30
       this._spotLight.intensity    = 5
@@ -193,6 +200,12 @@ export const npc_entity = (() => {
       this.ray.far = 100;
       this.ray.near = 0;
       this.int;
+
+                  // visualize the path
+                  const lineGeometry = new THREE.BufferGeometry().setFromPoints( this.path.getPoints( 32 ) );
+                  const lineMaterial = new THREE.LineBasicMaterial();
+                  const line = new THREE.Line( lineGeometry, lineMaterial );
+                  this._params.scene.add(line)
     }
 
     get Position() {
@@ -249,13 +262,9 @@ export const npc_entity = (() => {
     _OnAIWalk(timeInSeconds) {
       
       this._time += timeInSeconds;
-      // visualize the path
-      // const lineGeometry = new THREE.BufferGeometry().setFromPoints( path.getPoints( 32 ) );
-      // const lineMaterial = new THREE.LineBasicMaterial();
-      // const line = new THREE.Line( lineGeometry, lineMaterial );
-      // this._params.scene.add(line)
 
-      const pos1=this.path.getPointAt( (this._time/5)%1);  //  lvl 1:5 ,  lvl 3 :15
+
+      const pos1=this.path.getPointAt( (this._time/this._t)%1);  //  lvl 1:5 ,  lvl 3 :15
       const dir = this._parent._position.clone();
       dir.sub(pos1);
       dir.y = 0.0;
@@ -293,6 +302,15 @@ export const npc_entity = (() => {
 
       this._parent.SetPosition(this._position);
       this._parent.SetQuaternion(this._target.quaternion);
+    }
+
+    Delete(){
+      var selectedObject = this._params.scene.getObjectByName(this._type);
+      this._params.scene.remove(selectedObject);
+      selectedObject = this._params.scene.getObjectByName(this._type+"spot");
+      this._params.scene.remove(selectedObject);
+      selectedObject = this._params.scene.getObjectByName(this._type+"mesh");
+      this._params.scene.remove(selectedObject);
     }
 
     Update(timeInSeconds) {

@@ -50,8 +50,17 @@ export const player_input = (() => {
       //console.log(int)
 
       if ( int.length > 0){
-        //console.log(int[0].object.name)
         if(int[0].object.name == "Key"){
+          console.log("key found");
+          const div = document.getElementById("inventory-1");
+          div.style.backgroundImage = "url('./resources/icons/key.png')";
+          this._params.scene.remove(this._params.keyObject);
+          this._params.keyFound = true;
+        }
+        console.log(int[0].object)
+        
+        if(int[0].object.name == "Notepad_BAKED_Notepad_BAKED_0" ){
+
           console.log("key found");
           const div = document.getElementById("inventory-1");
           //console.log(div);
@@ -60,23 +69,11 @@ export const player_input = (() => {
           //this._params.scene.remove(this._params.keyLight);
           this._params.keyFound = true;
         }
-        console.log(int[0].object)
 
-        if(int[0].object.name == "Panel001_Door_inside_0" || int[0].object.name ==  "Panel_Door_inside_0" ){
-
-          console.log("frame")
-
-          // if(this._params.keyFound ){
-            this._params.doorObject.rotation.y = -Math.PI / 2;
-            this._params.doorObject.position.x -= 1.5;
-            // this._params.scene.remove(this._params.doorObject);
-            
-          // }
-          // const quaternionP = new THREE.Quaternion();
-          // quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), -Math.PI/2 );
-          // this._params.doorObject.quaternion.copy(quaternionP);
+        if((int[0].object.name == "map3door" || int[0].object.name == "Panel001_Door_inside_0" || int[0].object.name ==  "Panel_Door_inside_0")){ // && this._params.keyFound){
+          this._params.openDoor = true;
+          console.log("door");
         }
-
       }
     }
 
