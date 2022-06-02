@@ -8,12 +8,12 @@ import { level3 } from './level3.js';
 
 export const gameFinished = (() =>{
 
-    class gameFInished {
-        constructor() {
-          this._Initialize();
+    class gameFinished {
+        constructor(_APP) {
+          this._Initialize(_APP);
         }
       
-        _Initialize() {
+        _Initialize(_APP) {
           var renderer, scene, container;
       
           var raycaster = new THREE.Raycaster();
@@ -62,12 +62,12 @@ export const gameFinished = (() =>{
             var Textmaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
             var levelPassedText = new THREE.Mesh(Textgeometry, Textmaterial);
             levelPassedText.position.x = -110;
-            levelPassedText.position.y = 20;
+            levelPassedText.position.y = 30;
             //menuText.lookAt(-50, 20,0)
             scene.add(levelPassedText);
-            const Continue = new TextGeometry('Continue', {
+            const finish = new TextGeometry('You have finished the game!', {
               font: font,
-              size: 6,
+              size: 8,
               height: 1,
               curveSegments: 5,
               // bevelEnabled: true,
@@ -76,16 +76,16 @@ export const gameFinished = (() =>{
               // bevelOffset: 0,
               // bevelSegments: 0
             });
-            var continueMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
-            var continueText = new THREE.Mesh(Continue, continueMaterial);
-            continueText.name = "continue";
-            continueText.position.x = -45;
-            continueText.position.y = -18;
-            continueText.position.z = 35;
-            continueText.lookAt(-15, -10, 55)
-            scene.add(continueText);
+            var finishMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+            var finishText = new THREE.Mesh(finish, finishMaterial);
+            finishText.name = "finish";
+            finishText.position.x = -75;
+            finishText.position.y = -5;
+            finishText.position.z = 35;
+            //continueText.lookAt(-15, -10, 55)
+            scene.add(finishText);
       
-            const Quit = new TextGeometry('Quit', {
+            const menu = new TextGeometry('Menu', {
               font: font,
               size: 6,
               height: 1,
@@ -96,33 +96,25 @@ export const gameFinished = (() =>{
               // bevelOffset: 0,
               // bevelSegments: 0
             });
-            var quitMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
-            var quitText = new THREE.Mesh(Quit, quitMaterial);
-            quitText.name = "quit";
-            quitText.position.x = 32;
-            quitText.position.y = -18;
-            quitText.position.z = 15;
-            quitText.lookAt(0, -10, 45);
-            scene.add(quitText)
+            var menuMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+            var menuText = new THREE.Mesh(menu, menuMaterial);
+            menuText.name = "menu";
+            menuText.position.x = -10;
+            menuText.position.y = -33;
+            menuText.position.z = 15;
+            menuText.lookAt(-10, 15, 75);
+            scene.add(menuText)
           });
       
           const geometry = new THREE.BoxGeometry(40, 15, 15);
           const material = new THREE.MeshLambertMaterial({ color: 0x505050 });
           const sphere = new THREE.Mesh(geometry, material);
           sphere.name = "sphere";
-          sphere.position.x = -50;
-          sphere.position.y = -20
-          sphere.lookAt(0, -10, 50);
+          sphere.position.x = 0;
+          sphere.position.y = -40
+          sphere.lookAt(0, 10, 50);
           scene.add(sphere);
       
-          const geometry2 = new THREE.BoxGeometry(25, 15, 15);
-          const material2 = new THREE.MeshLambertMaterial({ color: 0x505050 });
-          const sphere2 = new THREE.Mesh(geometry2, material2);
-          sphere2.name = "sphere2";
-          sphere2.position.x = 50;
-          sphere2.position.y = -20
-          sphere2.lookAt(0, -10, 50)
-          scene.add(sphere2);
       
           const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
           directionalLight.position.x = -150;
@@ -160,18 +152,13 @@ export const gameFinished = (() =>{
               for (var i = 0; i < intersects.length; i++) {
                 if (intersects[i].object.name == 'sphere') { //if you click on the first block which says try again
                   continueAnimating = false;
+                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                   _APP=new menu.menu();
       
                   return;
       
                 }
-                else if (intersects[i].object.name == 'sphere2') {
-                  continueAnimating = false;
-      
-                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                  _APP = new menu.menu();
-                  return
-                }
+                
               }
             }
       
@@ -194,5 +181,5 @@ export const gameFinished = (() =>{
           animate();
         }
       }
-    return {ganeFinished : gameFInished};
+    return {gameFinished : gameFinished};
 })();
