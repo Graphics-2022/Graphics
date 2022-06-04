@@ -82,10 +82,10 @@ export const gameOver = (() =>{
             var tryAgainMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
             var tryAgainText = new THREE.Mesh(tryAgain, tryAgainMaterial);
             tryAgainText.name = "tryAgain";
-            tryAgainText.position.x = -45;
+            tryAgainText.position.x = -48;
             tryAgainText.position.y = -18;
             tryAgainText.position.z = 35;
-            tryAgainText.lookAt(-15, -10, 50)
+            tryAgainText.lookAt(-15, -10, 60)
             scene.add(tryAgainText);
       
             const Quit = new TextGeometry('Quit', {
@@ -109,7 +109,7 @@ export const gameOver = (() =>{
             scene.add(quitText)
           });
       
-          const geometry = new THREE.BoxGeometry(40, 15, 15);
+          const geometry = new THREE.BoxGeometry(42, 15, 15);
           const material = new THREE.MeshLambertMaterial({ color: 0x505050 });
           const sphere = new THREE.Mesh(geometry, material);
           sphere.name = "sphere";

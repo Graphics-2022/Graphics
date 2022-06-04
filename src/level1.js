@@ -463,7 +463,6 @@ export const level1 = (() => {
                   }
                 }
 
-                // open door when activated
 
           
                 if(this._params.playerFound){

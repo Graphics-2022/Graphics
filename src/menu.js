@@ -2,6 +2,7 @@ import * as THREE from '../modules/three.module.js';
 import { FontLoader } from '../modules/FontLoader.js';
 import { TextGeometry } from '../modules/TextGeometry.js';
 import { level1 } from './level1.js';
+import { credits } from './credits.js';
 
 export const menu = (() =>{
 
@@ -165,6 +166,11 @@ export const menu = (() =>{
                 //   });
                   return;
       
+                }
+                else if(intersects[i].object.name=='sphere2'){
+                  continueAnimating=false;
+                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+                  _APP=new credits.credits();
                 }
               }
             }
