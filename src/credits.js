@@ -9,11 +9,11 @@ import { level3 } from './level3.js';
 export const credits = (() =>{
 
     class credits {
-        constructor() {
-          this._Initialize();
+        constructor(_APP) {
+          this._Initialize(_APP);
         }
       
-        _Initialize() {
+        _Initialize(_APP) {
           var renderer, scene, container;
       
           var raycaster = new THREE.Raycaster();
@@ -38,18 +38,19 @@ export const credits = (() =>{
       
           container = document.getElementById('container');
           container.appendChild(renderer.domElement);
+
+          document.getElementById('overlay').style.display='block';
       
           // init scene
           scene = new THREE.Scene();
           scene.background = new THREE.Color('black');
       
-          let levelString='LEVEL '+level+' PASSED';
           //loading the fonts, have three text geometries
           const loader = new FontLoader();
       
           loader.load('../resources/fonts/helvetiker_regular.typeface.json', function (font) {
       
-            const Textgeometry = new TextGeometry(levelString, {
+            const Textgeometry = new TextGeometry('CREDITS', {
               font: font,
               size: 20,
               height: 3,
@@ -61,12 +62,13 @@ export const credits = (() =>{
               bevelSegments: 3
             });
             var Textmaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
-            var levelPassedText = new THREE.Mesh(Textgeometry, Textmaterial);
-            levelPassedText.position.x = -110;
-            levelPassedText.position.y = 20;
+            var creditsText = new THREE.Mesh(Textgeometry, Textmaterial);
+            creditsText.position.x = -70;
+            creditsText.position.y = 35;
             //menuText.lookAt(-50, 20,0)
-            scene.add(levelPassedText);
-            const Continue = new TextGeometry('Continue', {
+            scene.add(creditsText);
+                 
+            const menu = new TextGeometry('Menu', {
               font: font,
               size: 6,
               height: 1,
@@ -77,54 +79,25 @@ export const credits = (() =>{
               // bevelOffset: 0,
               // bevelSegments: 0
             });
-            var continueMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
-            var continueText = new THREE.Mesh(Continue, continueMaterial);
-            continueText.name = "continue";
-            continueText.position.x = -45;
-            continueText.position.y = -18;
-            continueText.position.z = 35;
-            continueText.lookAt(-15, -10, 55)
-            scene.add(continueText);
-      
-            const Quit = new TextGeometry('Quit', {
-              font: font,
-              size: 6,
-              height: 1,
-              curveSegments: 5,
-              // bevelEnabled: true,
-              // bevelThickness:0,
-              // bevelSize: 0,
-              // bevelOffset: 0,
-              // bevelSegments: 0
-            });
-            var quitMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
-            var quitText = new THREE.Mesh(Quit, quitMaterial);
-            quitText.name = "quit";
-            quitText.position.x = 32;
-            quitText.position.y = -18;
-            quitText.position.z = 15;
-            quitText.lookAt(0, -10, 45);
-            scene.add(quitText)
+            var menuMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+            var menuText = new THREE.Mesh(menu, menuMaterial);
+            menuText.name = "menu";
+            menuText.position.x = 73;
+            menuText.position.y = -43;
+            menuText.position.z = 15;
+            //quitText.lookAt(0, -10, 45);
+            scene.add(menuText)
           });
       
-          const geometry = new THREE.BoxGeometry(40, 15, 15);
+          const geometry = new THREE.BoxGeometry(25, 15, 15);
           const material = new THREE.MeshLambertMaterial({ color: 0x505050 });
           const sphere = new THREE.Mesh(geometry, material);
           sphere.name = "sphere";
-          sphere.position.x = -50;
-          sphere.position.y = -20
-          sphere.lookAt(0, -10, 50);
+          sphere.position.x = 90;
+          sphere.position.y = -45
+         //sphere.lookAt(0, 10, 0);
           scene.add(sphere);
-      
-          const geometry2 = new THREE.BoxGeometry(25, 15, 15);
-          const material2 = new THREE.MeshLambertMaterial({ color: 0x505050 });
-          const sphere2 = new THREE.Mesh(geometry2, material2);
-          sphere2.name = "sphere2";
-          sphere2.position.x = 50;
-          sphere2.position.y = -20
-          sphere2.lookAt(0, -10, 50)
-          scene.add(sphere2);
-      
+            
           const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
           directionalLight.position.x = -150;
           directionalLight.position.y = 10;
@@ -148,7 +121,6 @@ export const credits = (() =>{
       
           const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
           camera.position.z = 100;
-          console.log(camera.position)
           var continueAnimating = true; //variable used to cancel animation frame
           function render() {
       
@@ -161,18 +133,14 @@ export const credits = (() =>{
               for (var i = 0; i < intersects.length; i++) {
                 if (intersects[i].object.name == 'sphere') { //if you click on the first block which says try again
                   continueAnimating = false;
+                  document.getElementById('overlay').style.display='none';
+                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                   _APP=new menu.menu();
       
                   return;
       
                 }
-                else if (intersects[i].object.name == 'sphere2') {
-                  continueAnimating = false;
-      
-                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                  _APP = new menu.menu();
-                  return
-                }
+                
               }
             }
       
