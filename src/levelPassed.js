@@ -14,7 +14,6 @@ export const levelPassed = (() =>{
         }
       
         _Initialize(level, _APP) {
-          this._APP = _APP;
           var renderer, scene, container;
           var raycaster = new THREE.Raycaster();
           var mouse = new THREE.Vector2();
@@ -163,10 +162,10 @@ export const levelPassed = (() =>{
                   continueAnimating = false;
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                   if (level == 1) {
-                    this._APP = new level2.level2();
+                    _APP = new level2.level2(_APP);
                   }
                   else if (level == 2) {
-                    this._APP = new level3.level3();
+                    _APP = new level3.level3(_APP);
                   }
       
                   return;
@@ -176,7 +175,7 @@ export const levelPassed = (() =>{
                   continueAnimating = false;
       
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                  this._APP = new menu();
+                  _APP = new menu.menu(_APP);
                   return
                 }
               }

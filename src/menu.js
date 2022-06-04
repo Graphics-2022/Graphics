@@ -161,7 +161,7 @@ export const menu = (() =>{
                   continueAnimating = false;
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                 //   window.addEventListener('DOMContentLoaded', () => {
-                    _APP = new level1.level1;
+                    _APP = new level1.level1(_APP);
                 //   });
                   return;
       

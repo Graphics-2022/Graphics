@@ -21,10 +21,10 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  font-family: 'IM Fell French Canon', serif;
+  font-family: Arial
 }
-
-/* .quest-ui-layout {
+/* 
+.hint-ui-layout {
   display: flex;
   height: 100%;
   width: 100%;
@@ -33,38 +33,38 @@ body {
   align-items: center;
 } */
 
-/* .quest-ui {
+.hint-ui {
   background: rgba(1.0, 1.0, 1.0, 0.75);
   padding: 20px 20px;
   width: 700px;
   z-index: 2;
-} */
+}
 
-/* .quest-title {
+.hint-title {
   font-size: 3em;
   color: white;
   text-shadow: 4px 4px black;
 }
 
-.quest-text-title {
+.hint-text-title {
   font-size: 3em;
   color: white;
   padding-bottom: 10px;
 }
 
-.quest-text {
+.hint-text {
   font-size: 1em;
   color: white;
-} */
+}
 
-/* .quest-journal-layout {
+/* .hint-journal-layout {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
   align-items: flex-end;
-} */
+}
 
-/* .quest-journal {
+.quest-journal {
   display: flex;
   flex-direction: column;
   background: rgba(1.0, 1.0, 1.0, 0.75);

@@ -2,6 +2,7 @@ import * as THREE from '../modules/three.module.js';
 import { third_person_camera } from './third-person-camera.js';
 import { entity_manager } from './entity-manager.js';
 import { player_entity } from './player-entity.js'
+import { player2_entity } from './player2-entity.js'
 import { entity } from './entity.js';
 import { player_input } from './player-input.js';
 import { npc_entity } from './npc-entity.js';
@@ -50,35 +51,9 @@ export const level1 = (() => {
           const near = 1.0;
           const far = 100.0;
           this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-          // this._camera.position.set(25, 10, 25);
-      
-          // this._mapCamera = new THREE.OrthographicCamera(
-          //   -1000,		// Left
-          //   1000,		// Right
-          //   1000,		// Top
-          //   -1000,		// Bottom
-          //   1,            			// Near 
-          //   1000 );           			// Far 
-          //   this._mapCamera.up = new THREE.Vector3(0,0,-1);
-          //   this._mapCamera.lookAt( new THREE.Vector3(0,-1,0) );
-          //   this._mapCamera.position.y = 500;
-          //   // this._scene.add(this._mapCamera);
-          //   var parameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
-          //   this._mapComposer = new EffectComposer( this._threejs, new THREE.WebGLRenderTarget(512,512) );
-          //   this._mapComposer.setSize( 512,512 );
-          //   var renderModel2 = new RenderPass( this._scene, this._mapCamera );
-          //   this._mapComposer.addPass( renderModel2 );
-          //   var effectFXAA2 = new ShaderPass( THREE.FXAAShader );
-          //   // effectFXAA2.uniforms[ 'resolution' ].value.set( 1 / 512, 1 / 512 );   // undo
-          //   // effectFXAA2.renderToScreen = true;	
-          //   this._mapComposer.addPass( effectFXAA2 );
-          //   var effectCopy2 = new ShaderPass( THREE.CopyShader );
-          //   effectCopy2.renderToScreen = true;
-          //   this._mapComposer.addPass( effectCopy2 );
       
           this._scene = new THREE.Scene();
           this._scene.background = new THREE.Color(0x000000);
-          // this._scene.fog = new THREE.FogExp2(0x89b2eb, 0.002);
       
           const light = new THREE.AmbientLight( 0x070707 ); // soft white light
           this._scene.add( light );
@@ -94,22 +69,34 @@ export const level1 = (() => {
           this.loadingScreen.camera.lookAt(this.loadingScreen.box.position)
           this.loadingScreen.scene.add(this.loadingScreen.box)
       
-          // this._loaded = true;
       
           this.loadingManager = new THREE.LoadingManager()
-      
-          // this.loadingManager.onProgress = function(item , loaded, total){
-          //   console.log(item, loaded , total)
-          // }
-      
           this.loadingManager.onLoad = () => {
-            // console.log(this._loaded)
-      
-            // this._loaded = true;
             this._UIInit();
             this._RAF();
           }
-      
+
+          this.mapCamera = new THREE.OrthographicCamera(
+            window.innerWidth / -40,		// Left
+            window.innerWidth / 40,		// Right
+            window.innerHeight / 40,		// Top
+            window.innerHeight / -40,	// Bottom
+            // window.innerWidth / -2,		// Left
+            // window.innerWidth / 2,		// Right
+            // window.innerHeight / 2,		// Top
+            // window.innerHeight / -2,	// Bottom
+            0,            			// Near 
+            100 );           			// Far 
+
+            // this.mapCamera = new THREE.PerspectiveCamera(
+            //   90, aspect , 0.01,500
+            // )
+
+          this.mapCamera.up = new THREE.Vector3(0,0,-1);
+          this.mapCamera.lookAt( new THREE.Vector3(0,-1,0) );
+          this.mapCamera.position.set(0,20,-38)  // h = 9  
+          // this.mapCamera.position.set(0,20,0);
+
       
           const plane = new THREE.Mesh(
             new THREE.PlaneGeometry(1000, 1000, 10, 10),
@@ -128,6 +115,7 @@ export const level1 = (() => {
           this._monsterVision = [];
           this._playerVision = [];
           this._player2Vision = [];
+          this._autoHint = false;
       
           this._playerVision.push(plane);
           this._keyObject;
@@ -139,19 +127,20 @@ export const level1 = (() => {
           this.openDoor = false;
           this._endGame = false;
           this._passPoint = new THREE.Vector3(27,0,-76);
+          this._mouseMaxDistance = 30;
           this._params = {
             camera: this._camera,
+            miniMapCam : this.mapCamera,
             scene: this._scene,
             monsterVision: this._monsterVision,
             playerVision: this._playerVision,
             player2Vision: this._player2Vision,
+            mouseMaxDistance : this._mouseMaxDistance,
             keyObject: this._keyObject,
             doorObject: this._doorObject,
-            doorFrameObject: this._doorFrameObject,
             entityManager: this._entityManager,
             playerFound: this._playerFound,
             keyFound: this._keyFound,
-            keyLight: this._keyLight,
             loadingManager: this.loadingManager,
           };
       
@@ -186,89 +175,15 @@ export const level1 = (() => {
           this._LoadPlayer();
       
           this._previousRAF = null;
-          // this._RAF();
-          // console.log("Textures in Memory", this._threejs.info.memory.textures)
+
+          	// // orthographic cameras
+
+              // this._scene.add(this.mapCamera);
+
+              // this.mapWidth = 240, 
+              // this.mapHeight = 160; 
         }
       
-      
-      //   _LoadSky() {
-      //     const hemiLight = new THREE.HemisphereLight(0x210606, 0x210606, 0.01);
-      //     hemiLight.color.setHSL(0, 0.69, 0.08);
-      //     hemiLight.groundColor.setHSL(0, 0.69, 0.08);
-      //     this._scene.add(hemiLight);
-      
-      //     const uniforms = {
-      //       "topColor": { value: new THREE.Color(0x0077ff) },
-      //       "bottomColor": { value: new THREE.Color(0xffffff) },
-      // //       "topColor": { value: new THREE.Color(0x210606) },
-      // //       "bottomColor": { value: new THREE.Color(0x210606) },
-      // // >>>>>>> 929fd97a243c8a0d8f0d29e250dc28c7e7b517b1
-      //       "offset": { value: 33 },
-      //       "exponent": { value: 0.6 }
-      //     };
-      //     uniforms["topColor"].value.copy(hemiLight.color);
-      
-      //     this._scene.fog.color.copy(uniforms["bottomColor"].value);
-      
-      //     // this._scene.fog.color.copy(uniforms["bottomColor"].value);
-      
-      //     const skyGeo = new THREE.SphereBufferGeometry(1000, 32, 15);
-      //     const skyMat = new THREE.ShaderMaterial({
-      //         uniforms: uniforms,
-      //         vertexShader: _VS,
-      //         fragmentShader: _FS,
-      //         side: THREE.BackSide
-      //     });
-      
-      //     const sky = new THREE.Mesh(skyGeo, skyMat);
-      //     this._scene.add(sky);
-      //   }
-      
-      
-        _LoadLights() {
-      
-          const posLights = [[0, 9, -20], [0, 9, -50], [-25, 9, -50], [-20, 20, -45]];
-          // console.log(posLights)
-          posLights.forEach((posLight) => {
-            // console.log(posLight)
-            const light = new THREE.PointLight(0xffbb73, 0.1, 100);
-            light.position.x = posLight[0];
-            light.position.y = posLight[1];
-            light.position.z = posLight[2];
-            light.castShadow = true;
-            this._params.scene.add(light);
-            light.shadow.mapSize.width = 512; // default
-            light.shadow.mapSize.height = 512; // default
-            light.shadow.camera.near = 0.5; // default
-            light.shadow.camera.far = 100; // default
-            light.shadow.bias = -0.005;
-            // const sphereSize = 1;
-            // const pointLightHelper = new THREE.PointLightHelper( light, sphereSize );
-            // this._params.scene.add( pointLightHelper );
-          })
-      
-      
-          const light2 = new THREE.PointLight(0x09cc09, 0.1, 100);
-          light2.position.set(25, 9, -50);
-          light2.castShadow = true;
-          this._params.scene.add(light2);
-          light2.shadow.mapSize.width = 512; // default
-          light2.shadow.mapSize.height = 512; // default
-          light2.shadow.camera.near = 0.5; // default
-          light2.shadow.camera.far = 100; // default
-          light2.shadow.bias = -0.005;
-      
-      
-          const spotLight = new THREE.SpotLight(0x09dd09, 8, 200, Math.PI / 10)
-          spotLight.position.set(30, 10, -75)
-          spotLight.exponent = 30
-          spotLight.intensity = 5
-          spotLight.target.position.set(30, 0, -75)
-          this._params.scene.add(spotLight.target);
-      
-          this._params.scene.add(spotLight)
-      
-        }
       
         _LoadRoom() {
           const mapLoader = new GLTFLoader(this.loadingManager);
@@ -398,7 +313,7 @@ export const level1 = (() => {
           const player2 = new entity.Entity();
           player2.SetPosition(new THREE.Vector3(-7, 13, -23));
           player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
-          player2.AddComponent(new player_entity.BasicCharacterController(this._params, 'mouse', false));
+          player2.AddComponent(new player2_entity.BasicCharacterController(this._params, 'mouse', false));
           this._entityManager.Add(player2, 'player2');
       
           const camera = new entity.Entity();
@@ -440,24 +355,58 @@ export const level1 = (() => {
               new THREE.Vector3(-2, 2.5, -35),
               new THREE.Vector3(2, 2.5, -35),
             ];
-            npc1.AddComponent(new npc_entity.NPCController(this._params, 'npc2', points1, this.npcManager,5));
+            npc1.AddComponent(new npc_entity.NPCController(this._params, 'npc2', points1, this.npcManager,8));
           };
         }
       
-        _UIInit() {
+        _UIInit(){
           this._iconBar = {
             inventory: document.getElementById('icon-bar-inventory'),
             switch: document.getElementById('icon-bar-quests'),
+            hint: document.getElementById('icon-bar-hint'),
           };
+    
           this._ui = {
             inventory: document.getElementById('inventory'),
-            quests: document.getElementById('quest-journal'),
+            hint: document.getElementById('hint-ui')
           };
+    
           this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
           this._iconBar.switch.onclick = (m) => { this._OnSwitchClicked(m); };
+          this._iconBar.hint.onclick = (m) => { this._HintSetMessage("Hint","Use W,A,S,D to control the character. Find the hidden key to unlock the door but most importantly DO NOT GET CAUGHT!!" ); this._OnHintClicked()};
+
           this._ui.inventory.style.visibility = 'hidden';
+          this._ui.hint.style.visibility = 'hidden';
+
           this._iconBar.inventory.style.visibility = 'visible';
           this._iconBar.switch.style.visibility = 'visible';
+          this._iconBar.hint.style.visibility = 'visible';
+        }
+
+        _HintSetMessage(heading , mess){
+          const title = document.getElementById('hint-text-title');
+          title.innerText = heading;
+
+          const text = document.getElementById('hint-text');
+          text.innerText = mess;
+        }
+
+        _OnHintClicked(toggle){
+          const visibility = this._ui.hint.style.visibility;
+          // console.log(this._autoHint)
+          if(typeof toggle == 'undefined'){
+            this._ui.hint.style.visibility = (visibility ? '' : 'hidden');
+            this._autoHint = !this._autoHint;
+            return;
+          }
+
+          if (this._autoHint){
+            return;
+          }
+
+          if((toggle && visibility != '') || (!toggle && visibility == '')){
+            this._ui.hint.style.visibility = (visibility ? '' : 'hidden');
+          }
         }
       
         _OnSwitchClicked() {
@@ -515,36 +464,65 @@ export const level1 = (() => {
                 }
 
                 // open door when activated
-                if (this._params.openDoor){
-                  if(this._params.keyFound){
-                    this._params.doorObject.rotation.y += Math.PI / 30;
 
-                    if(  this._params.doorObject.rotation.y >= Math.PI / 2 ){
-                      this._params.openDoor= false;
-                    }
-                  }else{
-
-                  }
-                }
           
-                if(!this._params.playerFound){
-                  this._RAF();
-                  this._threejs.render(this._scene, this._camera);
-                  this._Step(t - this._previousRAF);
-                  this._previousRAF = t;
-                }else{
+                if(this._params.playerFound){
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                   this._APP = new gameOver.gameOver(1, this._APP);
                   this._endGame = true;
                   return;
+
                 }
-                
-                if(this._entityManager.Get('player').Position.distanceTo(this._passPoint) < 5 && this._params.keyFound){
-                  this._endGame = true;
-                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                  this._APP = new levelPassed.levelPassed(1,this._APP);
-                  return;
+                if(this._entityManager.Get('player').Position.distanceTo(this._passPoint) < 5){
+                  if (this._params.keyFound){
+                    this._endGame = true;
+                    document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+                    this._APP = new levelPassed.levelPassed(1,this._APP);
+                    return;
+                  }
+                }else{
+                  if (this._params.openDoor){
+                    if(this._params.keyFound){
+                      this._params.doorObject.rotation.y += Math.PI / 30;
+  
+                      if(  this._params.doorObject.rotation.y >= Math.PI / 2 ){
+                        this._params.openDoor= false;
+                      }
+                    }else{
+                      this._params.openDoor = false;
+                      this._HintSetMessage("Hint", "You need to find the key first! Tip: use the mouse");
+                      this._OnHintClicked();
+                    }
+                  }
                 }
+
+                if(this._entityManager.Get('player').Position.y > 10){
+                  this.mapCamera.position.y = 20;
+                }else{
+                  this.mapCamera.position.y = 9.1;
+                }
+
+                this._RAF();
+                this._threejs.setViewport(0,0,window.innerWidth, window.innerHeight);
+                this._threejs.clear();
+                this._threejs.render( this._scene, this._camera );
+
+                this._threejs.clearDepth();
+                this._threejs.setScissorTest(true);
+                this._threejs.setScissor(
+                  0,
+                  0,
+                  window.innerWidth/6,
+                  window.innerWidth/6,
+                )
+
+                this._threejs.setViewport(0,0,window.innerWidth/6, window.innerWidth/6);
+                this._threejs.render( this._scene, this.mapCamera );
+                this._threejs.setScissorTest(false);
+
+                // this._threejs.render(this._scene, this._camera);
+                this._Step(t - this._previousRAF);
+                this._previousRAF = t;
               });
             }, 1000 / 30 );
           }
