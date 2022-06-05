@@ -480,6 +480,10 @@ export const level2 = (() =>{
                 }
           
                 if(this._params.playerFound){
+                  document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
+              document.getElementById('icon-bar-quests').style.visibility = 'hidden'
+              document.getElementById('inventory').style.visibility = 'hidden'
+              document.getElementById('icon-bar-hint').style.visibility = 'hidden'
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                   this._APP = new gameOver.gameOver(2, this._APP);
                   this._endGame = true;
@@ -489,6 +493,10 @@ export const level2 = (() =>{
                 if(this._entityManager.Get('player').Position.distanceTo(this._passPoint) < 5){
                   if (this._params.keyFound){
                     this._endGame = true;
+                    document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
+              document.getElementById('icon-bar-quests').style.visibility = 'hidden'
+              document.getElementById('inventory').style.visibility = 'hidden'
+              document.getElementById('icon-bar-hint').style.visibility = 'hidden'
                     document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                     this._APP = new levelPassed.levelPassed(2,this._APP);
                     return;
