@@ -1,8 +1,5 @@
 import * as THREE from '../modules/three.module.js';
-
 import {FBXLoader} from '../modules/FBXLoader.js';
-import {GLTFLoader} from '../modules/GLTFLoader.js';
-
 import {entity} from './entity.js';
 import {finite_state_machine} from './finite-state-machine.js';
 import {player_state} from './player-state.js';
@@ -146,7 +143,6 @@ export const player2_entity = (() => {
         this.newDir =new THREE.Vector3(0,0,0);
         this.start = new THREE.Vector3();
         this.ray = new THREE.Raycaster();
-        
         this.int ;
         this.frameDecceleration= new THREE.Vector3();;
         this.oldPosition= new THREE.Vector3();
@@ -156,7 +152,6 @@ export const player2_entity = (() => {
         this.eye = new THREE.Vector3(0,0,0);
         this.up = new THREE.Vector3(0,1,0);
         this.down = new THREE.Vector3(0,-1,0);
-
         this._Q = new THREE.Quaternion();
         this._A = new THREE.Vector3();
         this.p = new THREE.Vector3();
@@ -180,7 +175,6 @@ export const player2_entity = (() => {
       this.newDir.set(this.d.x * 0.866 - this.d.z * -0.5, 0 , this.d.x*(-0.5) + this.d.z* 0.866);
       this.ray.set(this.start, this.newDir);
       this.int = this.ray.intersectObjects(this._vision, false );
-
       if(this.int.length > 0){
         this._velocity.x = 0;
         this._velocity.y = 0;
@@ -352,7 +346,7 @@ export const player2_entity = (() => {
         this._GoToPlayer();
       }
 
-      if(false){//this._CheckSurroundings(this._input)){
+      if(this._CheckSurroundings(this._input)){
         this._stateMachine.SetState('idle');
       }else{
         this._input._keys.forward = true;

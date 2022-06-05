@@ -79,10 +79,10 @@ export const levelPassed = (() =>{
             var continueMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
             var continueText = new THREE.Mesh(Continue, continueMaterial);
             continueText.name = "continue";
-            continueText.position.x = -45;
+            continueText.position.x = -47;
             continueText.position.y = -18;
             continueText.position.z = 35;
-            continueText.lookAt(-15, -10, 55)
+            continueText.lookAt(-15, -10, 60)
             scene.add(continueText);
       
             const Quit = new TextGeometry('Quit', {

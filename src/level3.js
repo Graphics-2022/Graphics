@@ -7,15 +7,10 @@ import { entity } from './entity.js';
 import { player_input } from './player-input.js';
 import { npc_entity } from './npc-entity.js';
 import { GLTFLoader } from '../modules/GLTFLoader.js';
-import { Reflector } from '../modules/Reflector.js';
-import { FBXLoader } from '../modules/FBXLoader.js';
-import { FontLoader } from '../modules/FontLoader.js';
-import { TextGeometry } from '../modules/TextGeometry.js';
-import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
 
 export const level3 = (() => {
-
+  // Level 3 class to load level 3
   class level3 {
     constructor(_APP) {
       this._APP = _APP;
@@ -24,10 +19,10 @@ export const level3 = (() => {
 
 
     _Initialize() {
+      // Set up WebGL renderer
       this._threejs = new THREE.WebGLRenderer({
         antialias: true,
         powerPreference: 'high-performance',
-        // autoClear: true
       });
       this._threejs.outputEncoding = THREE.sRGBEncoding;
       this._threejs.gammaFactor = 2.2;
@@ -36,13 +31,15 @@ export const level3 = (() => {
       this._threejs.setPixelRatio(window.devicePixelRatio);
       this._threejs.setSize(window.innerWidth, window.innerHeight);
       this._threejs.domElement.id = 'threejs';
-
       document.getElementById('container').appendChild(this._threejs.domElement);
 
+      // Add a window resize listener 
       window.addEventListener('resize', () => {
         this._OnWindowResize();
       }, false);
 
+      // Cameras
+      // Set up main camera
       const fov = 60;
       const aspect = 1920 / 1080;
       const near = 1.0;
@@ -50,36 +47,51 @@ export const level3 = (() => {
       this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
 
+      // Initialize the scene
       this._scene = new THREE.Scene();
       this._scene.background = new THREE.Color(0x000000);
-      // this._scene.fog = new THREE.FogExp2(0x89b2eb, 0.002);
 
+      // Add lighting
       const light = new THREE.AmbientLight(0x060605); // soft white light
       this._scene.add(light);
 
-
-
+      // Loading manager waits for all models to be loaded before starting the animation loop
       this.loadingManager = new THREE.LoadingManager()
-
-      // this.loadingManager.onProgress = function(item , loaded, total){
-      //   console.log(item, loaded , total)
-      // }
-
       this.loadingManager.onLoad = () => {
-        // console.log(this._loaded)
-
-        // this._loaded = true;
         this._UIInit();
         this._RAF();
       }
 
+      // Adding an audio listener to the scene
+      var listener = new THREE.AudioListener();
+      this._camera.add(listener);
+      // Create a global audio source for the background sound
+      this.sound = new THREE.Audio(listener);
+      var audioLoader = new THREE.AudioLoader();
+      //Load a sound and set it as the Audio object's buffer
+      audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', (buffer) => {
+        this.sound.setBuffer( buffer );
+        this.sound.setLoop(true);
+        this.sound.setVolume(0.5);
+        this.sound.play();
+        }
+      );
+      // Create a global audio source for the screaming sound
+      this.screamSound = new THREE.Audio(listener);
+      var audioLoader1 = new THREE.AudioLoader();
+      // Load a sound and set it as the Audio object's buffer
+      audioLoader1.load('../resources/sounds/wscream_2.wav', (buffer) => {
+        this.screamSound.setBuffer(buffer);
+        this.screamSound.setLoop(false);
+        this.screamSound.setVolume(0.8);
+      });
+
+      // Initializing global variables
       this._entityManager = new entity_manager.EntityManager();
       this._active = true;
-
       this._monsterVision = [];
       this._playerVision = [];
       this._player2Vision = [];
-
       this._keyObject;
       this._doorObject;
       this._doorFrameObject;
@@ -109,55 +121,29 @@ export const level3 = (() => {
       this.blockeddoor1;
       this.blockeddoor1islocked = false;
       this.blockeddoor1_activationPoint = new THREE.Vector3(36.8, 12, 40);
-
       this.blockeddoor2;
       this.blockeddoor2islocked = false;
       this.blockeddoor2_activationPoint = new THREE.Vector3(15, 5, -50);
 
-
-      var listener = new THREE.AudioListener();
-      this._camera.add(listener);
-
-      // create a global audio source
-      var sound = new THREE.Audio(listener);
-
-      var audioLoader = new THREE.AudioLoader();
-
-      //Load a sound and set it as the Audio object's buffer
-      // audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function( buffer ) {
-      //   sound.setBuffer( buffer );
-      //   sound.setLoop(true);
-      //   sound.setVolume(0.5);
-      //   sound.play();
-      //   },
-      //   // onProgress callback
-      //   function ( xhr ) {
-      //     //console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-      //   },
-
-      //   // onError callback
-      //   function ( err ) {dwaaaa
-      //     console.log( 'An error occured' );
-      //   }
-      // );
-
-      // this._LoadSky();
+      // Load all assets
       this._LoadRoom();
       this._LoadPlayer();
 
       this._previousRAF = null;
     }
 
+    // Initializes the environment
     _LoadRoom() {
+      // Load the level
       const mapLoader = new GLTFLoader(this.loadingManager);
       mapLoader.setPath('./resources/Level3/');
       mapLoader.load('level3map1.glb', (glb) => {
         this._params.scene.add(glb.scene);
-        // glb.scene.position.set(0,-2.5,0);
         glb.scene.scale.setScalar(2.5);
         glb.scene.traverse(c => {
           c.receiveShadow = true;
           c.castShadow = true;
+          // Add this object to the "vision" of the corresponding models 
           this._params.playerVision.push(c);
           this._params.player2Vision.push(c);
           this._params.monsterVision.push(c);
@@ -174,13 +160,13 @@ export const level3 = (() => {
           c.name = "map3door";
           c.receiveShadow = true;
           c.castShadow = true;
+          // Add this object to the "vision" of the corresponding models 
           this._params.playerVision.push(c);
           this._params.player2Vision.push(c);
-          // this._params.monsterVision.push(c);
         });
       });
 
-
+      //Load the notebook into the map and store the object
       const noteBookLoader = new GLTFLoader(this.loadingManager);
       noteBookLoader.setPath('./resources/Level3/');
       noteBookLoader.load('level3notebook.glb', (glb) => {
@@ -193,49 +179,37 @@ export const level3 = (() => {
       const blockeddoorLoader = new GLTFLoader(this.loadingManager);
       blockeddoorLoader.setPath('./resources/Level3/');
       blockeddoorLoader.load('level3blockdoor1.glb', (glb) => {
-        // this._params.scene.add(glb.scene);
-        // glb.scene.position.set(0,-2.5,0);
         glb.scene.name = "level3blockdoor1";
         glb.scene.scale.setScalar(2.5);
         this.blockeddoor1 = glb.scene;
         glb.scene.traverse(c => {
           c.receiveShadow = true;
           c.castShadow = true;
-          // this._params.playerVision.push(c);
-          // this._params.player2Vision.push(c);
-          // this._params.monsterVision.push(c);
         });
       });
 
       const blockeddoor2Loader = new GLTFLoader(this.loadingManager);
       blockeddoor2Loader.setPath('./resources/Level3/');
       blockeddoor2Loader.load('level3blockdoor2.glb', (glb) => {
-        // this._params.scene.add(glb.scene);
-        // glb.scene.position.set(0,-2.5,0);
         glb.scene.name = "level3blockdoor2";
         glb.scene.scale.setScalar(2.5);
         this.blockeddoor2 = glb.scene;
         glb.scene.traverse(c => {
           c.receiveShadow = true;
           c.castShadow = true;
-          // this._params.playerVision.push(c);
-          // this._params.player2Vision.push(c);
-          // this._params.monsterVision.push(c);
         });
       });
 
       const blockeddoor3Loader = new GLTFLoader(this.loadingManager);
       blockeddoor3Loader.setPath('./resources/Level3/');
       blockeddoor3Loader.load('level3blockdoor3.glb', (glb) => {
-        // this._params.scene.add(glb.scene);
-        // glb.scene.position.set(0,-2.5,0);
         glb.scene.name = "level3blockdoor3";
         glb.scene.scale.setScalar(2.5);
         this._params.scene.add(glb.scene);
-
         glb.scene.traverse(c => {
           c.receiveShadow = true;
           c.castShadow = true;
+          // Add this object to the "vision" of the corresponding models 
           this._params.playerVision.push(c);
           this._params.player2Vision.push(c);
           this._params.monsterVision.push(c);
@@ -245,13 +219,11 @@ export const level3 = (() => {
     }
 
 
+    // Load the main player (girl), second player (mouse), and the enemy (ghoul) 
     _LoadPlayer() {
-
+      // Initialize the girl
       const player = new entity.Entity();
       player.SetPosition(new THREE.Vector3(-83, -3, -25));
-      // const quaternionP = new THREE.Quaternion();
-      // quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), 0 );
-      // player.SetQuaternion(quaternionP);
       player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
       player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl', true));
       this._entityManager.Add(player, 'player');
@@ -260,13 +232,14 @@ export const level3 = (() => {
       this._camera.position.z += 7;
       this._currentLookat = player.Position;
 
-
+      // Initialize the mouse
       const player2 = new entity.Entity();
       player2.SetPosition(new THREE.Vector3(-80, -3, -25));
       player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
       player2.AddComponent(new player2_entity.BasicCharacterController(this._params, 'mouse', false));
       this._entityManager.Add(player2, 'player2');
 
+      // Initialize the main camera and set it to the girl
       const camera = new entity.Entity();
       camera.AddComponent(
         new third_person_camera.ThirdPersonCamera({
@@ -277,8 +250,10 @@ export const level3 = (() => {
         }));
       this._entityManager.Add(camera, 'player-camera');
 
+      // Loading manager which only allows other enemies to load after the first has been loaded, this allows for cloning    
       this.npcManager = new THREE.LoadingManager();
 
+      // Initialize the enemies
       const npc = new entity.Entity();
       npc.SetPosition(new THREE.Vector3(-54, 19, 32));
       const quaternionM1 = new THREE.Quaternion();
@@ -300,16 +275,13 @@ export const level3 = (() => {
       this._entityManager.Add(npc, 'npc1');
 
       this.npcManager.onLoad = () => {
-
         const npc2 = new entity.Entity();
         this._entityManager.Add(npc2, 'npc3');
-
         npc2.SetPosition(new THREE.Vector3(59, 12, 40));
         const points2 = [
           new THREE.Vector3(59, 13, 40),
           new THREE.Vector3(59, 13, -19),
           new THREE.Vector3(58, 13, 40),
-
         ];
         npc2.AddComponent(new npc_entity.NPCController(this._params, 'npc3', points2, this.npcManager, 13));
 
@@ -322,7 +294,6 @@ export const level3 = (() => {
           new THREE.Vector3(52, 5, 2),
           new THREE.Vector3(51.5, 5, 2),
           new THREE.Vector3(52, 5, -49),
-
         ];
 
         this.npc4 = new entity.Entity();
@@ -333,14 +304,12 @@ export const level3 = (() => {
           new THREE.Vector3(-18, -6, -50),
           new THREE.Vector3(-38, -6, -50),
           new THREE.Vector3(-38, -6, -50.5),
-
         ];
 
         setTimeout(() => {
           npc1.AddComponent(new npc_entity.NPCController(this._params, 'npc2', points1, this.npcManager, 12));
           setTimeout(() => {
             this.npc4.AddComponent(new npc_entity.NPCController(this._params, 'npc4', points4, this.npcManager, 5));
-            // this._entityManager.Delete("npc1");
           }, 1000);
         }, 1000);
 
@@ -348,38 +317,43 @@ export const level3 = (() => {
       };
     }
 
+    // Inisializes the UI component
     _UIInit() {
+      // bottom midle icons
       this._iconBar = {
         inventory: document.getElementById('icon-bar-inventory'),
-        switch: document.getElementById('icon-bar-quests'),
+        switch: document.getElementById('icon-bar-switch'),
         hint: document.getElementById('icon-bar-hint'),
       };
 
+      // pop up UI
       this._ui = {
         inventory: document.getElementById('inventory'),
         hint: document.getElementById('hint-ui')
       };
 
+      // Setting on click events for the icons
       this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
       this._iconBar.switch.onclick = (m) => { this._OnSwitchClicked(m); };
       this._iconBar.hint.onclick = (m) => { this._HintSetMessage("Hint", "Find the pass code in the office"); this._OnHintClicked() };
 
+      // Setting the visibility 
       this._ui.inventory.style.visibility = 'hidden';
       this._ui.hint.style.visibility = 'hidden';
-
       this._iconBar.inventory.style.visibility = 'visible';
       this._iconBar.switch.style.visibility = 'visible';
       this._iconBar.hint.style.visibility = 'visible';
     }
 
+    // function setting the message of the hint
     _HintSetMessage(heading, mess) {
       const title = document.getElementById('hint-text-title');
       title.innerText = heading;
-
       const text = document.getElementById('hint-text');
       text.innerText = mess;
     }
 
+    // Function toggling the visibility of the hint
     _OnHintClicked(toggle) {
       const visibility = this._ui.hint.style.visibility;
       // console.log(this._autoHint)
@@ -398,6 +372,7 @@ export const level3 = (() => {
       }
     }
 
+    // Switching the controls between girl and mouse
     _OnSwitchClicked() {
       if (this._active) {
         this._entityManager.Get('player').GetComponent("BasicCharacterController").SetActive(false);
@@ -406,12 +381,14 @@ export const level3 = (() => {
       }
     }
 
+    // Function toggling the visibility of the inventory
     _OnInventoryClicked() {
       const visibility = this._ui.inventory.style.visibility;
       // this._ui.inventory.style.visibility = 'hidden';
       this._ui.inventory.style.visibility = (visibility ? '' : 'hidden');
     }
 
+    // Resizing the window
     _OnWindowResize() {
       this._camera.aspect = window.innerWidth / window.innerHeight;
       this._camera.updateProjectionMatrix();
@@ -419,8 +396,11 @@ export const level3 = (() => {
     }
 
 
+    // Animation loop
     _RAF() {
+      // Stop loop if the level ends
       if (!this._endGame) {
+        // Timeout to restrict the frame per second to ensure enough time 
         setTimeout(() => {
           requestAnimationFrame((t) => {
 
@@ -482,32 +462,32 @@ export const level3 = (() => {
               }
             }
 
+            // End game when the girl is seen by an enemy
             if (!this._params.playerFound) {
-              this._RAF();
-              this._threejs.render(this._scene, this._camera);
-              this._Step(t - this._previousRAF);
-              this._previousRAF = t;
-            } else {
-              document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-quests').style.visibility = 'hidden'
-              document.getElementById('inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-hint').style.visibility = 'hidden'
-              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              this._APP = new gameOver.gameOver(3, this._APP);
-              this._endGame = true;
-              return;
-            }
-
+                document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
+                document.getElementById('icon-bar-switch').style.visibility = 'hidden'
+                document.getElementById('inventory').style.visibility = 'hidden'
+                document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+                document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+                this._APP = new gameOver.gameOver(3, this._APP);
+                this._endGame = true;
+                return;
+            } 
+            // Check if the player has reached the end of the level
             if (this._entityManager.Get('player').Position.distanceTo(this._passPoint) < 5 && this._params.keyFound) {
               this._endGame = true;
               document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-quests').style.visibility = 'hidden'
+              document.getElementById('icon-bar-switch').style.visibility = 'hidden'
               document.getElementById('inventory').style.visibility = 'hidden'
               document.getElementById('icon-bar-hint').style.visibility = 'hidden'
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
               this._APP = new levelPassed.levelPassed(3, this._APP);
               return;
             }
+            this._RAF();
+            this._threejs.render(this._scene, this._camera);
+            this._Step(t - this._previousRAF);
+            this._previousRAF = t;
           });
         }, 1000 / 30);
       }
