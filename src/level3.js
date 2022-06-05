@@ -223,7 +223,7 @@ export const level3 = (() => {
     _LoadPlayer() {
       // Initialize the girl
       const player = new entity.Entity();
-      player.SetPosition(new THREE.Vector3(50, 12, 40))//-83, -3, -25));
+      player.SetPosition(new THREE.Vector3(-83, -3, -25));
       player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
       player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl', true));
       this._entityManager.Add(player, 'player');
