@@ -7,7 +7,7 @@ import { level3 } from './level3.js';
 import { credits } from './credits.js';
 
 export const menu = (() =>{
-
+    // Menu class to display the menu page
     class menu {
         constructor(_APP) {
           this._Initialize(_APP);
@@ -16,7 +16,6 @@ export const menu = (() =>{
         _Initialize(_APP) {
       
           var renderer, scene, container;
-      
           var raycaster = new THREE.Raycaster();
           var mouse = new THREE.Vector2();
       
