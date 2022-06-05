@@ -284,23 +284,27 @@ svg {
   display: block; /* Hidden by default */
   width: 80%; /* Full width (cover the whole page) */
   height: 70%; /* Full height (cover the whole page) */
-  top: 175px;
+  top: 200px;
   left: 170px;
   right: 0;
   bottom: 0;
   background-color: transparent; 
-  color:white;
+  color:rgb(166, 38, 38);
   z-index: 1000; /* Specify a stack order in case you're using a different order for other elements */
   cursor: pointer; /* Add a pointer on hover */
-  /* overflow-y: auto; */
-  /* animation: slide infinite 3s alternate; */
+  overflow-y: hidden;  
+  
+}
+
+.movestuff{
   -webkit-animation-name: move;
   -webkit-animation-duration: 10s;
   -webkit-animation-iteration-count: infinite;
   -webkit-animation-direction: up;
-  -webkit-animation-timing-function:linear;
-  overscroll-behavior: contain;
+  -webkit-animation-timing-function:linear; 
+
 }
+
 
 @keyframes move {
   0% {

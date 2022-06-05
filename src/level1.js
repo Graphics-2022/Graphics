@@ -155,31 +155,31 @@ export const level1 = (() => {
         loadingManager: this.loadingManager,
       };
 
-      var listener = new THREE.AudioListener();
-      this._camera.add(listener);
+      this.listener = new THREE.AudioListener();
+      this._camera.add(this.listener);
 
       // create a global audio source
-      var sound = new THREE.Audio(listener);
+      var  sound = new THREE.Audio(this.listener);
 
       var audioLoader = new THREE.AudioLoader();
 
       //Load a sound and set it as the Audio object's buffer
-      // audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function( buffer ) {
-      //   sound.setBuffer( buffer );
-      //   sound.setLoop(true);
-      //   sound.setVolume(0.5);
-      //   sound.play();
-      //   },
-      //   // onProgress callback
-      //   function ( xhr ) {
-      //     //console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-      //   },
+      audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', function( buffer ) {
+        sound.setBuffer( buffer );
+        sound.setLoop(true);
+        sound.setVolume(0.5);
+        sound.play();
+        },
+        // onProgress callback
+        function ( xhr ) {
+          //console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+        },
 
-      //   // onError callback
-      //   function ( err ) {
-      //     console.log( 'An error occured' );
-      //   }
-      // );
+        // onError callback
+        function ( err ) {
+          console.log( 'An error occured' );
+        }
+      );
 
       // this._LoadSky();
       this._LoadRoom();
@@ -533,6 +533,19 @@ export const level1 = (() => {
               this._Step(t - this._previousRAF);
               this._previousRAF = t;
             } else {
+
+              var sound1 = new THREE.Audio(this.listener);
+
+              var audioLoader1 = new THREE.AudioLoader();
+              // Load a sound and set it as the Audio object's buffer
+              audioLoader1.load('../resources/sounds/wscream_2.wav', function (buffer) {
+                sound1.setBuffer(buffer);
+                sound1.setLoop(false);
+                sound1.setVolume(0.8);
+                sound1.play();
+              },
+
+              );
               document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
               document.getElementById('icon-bar-quests').style.visibility = 'hidden'
               document.getElementById('inventory').style.visibility = 'hidden'
