@@ -104,7 +104,6 @@ export const npc_entity = (() => {
       this._target.scale.setScalar(0.025);
       this._target.position.copy(this._parent.Position);
       this._target.quaternion.copy(this._parent.Quaternion);
-      this._params.scene.add(this._target);
       this._bones = {};
 
 
@@ -176,8 +175,7 @@ export const npc_entity = (() => {
       this._spotLight.shadow.focus = 1; // default
 
 
-      this._params.scene.add( this._spotLight  )
-      this._params.scene.add( this._spotLight.target);
+
 
 
       this.d = new THREE.Vector3();
@@ -201,11 +199,21 @@ export const npc_entity = (() => {
       this.ray.near = 0;
       this.int;
 
-                  // visualize the path
-                  const lineGeometry = new THREE.BufferGeometry().setFromPoints( this.path.getPoints( 32 ) );
-                  const lineMaterial = new THREE.LineBasicMaterial();
-                  const line = new THREE.Line( lineGeometry, lineMaterial );
-                  this._params.scene.add(line)
+                  // // visualize the path
+                  // const lineGeometry = new THREE.BufferGeometry().setFromPoints( this.path.getPoints( 32 ) );
+                  // const lineMaterial = new THREE.LineBasicMaterial();
+                  // const line = new THREE.Line( lineGeometry, lineMaterial );
+                  // this._params.scene.add(line)
+
+      if ( this._type != "npc4"){
+        this._AddToScene();
+      }
+    }
+
+    _AddToScene(){
+      this._params.scene.add(this._target);
+      this._params.scene.add( this._spotLight  )
+      this._params.scene.add( this._spotLight.target);
     }
 
     get Position() {

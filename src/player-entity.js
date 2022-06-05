@@ -22,8 +22,6 @@ export const player_entity = (() => {
       this._AddState('idle', player_state.IdleState);
       this._AddState('walk', player_state.WalkState);
       this._AddState('run', player_state.RunState);
-      this._AddState('attack', player_state.AttackState);
-      this._AddState('death', player_state.DeathState);
     }
   };
   
@@ -88,86 +86,21 @@ export const player_entity = (() => {
     }
 
     _LoadModels() {
-      if (this._type == 'mouse'){
-
-        const loader = new FBXLoader(this._params.loadingManager);
-        loader.setPath('./resources/mouse/');
-        loader.load('mouse2.fbx', (fbx) => {
-          fbx.name = 'mouse'
-          this._target = fbx;
-          this._target.position.copy(this._parent.Position);
-          // this._target.position.y -= 100
-          // this._target.quaternion.copy(_R);
-          // console.log(this._parent.Quaternion)
-          this._target.quaternion.copy(this._parent.Quaternion);
-
-          this._target.scale.setScalar(0.015);
-          this._params.scene.add(this._target);
-          // this._bones = {};
-          this._dist = 1;
-      // console.log(this._vision)
-
-          this._target.traverse(c => {
-            c.castShadow = true;
-            c.receiveShadow = true;
-            if (c.material && c.material.map) {
-              c.material.map.encoding = THREE.sRGBEncoding;
-            }
-            this._params.playerVision.push(c)
-            this._vision = this._params.player2Vision;
-
-          });
-
-          this._mixer = new THREE.AnimationMixer(this._target);
-
-          const _OnLoad = (animName, anim) => {
-            const clip = anim.animations[0];
-            const action = this._mixer.clipAction(clip);
-      
-            this._animations[animName] = {
-              clip: clip,
-              action: action,
-            };
-          };
-
-          this._manager = new THREE.LoadingManager(this._params.loadingManager);
-          this._manager.onLoad = () => {
-            this._stateMachine.SetState('idle');
-
-          };
-
-          // this._manager = new THREE.LoadingManager(this._params.loadingManager);
-          // this._manager.onLoad = () => {
-          // this._stateMachine.SetState('idle');
-          // };
-    
-          const loader = new FBXLoader(this._manager);
-          loader.setPath('./resources/mouse/');
-          loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
-          loader.load('Fast Run.fbx', (a) => { _OnLoad('walk', a); });
-          loader.load('Fast Run (1).fbx', (a) => { _OnLoad('run', a); });
-
-        });
-        this._input = new AIInput();
-      }else{
         const loader = new FBXLoader(this._params.loadingManager);
         loader.setPath('./resources/girl/');
         loader.load('girl2.fbx', (fbx) => {
           this._target = fbx;
           this._target.scale.setScalar(0.035);
           this._target.name = "girl"
+          // this._target.add(this._params.miniMapCam)
+          // this._params.miniMapCam.position.y += 20
           this._params.scene.add(this._target);
           this._dist = 2;
+          this._height = 2.5;
           this._target.position.copy(this._parent.Position);
-          // console.log(this._parent.Quaternion)
-
           this._target.quaternion.copy(this._parent.Quaternion);
 
           this._vision = this._params.playerVision;
-      // console.log(this._vision)
-
-          // this._bones = {};
-          // this._height = 0.7;
 
           this._target.traverse(c => {
             c.castShadow = true;
@@ -203,9 +136,8 @@ export const player_entity = (() => {
           loader.load('Female Crouch Pose.fbx', (a) => { _OnLoad('idle', a); });
           loader.load('Sneaking Forward.fbx', (a) => { _OnLoad('run', a); });
           loader.load('Crouched Walking.fbx', (a) => { _OnLoad('walk', a); });
-          // loader.load('Button Pushing.fbx', (a) => { _OnLoad('attack', a); });
         });
-      }
+      // }
 
       // init all objects once
       this.blocked;
@@ -231,20 +163,14 @@ export const player_entity = (() => {
     }
 
     _CheckSurroundings(input){
-      // this.blocked = false;
-      // this.search = [-Math.PI/6 , 0 , Math.PI/6];
-
       this._target.getWorldDirection(this.d)
-      // console.log(input)
       if (input._keys.backward){
         this.d.z *= -1;
         this.d.x *= -1;
       }
 
-      // console.log(this._vision)
-      
       this.start.copy(this._target.position);
-      this.start.y +=3;
+      this.start.y += this._height;
 
       this.ray.far = this._dist;
       this.ray.near = 0;
@@ -256,7 +182,6 @@ export const player_entity = (() => {
         this._velocity.x = 0;
         this._velocity.y = 0;
         this._velocity.z = 0;
-        // this.blocked = true;
         return true;
       } 
 
@@ -267,9 +192,10 @@ export const player_entity = (() => {
         this._velocity.x = 0;
         this._velocity.y = 0;
         this._velocity.z = 0;
-        // this.blocked = true;
         return true;
       } 
+      // var arrow = new THREE.ArrowHelper( this.ray.ray.direction, this.ray.ray.origin, this.ray.far, 0xff0000 );
+      // this._params.scene.add(arrow)
 
       this.newDir.set(this.d.x * 0.866 - this.d.z * 0.5, 0 , this.d.x * 0.5 + this.d.z* 0.866);
       this.ray.set(this.start, this.newDir);
@@ -281,24 +207,6 @@ export const player_entity = (() => {
         // this.blocked = true;
         return true;
       } 
-
-
-      // this.search.forEach((direction) => {
-      //   this.newDir.x =this.d.x*Math.cos(direction) -this.d.z*Math.sin(direction);  // cos(Math.PI/6) =sqrt(3)/2 = 0.866
-      //   this.newDir.z =this.d.x*Math.sin(direction) +this.d.z*Math.cos(direction)
-      //   this.ray.set(this.start, this.newDir);
-      //   this.int = this.ray.intersectObjects(this._vision, false );
-      //   console.log()
-      //   // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
-      //   // this._params.scene.add(arrow)
-      //   if(this.int.length > 0){
-      //       this._velocity.x = 0;
-      //       this._velocity.y = 0;
-      //       this._velocity.z = 0;
-      //       this.blocked = true;
-      //       return;
-      //   }  
-      // })
 
       return false;
     }
@@ -330,7 +238,6 @@ export const player_entity = (() => {
         velocity.z -= acc.z * timeInSeconds;
       }
   
-      // this.oldPosition = new THREE.Vector3();
       this.oldPosition.copy(this._target.position);
   
       this.forward.set(0, 0, 1);
@@ -346,56 +253,48 @@ export const player_entity = (() => {
       const pos = this._target.position.clone();
       pos.add(this.forward);
       pos.add(this.sideways);
+      // console.log(this._params.mouseMaxDistance)
+      // if(this._type == 'mouse' && pos.distanceTo(this._params.entityManager.Get('player')._position) > this._params.mouseMaxDistance){
+      //   return;
+      // }
 
       this._target.position.copy(pos);
       this._position.copy(pos);
-  
       this._parent.SetPosition(this._position);
       this._parent.SetQuaternion(this._target.quaternion);
     }
 
-    _OnAIWalk(timeInSeconds) {
-      // const currentState = this._stateMachine._currentState;
+    // _OnAIWalk(timeInSeconds) {
+    //   const _R = this._target.quaternion.clone();
+    //   const dir = this._target.position.clone();
 
-      // if ( !(currentState.Name == 'idle' || currentState.Name == 'walk')) {
-      //     return;
-      // }
+    //   dir.sub(this._params.entityManager.Get('player')._position)
+    //   dir.y = 0.0;
+    //   dir.normalize();
+    //   const dirToPlayer = dir;
 
-      // const controlObject = this._target;
-      const _R = this._target.quaternion.clone();
-      const dir = this._target.position.clone();
+    //   this.m.lookAt(this.eye,dirToPlayer,this.up);
+    //   _R.setFromRotationMatrix(this.m);
+    //   this._target.quaternion.copy(_R);
 
-      dir.sub(this._params.entityManager.Get('player')._position)
-      dir.y = 0.0;
-      dir.normalize();
-      const dirToPlayer = dir;
+    //   if (this._target.position.distanceTo(this._params.entityManager.Get('player')._position) < 5){
+    //       this._stateMachine.SetState('idle');
+    //       this._velocity.x = 0;
+    //       this._velocity.y = 0;
+    //       this._velocity.z = 0;
+    //     return;
+    //   }
 
-      // const m = new THREE.Matrix4();
-      this.m.lookAt(this.eye,dirToPlayer,this.up);
-      _R.setFromRotationMatrix(this.m);
-      this._target.quaternion.copy(_R);
-
-      if (this._target.position.distanceTo(this._params.entityManager.Get('player')._position) < 5){
-          this._stateMachine.SetState('idle');
-          this._velocity.x = 0;
-          this._velocity.y = 0;
-          this._velocity.z = 0;
-        return;
-      }
-
-      if(false){//this._CheckSurroundings(this._input)){
-        this._stateMachine.SetState('idle');
-      }else{
-        this._input._keys.forward = true;
-        this._input._keys.shift = true;
-        // this._input._keys.shift = true;
-        this._Walk(timeInSeconds , this._input);
-      }
-    }
+    //   if(false){//this._CheckSurroundings(this._input)){
+    //     this._stateMachine.SetState('idle');
+    //   }else{
+    //     this._input._keys.forward = true;
+    //     this._input._keys.shift = true;
+    //     this._Walk(timeInSeconds , this._input);
+    //   }
+    // }
 
     _OnWalk(timeInSeconds ,input){
-      // const _Q = new THREE.Quaternion();
-      // const _A = new THREE.Vector3();
       const _R = this._target.quaternion.clone();
 
       if (input._keys.left) {
@@ -420,10 +319,8 @@ export const player_entity = (() => {
     }
 
     _SetHeight(){
-      // const start = new THREE.Vector3();
       this.start.copy(this._target.position);
-      this.start.y +=3 ;
-      // let ray = new THREE.Raycaster();
+      this.start.y += this._height ;
       this.ray.far = 20;
       this.ray.near = 0;
       this.ray.set(this.start, this.down);
@@ -446,20 +343,16 @@ export const player_entity = (() => {
       if (!this._stateMachine._currentState) {
         return;
       }  
-      // console.log(this._mixer)
-
       if (this._mixer) {
         this._mixer.update(timeInSeconds);
       }
-      console.log(this._target.position)
       this._SetHeight();
-
       if (!this._active){
-        if(this._type == 'mouse'){    
-          this._OnAIWalk(timeInSeconds);
-        }else{
+        // if(this._type == 'mouse'){    
+        //   this._OnAIWalk(timeInSeconds);
+        // }else{
           this._stateMachine.SetState('idle');
-        }
+        // }
       }else{
         const input = this.GetComponent('BasicCharacterControllerInput');
         if (input._keys.switch){
@@ -471,8 +364,8 @@ export const player_entity = (() => {
   };
   
   return {
-      BasicCharacterControllerProxy: BasicCharacterControllerProxy,
-      BasicCharacterController: BasicCharacterController,
+    BasicCharacterControllerProxy: BasicCharacterControllerProxy,
+    BasicCharacterController: BasicCharacterController,
   };
 
 })();

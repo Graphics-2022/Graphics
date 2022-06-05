@@ -43,11 +43,9 @@ export const player_input = (() => {
         y: ((event.clientY - rect.top ) / rect.height) * -2 + 1,
       };
 
-      // let rey = new THREE.Raycaster();
       this._raycaster.far = 50;
       this._raycaster.setFromCamera(pos, this._params.camera);
       var int = this._raycaster.intersectObjects( this._params.scene.children, true);
-      //console.log(int)
 
       if ( int.length > 0){
         if(int[0].object.name == "Key"){
@@ -61,12 +59,10 @@ export const player_input = (() => {
         
         if(int[0].object.name == "Notepad_BAKED_Notepad_BAKED_0" ){
 
-          console.log("key found");
+          // console.log("key found");
           const div = document.getElementById("inventory-1");
-          //console.log(div);
           div.style.backgroundImage = "url('./resources/icons/key.png')";
           this._params.scene.remove(this._params.keyObject);
-          //this._params.scene.remove(this._params.keyLight);
           this._params.keyFound = true;
         }
 
