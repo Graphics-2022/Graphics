@@ -2,6 +2,8 @@ import * as THREE from '../modules/three.module.js';
 import { FontLoader } from '../modules/FontLoader.js';
 import { TextGeometry } from '../modules/TextGeometry.js';
 import { level1 } from './level1.js';
+import { level2 } from './level2.js';
+import { level3 } from './level3.js';
 import { credits } from './credits.js';
 
 export const menu = (() =>{
@@ -62,10 +64,31 @@ export const menu = (() =>{
             var Textmaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
             var menuText = new THREE.Mesh(Textgeometry, Textmaterial);
             menuText.position.x = -50;
-            menuText.position.y = 20;
+            menuText.position.y = 33;
             //menuText.lookAt(-50, 20,0)
             scene.add(menuText);
-            const Play = new TextGeometry('Play', {
+
+            const Level1 = new TextGeometry('Level 1', {
+              font: font,
+              size: 6,
+              height: 1,
+              curveSegments: 5,
+              // bevelEnabled: true,
+              // bevelThickness:0,
+              // bevelSize: 0,
+              // bevelOffset: 0,
+              // bevelSegments: 0
+            });
+            var level1Material = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+            var level1Text = new THREE.Mesh(Level1, level1Material);
+            level1Text.name = "level1";
+            level1Text.position.x = -52;
+            level1Text.position.y = 3;
+            level1Text.position.z = 20;
+            level1Text.lookAt(0, 10, 63)
+            scene.add(level1Text);
+
+            const Play = new TextGeometry('Level 2', {
               font: font,
               size: 6,
               height: 1,
@@ -79,12 +102,32 @@ export const menu = (() =>{
             var playMaterial = new THREE.MeshLambertMaterial({ color: 0x921B01 });
             var playText = new THREE.Mesh(Play, playMaterial);
             playText.name = "play";
-            playText.position.x = -47;
+            playText.position.x = -52;
             playText.position.y = -20;
-            playText.position.z = 15;
-            playText.lookAt(0, -10, 50)
+            playText.position.z = 20;
+            playText.lookAt(0, -10, 63)
             scene.add(playText);
       
+            const Level3 = new TextGeometry('Level 3', {
+              font: font,
+              size: 5.5,
+              height: 1,
+              curveSegments: 5,
+              // bevelEnabled: true,
+              // bevelThickness:0,
+              // bevelSize: 0,
+              // bevelOffset: 0,
+              // bevelSegments: 0
+            });
+            var level3Material = new THREE.MeshLambertMaterial({ color: 0x921B01 });
+            var level3Text = new THREE.Mesh(Level3, level3Material);
+            level3Text.name = "level3";
+            level3Text.position.x = -46;
+            level3Text.position.y = -42;
+            level3Text.position.z = 25;
+            level3Text.lookAt(-2, -20, 63)
+            scene.add(level3Text);
+
             const Credits = new TextGeometry('Credits', {
               font: font,
               size: 6,
@@ -106,7 +149,7 @@ export const menu = (() =>{
             scene.add(creditText);
           });
       
-          const geometry = new THREE.BoxGeometry(25, 15, 15);
+          const geometry = new THREE.BoxGeometry(32, 15, 15);
           const material = new THREE.MeshLambertMaterial({ color: 0x505050 });
           const sphere = new THREE.Mesh(geometry, material);
           sphere.name = "sphere";
@@ -123,6 +166,24 @@ export const menu = (() =>{
           sphere2.position.y = -20
           sphere2.lookAt(0, -10, 50)
           scene.add(sphere2);
+
+          const geometry3 = new THREE.BoxGeometry(32, 15, 15);
+          const material3 = new THREE.MeshLambertMaterial({ color: 0x505050 });
+          const sphere3 = new THREE.Mesh(geometry3, material3);
+          sphere3.name = "sphere3";
+          sphere3.position.x = -50;
+          sphere3.position.y = 5
+          sphere3.lookAt(0, 10, 50);
+          scene.add(sphere3);
+
+          const geometry4 = new THREE.BoxGeometry(32, 15, 15);
+          const material4 = new THREE.MeshLambertMaterial({ color: 0x505050 });
+          const sphere4 = new THREE.Mesh(geometry4, material4);
+          sphere4.name = "sphere4";
+          sphere4.position.x = -47;
+          sphere4.position.y = -45
+          sphere4.lookAt(5, -30, 50);
+          scene.add(sphere4);
       
           const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
           directionalLight.position.x = -150;
@@ -162,7 +223,7 @@ export const menu = (() =>{
                   continueAnimating = false;
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                 //   window.addEventListener('DOMContentLoaded', () => {
-                    _APP = new level1.level1(_APP);
+                    _APP = new level2.level2(_APP);
                 //   });
                   return;
       
@@ -171,6 +232,16 @@ export const menu = (() =>{
                   continueAnimating=false;
                   document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                   _APP=new credits.credits();
+                }
+                else if(intersects[i].object.name=='sphere3'){
+                  continueAnimating=false;
+                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+                  _APP=new level1.level1();
+                }
+                else if(intersects[i].object.name=='sphere4'){
+                  continueAnimating=false;
+                  document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+                  _APP=new level3.level3();
                 }
               }
             }
