@@ -463,7 +463,7 @@ export const level3 = (() => {
             }
 
             // End game when the girl is seen by an enemy
-            if (!this._params.playerFound) {
+            if (this._params.playerFound) {
                 document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
                 document.getElementById('icon-bar-switch').style.visibility = 'hidden'
                 document.getElementById('inventory').style.visibility = 'hidden'

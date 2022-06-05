@@ -64,7 +64,7 @@ export const level2 = (() =>{
       this._scene.background = new THREE.Color(0x000000);
 
       // Add lighting
-      const light = new THREE.AmbientLight( 0x020202 ); // soft white light
+      const light = new THREE.AmbientLight( 0x020202,5 ); // soft white light
       this._scene.add( light );
 
       // Loading manager waits for all models to be loaded before starting the animation loop
