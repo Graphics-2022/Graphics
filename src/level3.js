@@ -223,7 +223,7 @@ export const level3 = (() => {
     _LoadPlayer() {
       // Initialize the girl
       const player = new entity.Entity();
-      player.SetPosition(new THREE.Vector3(-83, -3, -25));
+      player.SetPosition(new THREE.Vector3(50, 12, 40))//-83, -3, -25));
       player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
       player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl', true));
       this._entityManager.Add(player, 'player');
@@ -290,9 +290,10 @@ export const level3 = (() => {
         npc1.SetPosition(new THREE.Vector3(52, 4, -49));
         const points1 = [
           new THREE.Vector3(52, 5, -49),
-          new THREE.Vector3(51.5, 5, -49),
-          new THREE.Vector3(52, 5, 2),
-          new THREE.Vector3(51.5, 5, 2),
+          new THREE.Vector3(51, 5, -49),
+          new THREE.Vector3(52, 5, 4),
+          new THREE.Vector3(49, 5, 4),
+          new THREE.Vector3(51, 5, -10),
           new THREE.Vector3(52, 5, -49),
         ];
 
@@ -351,6 +352,14 @@ export const level3 = (() => {
       title.innerText = heading;
       const text = document.getElementById('hint-text');
       text.innerText = mess;
+    }
+
+    // Hide all UI on screen
+    _HideUI(){
+      document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
+      document.getElementById('icon-bar-quests').style.visibility = 'hidden'
+      document.getElementById('inventory').style.visibility = 'hidden'
+      document.getElementById('icon-bar-hint').style.visibility = 'hidden'
     }
 
     // Function toggling the visibility of the hint
@@ -456,32 +465,33 @@ export const level3 = (() => {
 
             // open door when activated
             if (this._params.openDoor) {
-              this.mainDoor.position.z += 0.1;
-              if (this.mainDoor.position.z > 6) {
+              if(this._params.keyFound){
+                this.mainDoor.position.z += 0.1;
+                if (this.mainDoor.position.z > 6) {
+                  this._params.openDoor = false;
+                }
+              }else{
                 this._params.openDoor = false;
               }
             }
 
             // End game when the girl is seen by an enemy
-            if (!this._params.playerFound) {
-                document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-                document.getElementById('icon-bar-switch').style.visibility = 'hidden'
-                document.getElementById('inventory').style.visibility = 'hidden'
-                document.getElementById('icon-bar-hint').style.visibility = 'hidden'
-                document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                this._APP = new gameOver.gameOver(3, this._APP);
-                this._endGame = true;
-                return;
+            if (this._params.playerFound) {
+              this._HideUI();
+              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+              this._APP = new gameOver.gameOver(3, this._APP);
+              this.sound.pause();
+              this.screamSound.play();
+              this._endGame = true;
+              return;
             } 
             // Check if the player has reached the end of the level
             if (this._entityManager.Get('player').Position.distanceTo(this._passPoint) < 5 && this._params.keyFound) {
               this._endGame = true;
-              document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-switch').style.visibility = 'hidden'
-              document.getElementById('inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+              this._HideUI();
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
               this._APP = new levelPassed.levelPassed(3, this._APP);
+              this.sound.pause();
               return;
             }
             this._RAF();

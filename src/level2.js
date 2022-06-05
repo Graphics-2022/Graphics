@@ -358,6 +358,14 @@ export const level2 = (() =>{
         this._ui.hint.style.visibility = (visibility ? '' : 'hidden');
       }
     }
+
+    // Hide all UI on screen
+    _HideUI(){
+      document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
+      document.getElementById('icon-bar-quests').style.visibility = 'hidden'
+      document.getElementById('inventory').style.visibility = 'hidden'
+      document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+    }
   
     // Function toggling the visibility of the inventory
     _OnInventoryClicked() {
@@ -411,10 +419,7 @@ export const level2 = (() =>{
       
             // End game when the girl is seen by an enemy
             if(this._params.playerFound){
-              document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-switch').style.visibility = 'hidden'
-              document.getElementById('inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+              this._HideUI();
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
               this._APP = new gameOver.gameOver(2, this._APP);
               this._endGame = true;
@@ -429,10 +434,7 @@ export const level2 = (() =>{
               // End level if key has been found
               if (this._params.keyFound){
                 this._endGame = true;
-                document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-                document.getElementById('icon-bar-switch').style.visibility = 'hidden'
-                document.getElementById('inventory').style.visibility = 'hidden'
-                document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+                this._HideUI();
                 document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                 this._APP = new levelPassed.levelPassed(2,this._APP);
                 this.sound.pause();
