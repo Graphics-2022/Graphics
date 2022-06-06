@@ -85,7 +85,7 @@ export const player2_entity = (() => {
     _LoadModels() {
         const loader = new FBXLoader(this._params.loadingManager);
         loader.setPath('./resources/mouse/');
-        loader.load('mouse2.fbx', (fbx) => {
+        loader.load('mouse3.fbx', (fbx) => {
           fbx.name = 'mouse'
           this._target = fbx;
           this._target.position.copy(this._parent.Position);
@@ -403,7 +403,7 @@ export const player2_entity = (() => {
         this._particles = new particle_system.ParticleSystem({
             camera: this._params.camera,
             parent: this._params.scene,
-            texture: './resources/textures/ball.png',
+            texture: './resources/particles/star.png',
         });
         this._particles._alphaSpline.AddPoint(0.0, 0.0);
         this._particles._alphaSpline.AddPoint(0.1, 1.0);

@@ -7,6 +7,7 @@ import { entity } from './entity.js';
 import { player_input } from './player-input.js';
 import { npc_entity } from './npc-entity.js';
 import { GLTFLoader } from '../modules/GLTFLoader.js';
+import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
 
 export const level3 = (() => {
@@ -100,6 +101,7 @@ export const level3 = (() => {
       this._keyLight;
       this._endGame = false;
       this.openDoor = false;
+      this._escapePress = false;
       this._passPoint = new THREE.Vector3(-92, -17, 13);
       this._params = {
         camera: this._camera,
@@ -112,6 +114,7 @@ export const level3 = (() => {
         doorFrameObject: this._doorFrameObject,
         entityManager: this._entityManager,
         playerFound: this._playerFound,
+        esc: this._escapePress,
         keyFound: this._keyFound,
         keyLight: this._keyLight,
         loadingManager: this.loadingManager,
@@ -357,7 +360,7 @@ export const level3 = (() => {
     // Hide all UI on screen
     _HideUI(){
       document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-      document.getElementById('icon-bar-quests').style.visibility = 'hidden'
+      document.getElementById('icon-bar-switch').style.visibility = 'hidden'
       document.getElementById('inventory').style.visibility = 'hidden'
       document.getElementById('icon-bar-hint').style.visibility = 'hidden'
     }
@@ -475,6 +478,14 @@ export const level3 = (() => {
               }
             }
 
+            // Go to menu page if escape key is pressed
+            if(this._params.esc){
+              this._HideUI();
+              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+              this._APP = new menu.menu( this._APP);
+              this.sound.pause();
+              this._endGame = true;
+            }
             // End game when the girl is seen by an enemy
             if (this._params.playerFound) {
               this._HideUI();

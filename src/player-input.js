@@ -28,7 +28,8 @@ export const player_input = (() => {
         right: false,
         space: false,
         shift: false,
-        switch: false
+        switch: false,
+        esc: false,
       };
       this._raycaster = new THREE.Raycaster();
       document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
@@ -37,6 +38,9 @@ export const player_input = (() => {
     }
   
     _onMouseUp(event) {
+      if (document.getElementById('threejs') == null){
+        return;
+      }
       const rect = document.getElementById('threejs').getBoundingClientRect();
       const pos = {
         x: ((event.clientX - rect.left) / rect.width) * 2  - 1,
@@ -96,6 +100,9 @@ export const player_input = (() => {
         case 82: // r
         this._keys.switch = false;
         break;
+        case 27: // esc
+        this._keys.esc = true;
+        break;
       }
     }
   
@@ -122,6 +129,9 @@ export const player_input = (() => {
         case 82: // r
           this._keys.switch = true;
           break;
+        case 27: // esc
+        this._keys.esc = false;
+        break;
       }
     }
 

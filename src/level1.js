@@ -9,6 +9,7 @@ import { npc_entity } from './npc-entity.js';
 import { GLTFLoader } from '../modules/GLTFLoader.js';
 import { Reflector } from '../modules/Reflector.js';
 import { gameOver } from './gameOver.js';
+import { menu } from './menu.js';
 import { levelPassed } from './levelPassed.js';
 
 export const level1 = (() => {
@@ -130,6 +131,7 @@ export const level1 = (() => {
       this._passPoint = new THREE.Vector3(27, 0, -76);
       this._mouseMaxDistance = 30;
       this._previousRAF = null;
+      this._escapePress = false;
       // params used in different classes
       this._params = {
         camera: this._camera,
@@ -144,6 +146,7 @@ export const level1 = (() => {
         entityManager: this._entityManager,
         playerFound: this._playerFound,
         keyFound: this._keyFound,
+        esc: this._escapePress,
         loadingManager: this.loadingManager,
       };
 
@@ -156,7 +159,7 @@ export const level1 = (() => {
     _LoadRoom() {
       // Load the house
       const mapLoader = new GLTFLoader(this.loadingManager);
-      mapLoader.setPath('./resources/haunted_house/');
+      mapLoader.setPath('./resources/Level1/');
       mapLoader.load('map2.glb', (glb) => {
         this._params.scene.add(glb.scene);
         glb.scene.position.set(0, -2.5, 0);
@@ -168,12 +171,26 @@ export const level1 = (() => {
           this._params.player2Vision.push(c);
           this._params.monsterVision.push(c);
         });
+
+        // Load a mirror into the map
+        const mirrorBack1 = new Reflector(
+        new THREE.PlaneBufferGeometry(7, 4),
+          {
+            color: new THREE.Color(0x7f7f7f),
+            textureWidth: window.innerWidth * window.devicePixelRatio,
+            textureHeight: window.innerHeight * window.devicePixelRatio
+          }
+        )
+        mirrorBack1.position.set(-2, 18, -50);
+        mirrorBack1.rotateY(-Math.PI / 4)
+        glb.scene.add(mirrorBack1)
+        this._playerVision.push(mirrorBack1)
       });
 
 
       //Load door and a frame
       const Doorloader = new GLTFLoader(this.loadingManager);
-      Doorloader.setPath('./resources/haunted_house/');
+      Doorloader.setPath('./resources/Level1/');
       Doorloader.load('door2.glb', (fbx) => {
         fbx.scene.name = 'Door1'
         fbx.scene.position.set(28.2, 0, -62.5);
@@ -195,7 +212,7 @@ export const level1 = (() => {
 
       // Load the movable door and store the object
       const Doorloader2 = new GLTFLoader(this.loadingManager);
-      Doorloader2.setPath('./resources/haunted_house/');
+      Doorloader2.setPath('./resources/Level1/');
       Doorloader2.load('door3.glb', (fbx) => {
         fbx.scene.name = 'Door'
         fbx.scene.position.set(25.1, 0, -62.5);
@@ -215,20 +232,6 @@ export const level1 = (() => {
         });
       });
 
-      // Load a mirror into the map
-      const mirrorBack1 = new Reflector(
-        new THREE.PlaneBufferGeometry(7, 4),
-        {
-          color: new THREE.Color(0x7f7f7f),
-          textureWidth: window.innerWidth * window.devicePixelRatio,
-          textureHeight: window.innerHeight * window.devicePixelRatio
-        }
-      )
-      mirrorBack1.position.set(-2, 15, -50);
-      mirrorBack1.rotateY(-Math.PI / 4)
-      this._scene.add(mirrorBack1);
-      this._playerVision.push(mirrorBack1)
-
       //Load the key into the map and store the object
       const loader = new GLTFLoader(this.loadingManager);
       loader.setPath('./resources/key/');
@@ -247,7 +250,6 @@ export const level1 = (() => {
           }
         });
       });
-
     }
 
     // Load the main player (girl), second player (mouse), and the enemy (ghoul) 
@@ -358,7 +360,7 @@ export const level1 = (() => {
     // Hide all UI on screen
     _HideUI(){
       document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-      document.getElementById('icon-bar-quests').style.visibility = 'hidden'
+      document.getElementById('icon-bar-switch').style.visibility = 'hidden'
       document.getElementById('inventory').style.visibility = 'hidden'
       document.getElementById('icon-bar-hint').style.visibility = 'hidden'
     }
@@ -434,6 +436,15 @@ export const level1 = (() => {
                   transition: true,
                 });
               }
+            }
+
+            // Go to menu page if escape key is pressed
+            if(this._params.esc){
+              this._HideUI();
+              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+              this._APP = new menu.menu( this._APP);
+              this.sound.pause();
+              this._endGame = true;
             }
 
             // End game when the girl is seen by an enemy

@@ -88,12 +88,10 @@ export const player_entity = (() => {
     _LoadModels() {
         const loader = new FBXLoader(this._params.loadingManager);
         loader.setPath('./resources/girl/');
-        loader.load('girl2.fbx', (fbx) => {
+        loader.load('girl3.fbx', (fbx) => {
           this._target = fbx;
           this._target.scale.setScalar(0.035);
           this._target.name = "girl"
-          // this._target.add(this._params.miniMapCam)
-          // this._params.miniMapCam.position.y += 20
           this._params.scene.add(this._target);
           this._dist = 2;
           this._height = 2.5;
@@ -357,6 +355,10 @@ export const player_entity = (() => {
         const input = this.GetComponent('BasicCharacterControllerInput');
         if (input._keys.switch){
           this._active = false;
+        }
+        if(input._keys.esc){
+
+          this._params.esc = true;
         }
         this._OnWalk(timeInSeconds, input);
       }

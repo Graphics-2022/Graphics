@@ -35,13 +35,13 @@ export const npc_entity = (() => {
       // If its the first enemy, load from file, otherwise clone from first 
       if(this._type == 'npc1'){
         const loader = new GLTFLoader( this._npcManager);
-        loader.setPath('./resources/enemies/mutant/');
-        loader.load('ghoul2.glb', (fbx) => {
-          this._target= fbx.scene;
+        loader.setPath('./resources/enemies/');
+        loader.load('ghoul2.glb', (glb) => {
+          this._target= glb.scene;
           this._target.name = this._type;
           // Set up the animation
           this._mixer = new THREE.AnimationMixer(this._target);
-          this.clip = THREE.AnimationClip.findByName(fbx , 'Ghoul')
+          this.clip = THREE.AnimationClip.findByName(glb , 'Ghoul')
           const action = this._mixer.clipAction(this.clip);
           action.play();
           this._setModel();
@@ -131,11 +131,11 @@ export const npc_entity = (() => {
       this.ray.near = 0;
       this.int;
 
-            // visualize the path
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints( this.path.getPoints( 32 ) );
-      const lineMaterial = new THREE.LineBasicMaterial();
-      const line = new THREE.Line( lineGeometry, lineMaterial );
-      this._params.scene.add(line)
+      //       // visualize the path
+      // const lineGeometry = new THREE.BufferGeometry().setFromPoints( this.path.getPoints( 32 ) );
+      // const lineMaterial = new THREE.LineBasicMaterial();
+      // const line = new THREE.Line( lineGeometry, lineMaterial );
+      // this._params.scene.add(line)
 
       // Do not add the 4th npc
       if ( this._type != "npc4"){
