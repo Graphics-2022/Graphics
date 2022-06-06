@@ -55,7 +55,7 @@ export const player_input = (() => {
 
           // console.log("key found");
           const div = document.getElementById("inventory-1");
-          div.style.backgroundImage = "url('./resources/icons/key.png')";
+          div.style.backgroundImage = "url('./resources/icons/notebook.png')";
           this._params.scene.remove(this._params.keyObject);
           this._params.keyFound = true;
         }
