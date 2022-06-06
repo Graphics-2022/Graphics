@@ -121,7 +121,7 @@ export const level3 = (() => {
 
       this.blockeddoor1;
       this.blockeddoor1islocked = false;
-      this.blockeddoor1_activationPoint = new THREE.Vector3(36.8, 12, 40);
+      this.blockeddoor1_activationPoint = new THREE.Vector3(39, 12, 40);
       this.blockeddoor2;
       this.blockeddoor2islocked = false;
       this.blockeddoor2_activationPoint = new THREE.Vector3(15, 5, -50);
@@ -138,7 +138,7 @@ export const level3 = (() => {
       // Load the level
       const mapLoader = new GLTFLoader(this.loadingManager);
       mapLoader.setPath('./resources/Level3/');
-      mapLoader.load('level3map1.glb', (glb) => {
+      mapLoader.load('level3maplowtriangles.glb', (glb) => {  //level3map1
         this._params.scene.add(glb.scene);
         glb.scene.scale.setScalar(2.5);
         glb.scene.traverse(c => {
@@ -222,8 +222,8 @@ export const level3 = (() => {
       // Initialize the girl
       const player = new entity.Entity();
       player.SetPosition(new THREE.Vector3(-83, -3, -25));
-      player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
-      player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl', true));
+      player.AddComponent(new player_input.BasicCharacterControllerInput(this._params));
+      player.AddComponent(new player_entity.BasicCharacterController(this._params, true));
       this._entityManager.Add(player, 'player');
       this._camera.position.copy(player.Position);
       this._camera.position.y += 4;
@@ -233,8 +233,8 @@ export const level3 = (() => {
       // Initialize the mouse
       const player2 = new entity.Entity();
       player2.SetPosition(new THREE.Vector3(-80, -3, -25));
-      player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
-      player2.AddComponent(new player2_entity.BasicCharacterController(this._params, 'mouse', false));
+      player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params));
+      player2.AddComponent(new player2_entity.BasicCharacterController(this._params, false));
       this._entityManager.Add(player2, 'player2');
 
       // Initialize the main camera and set it to the girl

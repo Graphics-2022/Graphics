@@ -23,15 +23,6 @@ body {
   left: 0;
   font-family: Arial
 }
-/* 
-.hint-ui-layout {
-  display: flex;
-  height: 100%;
-  width: 100%;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-} */
 
 .hint-ui {
   background: rgba(1.0, 1.0, 1.0, 0.75);
@@ -57,34 +48,6 @@ body {
   color: white;
 }
 
-/* .hint-journal-layout {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: flex-end;
-}
-
-.quest-journal {
-  display: flex;
-  flex-direction: column;
-  background: rgba(1.0, 1.0, 1.0, 0.75);
-  margin: 30px;
-  padding: 20px 20px;
-  padding-top: 5px;
-  width: 300px;
-  height: 600px;
-  z-index: 1;
-} */
-
-/* .quest-entry {
-  font-size: 2em;
-  color: white;
-  border: black;
-  border-style: solid;
-  border-width: thick;
-  padding: 5px;
-} */
-
 .icon-ui {
   display: flex;
   height: 100%;
@@ -105,33 +68,6 @@ body {
   height: 75px;
   margin: 2px;
 }
-
-
-/* .stats-tooltip {
-  position: relative;
-  display: inline-block;
-  z-index: 100;
-} */
-/* 
-.stats-tooltip .stats-tooltiptext {
-  visibility: hidden;
-  width: 200px;
-  background-color: black;
-  opacity: 0.75;
-  text-align: center;
-  padding: 1em;
-  border-radius: 6px;
-  color: white;
-  font-size: medium;
-  position: absolute;
-  z-index: 1;
-  top: -5px;
-  right: 105%;
-}
-
-.stats-tooltip:hover .stats-tooltiptext {
-  visibility: visible;
-} */
 
 
 .inventory-title {
@@ -162,19 +98,6 @@ body {
   flex-direction: row;
   justify-content: space-evenly;
 }
-
-/* .inventory-column {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-} */
-
-/* .inventory-character {
-  background-image: url('./resources/icons/ui/inventory-character.png');
-  background-size: cover;
-  width: 200px;
-  height: 350px;
-} */
 
 .inventory-item {
   border: black;

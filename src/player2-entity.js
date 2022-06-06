@@ -444,7 +444,7 @@ export const player2_entity = (() => {
       // Set the height of the model
       this._SetHeight();
 
-      // Set the sate of the model to idle if it currently does not have the controls
+      // Set controls to AI contrtols if the mouse currently does not have control
       if (!this._active){
           this._OnAIWalk(timeInSeconds);
       }else{
