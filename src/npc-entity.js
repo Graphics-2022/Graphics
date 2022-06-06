@@ -35,13 +35,13 @@ export const npc_entity = (() => {
       // If its the first enemy, load from file, otherwise clone from first 
       if(this._type == 'npc1'){
         const loader = new GLTFLoader( this._npcManager);
-        loader.setPath('./resources/enemies/mutant/');
-        loader.load('ghoul2.glb', (fbx) => {
-          this._target= fbx.scene;
+        loader.setPath('./resources/enemies/');
+        loader.load('ghoul2.glb', (glb) => {
+          this._target= glb.scene;
           this._target.name = this._type;
           // Set up the animation
           this._mixer = new THREE.AnimationMixer(this._target);
-          this.clip = THREE.AnimationClip.findByName(fbx , 'Ghoul')
+          this.clip = THREE.AnimationClip.findByName(glb , 'Ghoul')
           const action = this._mixer.clipAction(this.clip);
           action.play();
           this._setModel();
@@ -127,9 +127,15 @@ export const npc_entity = (() => {
       this._A = new THREE.Vector3();
       this.p = new THREE.Vector3();
       this.ray = new THREE.Raycaster();
-      this.ray.far = 100;
+      this.ray.far = 50;
       this.ray.near = 0;
       this.int;
+
+      //       // visualize the path
+      // const lineGeometry = new THREE.BufferGeometry().setFromPoints( this.path.getPoints( 32 ) );
+      // const lineMaterial = new THREE.LineBasicMaterial();
+      // const line = new THREE.Line( lineGeometry, lineMaterial );
+      // this._params.scene.add(line)
 
       // Do not add the 4th npc
       if ( this._type != "npc4"){
@@ -161,7 +167,7 @@ export const npc_entity = (() => {
     _FindPlayer() {
       // Do not carry on if the enemy is too far
       let playerPos = this._params.entityManager.Get('player')._position
-      if (this._target.position.distanceTo(playerPos) > 30){
+      if (this._target.position.distanceTo(playerPos) > this.ray.far){
         return false;
       }
       const dir = this._target.position.clone();
@@ -181,7 +187,9 @@ export const npc_entity = (() => {
       this.start.copy(this._target.position);
       this.start.y +=2.5;
       this.ray.set(this.start, dir);
-      this.int = this.ray.intersectObjects(this._params.monsterVision, true )
+      this.int = this.ray.intersectObjects(this._params.monsterVision, false );
+      // var arrow = new THREE.ArrowHelper( this.ray.ray.direction, this.ray.ray.origin, this.ray.far, 0xff0000 );
+      //   this._params.scene.add(arrow)
       if(this.int.length > 0){
         // Determine if the first object is the girl
         if(this.int[0].object.parent.name == "girl"){

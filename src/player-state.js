@@ -1,8 +1,6 @@
-import * as THREE from '../modules/three.module.js';
-
 
 export const player_state = (() => {
-
+  // Class smoothly transitions into different states
   class State {
     constructor(parent) {
       this._parent = parent;
@@ -11,92 +9,6 @@ export const player_state = (() => {
     Enter() {}
     Exit() {}
     Update() {}
-  };
-
-  class DeathState extends State {
-    constructor(parent) {
-      super(parent);
-  
-      this._action = null;
-    }
-  
-    get Name() {
-      return 'death';
-    }
-  
-    Enter(prevState) {
-      this._action = this._parent._proxy._animations['death'].action;
-  
-      if (prevState) {
-        const prevAction = this._parent._proxy._animations[prevState.Name].action;
-  
-        this._action.reset();  
-        this._action.setLoop(THREE.LoopOnce, 1);
-        this._action.clampWhenFinished = true;
-        this._action.crossFadeFrom(prevAction, 0.2, true);
-        this._action.play();
-      } else {
-        this._action.play();
-      }
-    }
-  
-    Exit() {
-    }
-  
-    Update(_) {
-    }
-  };
-  
-  class AttackState extends State {
-    constructor(parent) {
-      super(parent);
-  
-      this._action = null;
-  
-      this._FinishedCallback = () => {
-        this._Finished();
-      }
-    }
-  
-    get Name() {
-      return 'attack';
-    }
-  
-    Enter(prevState) {
-      this._action = this._parent._proxy._animations['attack'].action;
-      const mixer = this._action.getMixer();
-      mixer.addEventListener('finished', this._FinishedCallback);
-  
-      if (prevState) {
-        const prevAction = this._parent._proxy._animations[prevState.Name].action;
-  
-        this._action.reset();  
-        this._action.setLoop(THREE.LoopOnce, 1);
-        this._action.clampWhenFinished = true;
-        this._action.crossFadeFrom(prevAction, 0.2, true);
-        this._action.play();
-      } else {
-        this._action.play();
-      }
-    }
-  
-    _Finished() {
-      this._Cleanup();
-      this._parent.SetState('idle');
-    }
-  
-    _Cleanup() {
-      if (this._action) {
-        this._action.getMixer().removeEventListener('finished', this._FinishedCallback);
-      }
-    }
-  
-    Exit() {
-      this._Cleanup();
-    }
-  
-    Update(_) {
-    }
   };
   
   class WalkState extends State {
@@ -233,11 +145,9 @@ export const player_state = (() => {
 
   return {
     State: State,
-    AttackState: AttackState,
     IdleState: IdleState,
     WalkState: WalkState,
     RunState: RunState,
-    DeathState: DeathState,
   };
 
 })();

@@ -20,12 +20,14 @@ export const third_person_camera = (() => {
 
     }
 
+    // Change target of the main camera
     ChangePlayer(params){
       this._params = params;
       this._camera = params.camera;
       this._transition = params.transition;
     }
 
+    // Check if the camera has collided with the world and adjust accordingly
     _CalculateIdealOffset() {
       this.idealOffset.set(-0, 5, -10);
       this.idealOffset.applyQuaternion(this._params.target._rotation);
@@ -42,7 +44,6 @@ export const third_person_camera = (() => {
 
       this.ray.far = 3;
       this.ray.near = 0;
-      // let d = new THREE.Vector3();
       this.newDir.set(0,0,0)
 
       this._camera.getWorldDirection(this.d);
@@ -52,8 +53,6 @@ export const third_person_camera = (() => {
         this.newDir.z =this.d.x*Math.sin(direction) +this.d.z*Math.cos(direction)
         this.ray.set(this._currentPosition , this.newDir);
         var int = this.ray.intersectObjects(this._params.cameraVision )
-        // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
-        // this._params.scene.add(arrow)
         if(int.length > 0){
           this.idealOffset.z+=2 * (2/int[0].distance);
           this.idealOffset.y = 5
@@ -81,6 +80,7 @@ export const third_person_camera = (() => {
       return this.idealOffset;
     }
 
+    // Calculate the point in which the camera looks at
     _CalculateIdealLookat() {
       const idealLookat = new THREE.Vector3(0, 3, 20);
       
@@ -89,11 +89,10 @@ export const third_person_camera = (() => {
       return idealLookat;
     }
 
+    // Check for collisions with the world
     _CheckSuroundings(){
-      // let ray = new THREE.Raycaster();
       this.ray.far = 2;
       this.ray.near = 0;
-      // let d = new THREE.Vector3();
       this.newDir.set(0,0,0)
       let newPos ;
 
@@ -105,8 +104,6 @@ export const third_person_camera = (() => {
         this.ray.set(this._currentPosition , this.newDir);
 
         var int = this.ray.intersectObjects(this._params.cameraVision )
-        // var arrow = new THREE.ArrowHelper( ray.ray.direction, ray.ray.origin, ray.far, 0xff0000 );
-        // this._params.scene.add(arrow)
 
         if(int.length > 0){
           newPos =new THREE.Vector3()
@@ -116,12 +113,11 @@ export const third_person_camera = (() => {
       return newPos;
     }
 
+    // Update function for the camera
     Update(timeElapsed) {
       const idealOffset = this._CalculateIdealOffset();
       const idealLookat = this._CalculateIdealLookat();
 
-      // const t = 0.05;
-      // const t = 4.0 * timeElapsed;
       const t = 1.0 - Math.pow(0.01, timeElapsed);
       this._currentPosition.lerp(idealOffset, t);
       this._currentLookat.lerp(idealLookat, t);

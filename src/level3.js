@@ -7,6 +7,7 @@ import { entity } from './entity.js';
 import { player_input } from './player-input.js';
 import { npc_entity } from './npc-entity.js';
 import { GLTFLoader } from '../modules/GLTFLoader.js';
+import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
 
 export const level3 = (() => {
@@ -17,7 +18,6 @@ export const level3 = (() => {
       this._Initialize();
     }
 
-
     _Initialize() {
       // Set up WebGL renderer
       this._threejs = new THREE.WebGLRenderer({
@@ -25,7 +25,6 @@ export const level3 = (() => {
         powerPreference: 'high-performance',
       });
       this._threejs.outputEncoding = THREE.sRGBEncoding;
-      this._threejs.gammaFactor = 2.2;
       this._threejs.shadowMap.enabled = true;
       this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
       this._threejs.setPixelRatio(window.devicePixelRatio);
@@ -100,6 +99,7 @@ export const level3 = (() => {
       this._keyLight;
       this._endGame = false;
       this.openDoor = false;
+      this._escapePress = false;
       this._passPoint = new THREE.Vector3(-92, -17, 13);
       this._params = {
         camera: this._camera,
@@ -112,6 +112,7 @@ export const level3 = (() => {
         doorFrameObject: this._doorFrameObject,
         entityManager: this._entityManager,
         playerFound: this._playerFound,
+        esc: this._escapePress,
         keyFound: this._keyFound,
         keyLight: this._keyLight,
         loadingManager: this.loadingManager,
@@ -175,7 +176,6 @@ export const level3 = (() => {
         this._params.keyObject = glb.scene;
       });
 
-
       const blockeddoorLoader = new GLTFLoader(this.loadingManager);
       blockeddoorLoader.setPath('./resources/Level3/');
       blockeddoorLoader.load('level3blockdoor1.glb', (glb) => {
@@ -215,9 +215,7 @@ export const level3 = (() => {
           this._params.monsterVision.push(c);
         });
       });
-
     }
-
 
     // Load the main player (girl), second player (mouse), and the enemy (ghoul) 
     _LoadPlayer() {
@@ -290,9 +288,10 @@ export const level3 = (() => {
         npc1.SetPosition(new THREE.Vector3(52, 4, -49));
         const points1 = [
           new THREE.Vector3(52, 5, -49),
-          new THREE.Vector3(51.5, 5, -49),
-          new THREE.Vector3(52, 5, 2),
-          new THREE.Vector3(51.5, 5, 2),
+          new THREE.Vector3(51, 5, -49),
+          new THREE.Vector3(52, 5, 4),
+          new THREE.Vector3(49, 5, 4),
+          new THREE.Vector3(51, 5, -10),
           new THREE.Vector3(52, 5, -49),
         ];
 
@@ -351,6 +350,14 @@ export const level3 = (() => {
       title.innerText = heading;
       const text = document.getElementById('hint-text');
       text.innerText = mess;
+    }
+
+    // Hide all UI on screen
+    _HideUI(){
+      document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
+      document.getElementById('icon-bar-switch').style.visibility = 'hidden'
+      document.getElementById('inventory').style.visibility = 'hidden'
+      document.getElementById('icon-bar-hint').style.visibility = 'hidden'
     }
 
     // Function toggling the visibility of the hint
@@ -456,32 +463,41 @@ export const level3 = (() => {
 
             // open door when activated
             if (this._params.openDoor) {
-              this.mainDoor.position.z += 0.1;
-              if (this.mainDoor.position.z > 6) {
+              if(this._params.keyFound){
+                this.mainDoor.position.z += 0.1;
+                if (this.mainDoor.position.z > 6) {
+                  this._params.openDoor = false;
+                }
+              }else{
                 this._params.openDoor = false;
               }
             }
 
+            // Go to menu page if escape key is pressed
+            if(this._params.esc){
+              this._HideUI();
+              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+              this._APP = new menu.menu( this._APP);
+              this.sound.pause();
+              this._endGame = true;
+            }
             // End game when the girl is seen by an enemy
             if (this._params.playerFound) {
-                document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-                document.getElementById('icon-bar-switch').style.visibility = 'hidden'
-                document.getElementById('inventory').style.visibility = 'hidden'
-                document.getElementById('icon-bar-hint').style.visibility = 'hidden'
-                document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-                this._APP = new gameOver.gameOver(3, this._APP);
-                this._endGame = true;
-                return;
+              this._HideUI();
+              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+              this._APP = new gameOver.gameOver(3, this._APP);
+              this.sound.pause();
+              this.screamSound.play();
+              this._endGame = true;
+              return;
             } 
             // Check if the player has reached the end of the level
             if (this._entityManager.Get('player').Position.distanceTo(this._passPoint) < 5 && this._params.keyFound) {
               this._endGame = true;
-              document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-switch').style.visibility = 'hidden'
-              document.getElementById('inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+              this._HideUI();
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
               this._APP = new levelPassed.levelPassed(3, this._APP);
+              this.sound.pause();
               return;
             }
             this._RAF();

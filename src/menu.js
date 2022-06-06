@@ -207,7 +207,6 @@ export const menu = (() =>{
       
           const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
           camera.position.z = 100;
-          console.log(camera.position)
           var continueAnimating = true; //variable used to cancel animation frame
           function render() {
       

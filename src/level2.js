@@ -8,6 +8,7 @@ import { player_input } from './player-input.js';
 import { npc_entity } from './npc-entity.js';
 import { GLTFLoader } from '../modules/GLTFLoader.js';
 import { gameOver } from './gameOver.js';
+import { menu } from './menu.js';
 import { levelPassed } from './levelPassed.js';
 
 export const level2 = (() =>{
@@ -126,6 +127,7 @@ export const level2 = (() =>{
       this._autoHint = false;
       this._endGame = false;
       this._passPoint = new THREE.Vector3(36,20,-11);
+      this._escapePress = false;
       this._previousRAF = null;
       // params used in different classes
       this._params = {
@@ -141,6 +143,7 @@ export const level2 = (() =>{
         entityManager: this._entityManager,
         playerFound: this._playerFound,
         keyFound: this._keyFound,
+        esc: this._escapePress,
         keyLight:this._keyLight,
         loadingManager: this.loadingManager,
       };
@@ -215,7 +218,7 @@ export const level2 = (() =>{
     _LoadPlayer() {
       // Initialize the girl
       const player = new entity.Entity();
-      player.SetPosition(new THREE.Vector3(-31,11,-80));
+      player.SetPosition(new THREE.Vector3(-28,11,-80));
       const quaternionP = new THREE.Quaternion();
       quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI/3 );
       player.SetQuaternion(quaternionP);
@@ -250,7 +253,7 @@ export const level2 = (() =>{
   
       // Initialize the enemies
       const npc = new entity.Entity();
-      npc.SetPosition(new THREE.Vector3(-29,11,-50));
+      npc.SetPosition(new THREE.Vector3(-26,11,-43));
       const quaternionM1 = new THREE.Quaternion();
       quaternionM1.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
       npc.SetQuaternion(quaternionM1);
@@ -261,7 +264,7 @@ export const level2 = (() =>{
         new THREE.Vector3( -13,11,0 ),
         new THREE.Vector3( 1,11,-7 ),
         ];
-      npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points, this.npcManager, 12));
+      npc.AddComponent(new npc_entity.NPCController(this._params, 'npc1', points, this.npcManager, 15));
       this._entityManager.Add(npc, 'npc1');
   
       // Load rest of enemies
@@ -358,6 +361,14 @@ export const level2 = (() =>{
         this._ui.hint.style.visibility = (visibility ? '' : 'hidden');
       }
     }
+
+    // Hide all UI on screen
+    _HideUI(){
+      document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
+      document.getElementById('icon-bar-switch').style.visibility = 'hidden'
+      document.getElementById('inventory').style.visibility = 'hidden'
+      document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+    }
   
     // Function toggling the visibility of the inventory
     _OnInventoryClicked() {
@@ -408,13 +419,19 @@ export const level2 = (() =>{
                 });
               }
             }
+
+            // Go to menu page if escape key is pressed
+            if(this._params.esc){
+              this._HideUI();
+              document.getElementById('container').removeChild(document.getElementById('container').lastChild)
+              this._APP = new menu.menu( this._APP);
+              this.sound.pause();
+              this._endGame = true;
+            }
       
             // End game when the girl is seen by an enemy
             if(this._params.playerFound){
-              document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-switch').style.visibility = 'hidden'
-              document.getElementById('inventory').style.visibility = 'hidden'
-              document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+              this._HideUI();
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
               this._APP = new gameOver.gameOver(2, this._APP);
               this._endGame = true;
@@ -429,10 +446,7 @@ export const level2 = (() =>{
               // End level if key has been found
               if (this._params.keyFound){
                 this._endGame = true;
-                document.getElementById('icon-bar-inventory').style.visibility = 'hidden'
-                document.getElementById('icon-bar-switch').style.visibility = 'hidden'
-                document.getElementById('inventory').style.visibility = 'hidden'
-                document.getElementById('icon-bar-hint').style.visibility = 'hidden'
+                this._HideUI();
                 document.getElementById('container').removeChild(document.getElementById('container').lastChild)
                 this._APP = new levelPassed.levelPassed(2,this._APP);
                 this.sound.pause();
