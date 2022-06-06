@@ -27,7 +27,6 @@ export const level1 = (() => {
         powerPreference: 'high-performance',
       });
       this._threejs.outputEncoding = THREE.sRGBEncoding;
-      this._threejs.gammaFactor = 2.2;
       this._threejs.shadowMap.enabled = true;
       this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
       this._threejs.setPixelRatio(window.devicePixelRatio);
@@ -234,7 +233,7 @@ export const level1 = (() => {
 
       //Load the key into the map and store the object
       const loader = new GLTFLoader(this.loadingManager);
-      loader.setPath('./resources/key/');
+      loader.setPath('./resources/Level1/');
       loader.load('key.glb', (glb) => {
         glb.name = 'key'
         glb.scene.position.set(0, -2.5, 0);
@@ -260,19 +259,16 @@ export const level1 = (() => {
       const quaternionP = new THREE.Quaternion();
       quaternionP.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
       player.SetQuaternion(quaternionP);
-      player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
-      player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl', true));
+      player.AddComponent(new player_input.BasicCharacterControllerInput(this._params));
+      player.AddComponent(new player_entity.BasicCharacterController(this._params, true));
       this._entityManager.Add(player, 'player');
-      this._camera.position.copy(player.Position);
-      this._camera.position.y += 4;
-      this._camera.position.z += 7;
       this._currentLookat = player.Position;
     
       // Initialize the mouse
       const player2 = new entity.Entity();
       player2.SetPosition(new THREE.Vector3(-7, 13, -23));
-      player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
-      player2.AddComponent(new player2_entity.BasicCharacterController(this._params, 'mouse', false));
+      player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params));
+      player2.AddComponent(new player2_entity.BasicCharacterController(this._params, false));
       this._entityManager.Add(player2, 'player2');
 
       // Initialize the main camera and set it to the girl

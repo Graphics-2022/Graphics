@@ -11,5 +11,5 @@ let _APP = null;
 
 // Start the app in the menu page
 window.addEventListener('DOMContentLoaded', () => {
-  _APP = new level1.level1(_APP);
+  _APP = new menu.menu(_APP);
 });

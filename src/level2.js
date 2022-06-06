@@ -218,7 +218,7 @@ export const level2 = (() =>{
     _LoadPlayer() {
       // Initialize the girl
       const player = new entity.Entity();
-      player.SetPosition(new THREE.Vector3(-31,11,-80));
+      player.SetPosition(new THREE.Vector3(-28,11,-80));
       const quaternionP = new THREE.Quaternion();
       quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI/3 );
       player.SetQuaternion(quaternionP);

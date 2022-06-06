@@ -18,7 +18,6 @@ export const level3 = (() => {
       this._Initialize();
     }
 
-
     _Initialize() {
       // Set up WebGL renderer
       this._threejs = new THREE.WebGLRenderer({
@@ -26,7 +25,6 @@ export const level3 = (() => {
         powerPreference: 'high-performance',
       });
       this._threejs.outputEncoding = THREE.sRGBEncoding;
-      this._threejs.gammaFactor = 2.2;
       this._threejs.shadowMap.enabled = true;
       this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
       this._threejs.setPixelRatio(window.devicePixelRatio);
@@ -178,7 +176,6 @@ export const level3 = (() => {
         this._params.keyObject = glb.scene;
       });
 
-
       const blockeddoorLoader = new GLTFLoader(this.loadingManager);
       blockeddoorLoader.setPath('./resources/Level3/');
       blockeddoorLoader.load('level3blockdoor1.glb', (glb) => {
@@ -218,9 +215,7 @@ export const level3 = (() => {
           this._params.monsterVision.push(c);
         });
       });
-
     }
-
 
     // Load the main player (girl), second player (mouse), and the enemy (ghoul) 
     _LoadPlayer() {

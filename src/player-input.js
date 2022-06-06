@@ -3,20 +3,10 @@ import {entity} from "./entity.js";
 
 export const player_input = (() => {
 
-  class PickableComponent extends entity.Component {
-    constructor() {
-      super();
-    }
-
-    InitComponent() {
-    }
-  };
-
   class BasicCharacterControllerInput extends entity.Component {
-    constructor(params , active) {
+    constructor(params) {
       super();
       this._params = params;
-      this._active = active;
       this._Init();
     }
   
@@ -142,7 +132,6 @@ export const player_input = (() => {
 
   return {
     BasicCharacterControllerInput: BasicCharacterControllerInput,
-    PickableComponent: PickableComponent,
   };
 
 })();

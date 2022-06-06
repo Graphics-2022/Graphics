@@ -1,28 +1,24 @@
 
-
 export const entity_manager = (() => {
-
+  // Entity manager is responsible for tracking each active entity and calling their respective update function
   class EntityManager {
     constructor() {
       this._ids = 0;
       this._entitiesMap = {};
       this._entities = [];
     }
-
+    // Generating a unique id 
     _GenerateName() {
       this._ids += 1;
-
       return '__name__' + this._ids;
     }
 
+    // Fetching a specific entity
     Get(n) {
       return this._entitiesMap[n];
     }
 
-    // Filter(cb) {
-    //   return this._entities.filter(cb);
-    // }
-
+    // Adding an entity to the manager
     Add(e, n) {
       if (!n) {
         n = this._GenerateName();
@@ -31,10 +27,11 @@ export const entity_manager = (() => {
       this._entitiesMap[n] = e;
       this._entities.push(e);
 
-      e.SetParent(this);
-      e.SetName(n);
+      // e.SetParent(this);
+      // e.SetName(n);
     }
 
+    // Deleteing an entity from the manager
     Delete(e){
       for( let i = 0 ; i < this._entities.length ; i++){
         if( this._entities[i]._name == e){
@@ -45,15 +42,7 @@ export const entity_manager = (() => {
       }
     }
 
-    // SetActive(e, b) {
-    //   const i = this._entities.indexOf(e);
-    //   if (i < 0) {
-    //     return;
-    //   }
-
-    //   this._entities.splice(i, 1);
-    // }
-
+    // Calling the update function for each entity
     Update(timeElapsed) {
       for (let e of this._entities) {
         e.Update(timeElapsed);
