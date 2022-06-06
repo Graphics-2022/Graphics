@@ -335,7 +335,7 @@ export const level1 = (() => {
       // Setting on click events for the icons
       this._iconBar.inventory.onclick = (m) => { this._OnInventoryClicked(m); };
       this._iconBar.switch.onclick = (m) => { this._OnSwitchClicked(m); };
-      this._iconBar.hint.onclick = (m) => { this._HintSetMessage("Hint", "Use W,A,S,D to control the character. Find the hidden key to unlock the door but most importantly DO NOT GET CAUGHT!!"); this._OnHintClicked() };
+      this._iconBar.hint.onclick = (m) => { this._HintSetMessage("Hint", "Use W,A,S,D to control the character, R to switch characters, and Esc to exit return to the menu. Find the hidden key to unlock the door but most importantly DO NOT GET CAUGHT!!"); this._OnHintClicked() };
 
       // Setting the visibility 
       this._ui.inventory.style.visibility = 'hidden';
