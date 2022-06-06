@@ -282,7 +282,7 @@ svg {
 #overlay {
   position: absolute; /* Sit on top of the page content */
   display: block; /* Hidden by default */
-  width: 80%; /* Full width (cover the whole page) */
+  width: 60%; /* Full width (cover the whole page) */
   height: 70%; /* Full height (cover the whole page) */
   top: 200px;
   left: 170px;
@@ -293,12 +293,12 @@ svg {
   z-index: 1000; /* Specify a stack order in case you're using a different order for other elements */
   cursor: pointer; /* Add a pointer on hover */
   overflow-y: hidden;  
-  
+  overflow-x: hidden;
 }
 
 .movestuff{
   -webkit-animation-name: move;
-  -webkit-animation-duration: 10s;
+  -webkit-animation-duration: 15s;
   -webkit-animation-iteration-count: infinite;
   -webkit-animation-direction: up;
   -webkit-animation-timing-function:linear; 
