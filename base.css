@@ -181,25 +181,25 @@ svg {
 }
 
 @-webkit-keyframes stroke-color {
-  0%  { stroke: #3498DB; }
-  24% { stroke: #643232; }
-  25% { stroke: #327864; }
-  49% { stroke: #327864; }
-  50% { stroke: #32326e; }
-  74% { stroke: #32326e; }
-  75% { stroke: #78325a; }
-  99% { stroke: #78325a; }
+  0%  { stroke: red; }
+  24% { stroke: crimson; }
+  25% { stroke: firebrick; }
+  49% { stroke: darkred; }
+  50% { stroke: maroon; }
+  74% { stroke: #bf4f51; }
+  75% { stroke: #e32636; }
+  99% { stroke: #fd0e35; }
 }
 
 @keyframes stroke-color {
-  0%  { stroke: #3498DB; }
-  24% { stroke: #643232; }
-  25% { stroke: #327864; }
-  49% { stroke: #327864; }
-  50% { stroke: #32326e; }
-  74% { stroke: #32326e; }
-  75% { stroke: #78325a; }
-  99% { stroke: #78325a; }
+  0%  { stroke: red; }
+  24% { stroke: crimson; }
+  25% { stroke: firebrick; }
+  49% { stroke: darkred; }
+  50% { stroke: maroon; }
+  74% { stroke: #bf4f51; }
+  75% { stroke: #e32636; }
+  99% { stroke: #fd0e35; }
 }
 
 #overlay {
