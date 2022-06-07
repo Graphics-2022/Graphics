@@ -222,8 +222,8 @@ export const level2 = (() =>{
       const quaternionP = new THREE.Quaternion();
       quaternionP.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI/3 );
       player.SetQuaternion(quaternionP);
-      player.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'girl'));
-      player.AddComponent(new player_entity.BasicCharacterController(this._params, 'girl', true));
+      player.AddComponent(new player_input.BasicCharacterControllerInput(this._params));
+      player.AddComponent(new player_entity.BasicCharacterController(this._params, true));
       this._entityManager.Add(player, 'player');
       this._camera.position.copy(player.Position);
       this._camera.position.y += 4;
@@ -233,8 +233,8 @@ export const level2 = (() =>{
       // Initialize the mouse
       const player2 = new entity.Entity();
       player2.SetPosition(new THREE.Vector3(-31,11,-84));
-      player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params, 'mouse'));
-      player2.AddComponent(new player2_entity.BasicCharacterController(this._params, 'mouse', false));
+      player2.AddComponent(new player_input.BasicCharacterControllerInput(this._params));
+      player2.AddComponent(new player2_entity.BasicCharacterController(this._params, false));
       this._entityManager.Add(player2, 'player2');
   
       // Initialize the main camera and set it to the girl
