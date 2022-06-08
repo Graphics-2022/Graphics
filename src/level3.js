@@ -9,6 +9,7 @@ import { npc_entity } from './npc-entity.js';
 import { GLTFLoader } from '../modules/GLTFLoader.js';
 import { menu } from './menu.js';
 import { gameOver } from './gameOver.js';
+import { gameFinished } from './gameFinished.js';
 
 export const level3 = (() => {
   // Level 3 class to load level 3
@@ -496,7 +497,7 @@ export const level3 = (() => {
               this._endGame = true;
               this._HideUI();
               document.getElementById('container').removeChild(document.getElementById('container').lastChild)
-              this._APP = new levelPassed.levelPassed(3, this._APP);
+              this._APP = new gameFinished.gameFinished( this._APP);
               this.sound.pause();
               return;
             }

@@ -478,6 +478,8 @@ export const level1 = (() => {
                 // If the door has been clicked without having the key then display message
                 this._HintSetMessage("Hint", "You need to find the key first! Tip: use the mouse");
                 this._OnHintClicked();
+                this._params.openDoor = false;
+
               }
             }
 
