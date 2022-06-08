@@ -1,6 +1,6 @@
-import * as THREE from '../modules/three.module.js';
-import { FontLoader } from '../modules/FontLoader.js';
-import { TextGeometry } from '../modules/TextGeometry.js';
+import * as THREE from './modules/three.module.js';
+import { FontLoader } from './modules/FontLoader.js';
+import { TextGeometry } from './modules/TextGeometry.js';
 import { menu } from './menu.js';
 import { level1 } from './level1.js';
 import { level2 } from './level2.js';
@@ -46,7 +46,7 @@ export const levelPassed = (() =>{
           //loading the fonts, have three text geometries
           const loader = new FontLoader();
       
-          loader.load('../resources/fonts/helvetiker_regular.typeface.json', function (font) {
+          loader.load('./resources/fonts/helvetiker_regular.typeface.json', function (font) {
       
             const Textgeometry = new TextGeometry(levelString, {
               font: font,
