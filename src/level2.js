@@ -94,7 +94,7 @@ export const level2 = (() =>{
       this.sound = new THREE.Audio(listener);
       var audioLoader = new THREE.AudioLoader();
       //Load a sound and set it as the Audio object's buffer
-      audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', (buffer) => {
+      audioLoader.load( './resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', (buffer) => {
         this.sound.setBuffer( buffer );
         this.sound.setLoop(true);
         this.sound.setVolume(0.5);
@@ -105,7 +105,7 @@ export const level2 = (() =>{
       this.screamSound = new THREE.Audio(listener);
       var audioLoader1 = new THREE.AudioLoader();
       // Load a sound and set it as the Audio object's buffer
-      audioLoader1.load('../resources/sounds/wscream_2.wav', (buffer) => {
+      audioLoader1.load('./resources/sounds/wscream_2.wav', (buffer) => {
         this.screamSound.setBuffer(buffer);
         this.screamSound.setLoop(false);
         this.screamSound.setVolume(0.8);
@@ -173,7 +173,7 @@ export const level2 = (() =>{
   
       //Load the key into the map and store the object
       const loader = new GLTFLoader(this.loadingManager);
-      loader.setPath('./resources/level2/');
+      loader.setPath('./resources/Level2/');
       loader.load('key.glb', (glb) => {
         glb.name = 'key'
         glb.scene.scale.setScalar(3);
@@ -192,12 +192,12 @@ export const level2 = (() =>{
 
       // Create and load the skybox
       let materialArray = [];
-      let texture_ft = new THREE.TextureLoader().load( '../resources/Level2/skybox/zpos.png');
-      let texture_bk = new THREE.TextureLoader().load( '../resources/Level2/skybox/zneg.png');
-      let texture_up = new THREE.TextureLoader().load( '../resources/Level2/skybox/ypos.png');
-      let texture_dn = new THREE.TextureLoader().load( '../resources/Level2/skybox/yneg.png');
-      let texture_rt = new THREE.TextureLoader().load( '../resources/Level2/skybox/xpos.png');
-      let texture_lf = new THREE.TextureLoader().load( '../resources/Level2/skybox/xneg.png');
+      let texture_ft = new THREE.TextureLoader().load( './resources/Level2/skybox/zpos.png');
+      let texture_bk = new THREE.TextureLoader().load( './resources/Level2/skybox/zneg.png');
+      let texture_up = new THREE.TextureLoader().load( './resources/Level2/skybox/ypos.png');
+      let texture_dn = new THREE.TextureLoader().load( './resources/Level2/skybox/yneg.png');
+      let texture_rt = new THREE.TextureLoader().load( './resources/Level2/skybox/xpos.png');
+      let texture_lf = new THREE.TextureLoader().load( './resources/Level2/skybox/xneg.png');
         
       materialArray.push(new THREE.MeshBasicMaterial( { map: texture_ft }));
       materialArray.push(new THREE.MeshBasicMaterial( { map: texture_bk }));

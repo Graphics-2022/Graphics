@@ -93,7 +93,7 @@ export const level1 = (() => {
       this.sound = new THREE.Audio(listener);
       var audioLoader = new THREE.AudioLoader();
       //Load a sound and set it as the Audio object's buffer
-      audioLoader.load( '../resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', (buffer) => {
+      audioLoader.load( './resources/sounds/Juhani Junkala - Post Apocalyptic Wastelands [Loop Ready].ogg', (buffer) => {
         this.sound.setBuffer( buffer );
         this.sound.setLoop(true);
         this.sound.setVolume(0.5);
@@ -105,7 +105,7 @@ export const level1 = (() => {
       this.screamSound = new THREE.Audio(listener);
       var audioLoader1 = new THREE.AudioLoader();
       // Load a sound and set it as the Audio object's buffer
-      audioLoader1.load('../resources/sounds/wscream_2.wav', (buffer) => {
+      audioLoader1.load('./resources/sounds/wscream_2.wav', (buffer) => {
         this.screamSound.setBuffer(buffer);
         this.screamSound.setLoop(false);
         this.screamSound.setVolume(0.8);
